@@ -16,6 +16,8 @@ public class UserMapper {
         UserDTO.UserResponse response = new UserDTO.UserResponse();
         response.setId(user.getId().toString());
         response.setUsername(user.getUsername());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().name());
         response.setIsAccountEnabled(user.getIsAccountEnabled());
@@ -29,6 +31,8 @@ public class UserMapper {
     public AuthDTO.UserResponse toAuthUserResponse(User user, Optional<AdminPanel> adminPanel) {
         AuthDTO.UserResponse userResponse = new AuthDTO.UserResponse();
         userResponse.setId(user.getId().toString());
+        userResponse.setFirstName(user.getFirstName());
+        userResponse.setLastName(user.getLastName());
         userResponse.setUsername(user.getUsername());
         userResponse.setEmail(user.getEmail());
         userResponse.setRole(user.getRole().name());
@@ -53,6 +57,8 @@ public class UserMapper {
         UserDTO.UserListResponse response = new UserDTO.UserListResponse();
         response.setId(user.getId().toString());
         response.setUsername(user.getUsername());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().name());
         response.setIsAccountEnabled(user.getIsAccountEnabled());
@@ -64,6 +70,8 @@ public class UserMapper {
     public UserDTO.UserResponse fromAuthUserResponse(AuthDTO.UserResponse authUserResponse) {
         UserDTO.UserResponse response = new UserDTO.UserResponse();
         response.setId(authUserResponse.getId());
+        response.setFirstName(authUserResponse.getFirstName());
+        response.setLastName(authUserResponse.getLastName());
         response.setUsername(authUserResponse.getUsername());
         response.setEmail(authUserResponse.getEmail());
         response.setRole(authUserResponse.getRole());

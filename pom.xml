@@ -12,7 +12,7 @@
 	<artifactId>lucaflix</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>lucaflix</name>
-	<description>Sistema de backend de filmes</description>
+	<description>Sistema de backend de media</description>
 
 	<properties>
 		<java.version>23</java.version>

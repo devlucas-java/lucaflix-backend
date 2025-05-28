@@ -1,283 +1,299 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.MediaDTO;
-import com.lucaflix.dto.media.MediaMapper;
+import com.lucaflix.dto.media.MediaCompleteDTO;
+import com.lucaflix.dto.media.MediaSimpleDTO;
+import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class MediaService {
 
-    private final FilmeRepository filmeRepository;
-    private final SerieRepository serieRepository;
-    private final MinhaListaRepository minhaListaRepository;
+    private final MediaRepository mediaRepository;
     private final LikeRepository likeRepository;
-    private final EpisodioRepository episodioRepository;
-    private final MediaMapper mediaMapper;
+    private final MinhaListaRepository minhaListaRepository;
+    private final UserRepository userRepository;
 
-    /// BUSCA FILME POR ID PARA SINGLE PAGE
-    public MediaDTO.FilmeDetailsResponse getFilmeById(Long filmeId) {
-        Filme filme = filmeRepository.findById(filmeId)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com id: " + filmeId));
+    /**
+     * Lista todas as mídias com paginação
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getAllMedia(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
+        Page<Media> mediaPage = mediaRepository.findAll(pageable);
 
-        long totalLikes = likeRepository.countByFilme(filme);
+        List<MediaSimpleDTO> mediaList = mediaPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
+                .collect(Collectors.toList());
 
-        log.info("Filme {} buscado com sucesso", filmeId);
-        return mediaMapper.toFilmeDetailsResponse(filme, totalLikes);
+        return new PaginatedResponseDTO<>(
+                mediaList,
+                mediaPage.getNumber(),
+                mediaPage.getTotalPages(),
+                mediaPage.getTotalElements(),
+                mediaPage.getSize(),
+                mediaPage.isFirst(),
+                mediaPage.isLast(),
+                mediaPage.hasNext(),
+                mediaPage.hasPrevious()
+        );
     }
 
-    /// BUSCA SERIE COM TEMPORADAS E EPISODIOS PARA SINGLE PAGE
-    public MediaDTO.SerieDetailsResponse getSerieById(Long serieId) {
-        Serie serie = serieRepository.findByIdWithTemporadasAndEpisodios(serieId)
-                .orElseThrow(() -> new EntityNotFoundException("Série não encontrada com id: " + serieId));
+    /**
+     * Lista apenas séries com paginação
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getSeries(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
+        Page<Media> seriesPage = mediaRepository.findByIsFilmeFalse(pageable);
 
-        long totalLikes = likeRepository.countBySerie(serie);
+        List<MediaSimpleDTO> seriesList = seriesPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
+                .collect(Collectors.toList());
 
-        log.info("Série {} buscada com sucesso", serieId);
-        return mediaMapper.toSerieDetailsResponse(serie, totalLikes);
+        return new PaginatedResponseDTO<>(
+                seriesList,
+                seriesPage.getNumber(),
+                seriesPage.getTotalPages(),
+                seriesPage.getTotalElements(),
+                seriesPage.getSize(),
+                seriesPage.isFirst(),
+                seriesPage.isLast(),
+                seriesPage.hasNext(),
+                seriesPage.hasPrevious()
+        );
     }
 
-    /// BUSCA TOP 10 SERIES COM MAIS LIKES
-    public List<MediaDTO.SerieResponse> getTop10SeriesByLikes() {
-        Pageable top10 = PageRequest.of(0, 10);
-        List<Serie> topSeries = serieRepository.findTop10SeriesByLikes(top10);
+    /**
+     * Lista apenas filmes com paginação
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getFilmes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
+        Page<Media> filmesPage = mediaRepository.findByIsFilmeTrue(pageable);
 
-        log.info("Top 10 séries por likes buscadas com sucesso");
-        return topSeries.stream()
-                .map(serie -> {
-                    long totalLikes = likeRepository.countBySerie(serie);
-                    return mediaMapper.toSerieResponse(serie, totalLikes);
-                })
+        List<MediaSimpleDTO> filmesList = filmesPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponseDTO<>(
+                filmesList,
+                filmesPage.getNumber(),
+                filmesPage.getTotalPages(),
+                filmesPage.getTotalElements(),
+                filmesPage.getSize(),
+                filmesPage.isFirst(),
+                filmesPage.isLast(),
+                filmesPage.hasNext(),
+                filmesPage.hasPrevious()
+        );
+    }
+
+    /**
+     * Retorna as top 10 mídias com mais likes
+     */
+    public List<MediaSimpleDTO> getTop10MostLiked() {
+        List<Media> topMedia = mediaRepository.findTop10ByOrderByLikesDesc();
+        return topMedia.stream()
+                .map(this::convertToSimpleDTO)
                 .collect(Collectors.toList());
     }
 
-    /// BUSCA TOP 10 FILMES COM MAIS LIKES
-    public List<MediaDTO.FilmeResponse> getTop10FilmesByLikes() {
-        Pageable top10 = PageRequest.of(0, 10);
-        List<Filme> topFilmes = filmeRepository.findTop10FilmesByLikes(top10);
+    /**
+     * Retorna uma mídia completa por ID
+     */
+    public MediaCompleteDTO getMediaById(Long mediaId, UUID userId) {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
 
-        log.info("Top 10 filmes por likes buscados com sucesso");
-        return topFilmes.stream()
-                .map(filme -> {
-                    long totalLikes = likeRepository.countByFilme(filme);
-                    return mediaMapper.toFilmeResponse(filme, totalLikes);
-                })
-                .collect(Collectors.toList());
+        return convertToCompleteDTO(media, userId);
     }
 
-    /// BUSCA SERIES E FILMES QUE O USUARIO MARCOU COMO ASSISTIDO OU ESTA ASSISTINDO
-    public MediaDTO.UserWatchedContentResponse getUserWatchedContent(User user) {
-        List<MinhaLista> watchedMovies = minhaListaRepository.findByUserAndFilmeIsNotNullAndAssistidoTrueOrderByDataUltimaVisualizacaoDesc(user);
-        List<MinhaLista> watchingSeries = minhaListaRepository.findByUserAndSerieIsNotNullOrderByDataUltimaVisualizacaoDesc(user);
-
-        List<MediaDTO.FilmeResponse> filmesAssistidos = watchedMovies.stream()
-                .map(item -> {
-                    long totalLikes = likeRepository.countByFilme(item.getFilme());
-                    return mediaMapper.toFilmeResponse(item.getFilme(), totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        List<MediaDTO.SerieResponse> seriesAssistindo = watchingSeries.stream()
-                .map(item -> {
-                    long totalLikes = likeRepository.countBySerie(item.getSerie());
-                    return mediaMapper.toSerieResponse(item.getSerie(), totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        log.info("Conteúdo assistido do usuário {} buscado com sucesso", user.getId());
-        return MediaDTO.UserWatchedContentResponse.builder()
-                .filmesAssistidos(filmesAssistidos)
-                .seriesAssistindo(seriesAssistindo)
-                .build();
-    }
-
-    /// BUSCA MINHA LISTA DO USUARIO
-    public MediaDTO.MinhaListaResponse getMinhaLista(User user) {
-        List<MinhaLista> minhaLista = minhaListaRepository.findByUserOrderByDataAdicaoDesc(user);
-
-        List<MediaDTO.FilmeResponse> filmes = minhaLista.stream()
-                .filter(item -> item.getFilme() != null)
-                .map(item -> {
-                    long totalLikes = likeRepository.countByFilme(item.getFilme());
-                    return mediaMapper.toFilmeResponse(item.getFilme(), totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        List<MediaDTO.SerieResponse> series = minhaLista.stream()
-                .filter(item -> item.getSerie() != null)
-                .map(item -> {
-                    long totalLikes = likeRepository.countBySerie(item.getSerie());
-                    return mediaMapper.toSerieResponse(item.getSerie(), totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        log.info("Minha lista do usuário {} buscada com sucesso", user.getId());
-        return MediaDTO.MinhaListaResponse.builder()
-                .filmes(filmes)
-                .series(series)
-                .build();
-    }
-
-    /// FILTRA CONTEUDO POR TIPO (SERIE/FILME) E CATEGORIA
-    public MediaDTO.FilteredContentResponse filterContent(String tipo, Categoria categoria, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-
-        List<MediaDTO.FilmeResponse> filmes = null;
-        List<MediaDTO.SerieResponse> series = null;
-
-        if ("filme".equalsIgnoreCase(tipo) || "todos".equalsIgnoreCase(tipo)) {
-            List<Filme> filmesList;
-            if (categoria != null) {
-                filmesList = filmeRepository.findByCategoriaOrderByDataCadastroDesc(categoria, pageable);
-            } else {
-                filmesList = filmeRepository.findAllByOrderByDataCadastroDesc(pageable);
-            }
-
-            filmes = filmesList.stream()
-                    .map(filme -> {
-                        long totalLikes = likeRepository.countByFilme(filme);
-                        return mediaMapper.toFilmeResponse(filme, totalLikes);
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        if ("serie".equalsIgnoreCase(tipo) || "todos".equalsIgnoreCase(tipo)) {
-            List<Serie> seriesList;
-            if (categoria != null) {
-                seriesList = serieRepository.findByCategoriaOrderByDataCadastroDesc(categoria, pageable);
-            } else {
-                seriesList = serieRepository.findAllByOrderByDataCadastroDesc(pageable);
-            }
-
-            series = seriesList.stream()
-                    .map(serie -> {
-                        long totalLikes = likeRepository.countBySerie(serie);
-                        return mediaMapper.toSerieResponse(serie, totalLikes);
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        log.info("Conteúdo filtrado por tipo: {}, categoria: {}", tipo, categoria);
-        return MediaDTO.FilteredContentResponse.builder()
-                .filmes(filmes)
-                .series(series)
-                .build();
-    }
-
-    /// BUSCA SERIES OU FILMES POR NOME OU PARTE DO NOME
-    public MediaDTO.SearchResultResponse searchContent(String searchTerm) {
-        List<Filme> filmes = filmeRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(searchTerm);
-        List<Serie> series = serieRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(searchTerm);
-
-        List<MediaDTO.FilmeResponse> filmesResponse = filmes.stream()
-                .map(filme -> {
-                    long totalLikes = likeRepository.countByFilme(filme);
-                    return mediaMapper.toFilmeResponse(filme, totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        List<MediaDTO.SerieResponse> seriesResponse = series.stream()
-                .map(serie -> {
-                    long totalLikes = likeRepository.countBySerie(serie);
-                    return mediaMapper.toSerieResponse(serie, totalLikes);
-                })
-                .collect(Collectors.toList());
-
-        log.info("Busca por '{}' retornou {} filmes e {} séries", searchTerm, filmes.size(), series.size());
-        return MediaDTO.SearchResultResponse.builder()
-                .filmes(filmesResponse)
-                .series(seriesResponse)
-                .totalResults(filmes.size() + series.size())
-                .build();
-    }
-
-    /// ADICIONA OU REMOVE LIKE DE FILME
+    /**
+     * Adiciona uma mídia à lista do usuário
+     */
     @Transactional
-    public MediaDTO.LikeResponse toggleFilmeLike(User user, Long filmeId) {
-        Filme filme = filmeRepository.findById(filmeId)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com id: " + filmeId));
+    public void addToMyList(UUID userId, Long id) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        Optional<Like> existingLike = likeRepository.findByUserAndFilme(user, filme);
+        Media media = mediaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
 
-        boolean liked;
-        if (existingLike.isPresent()) {
-            likeRepository.delete(existingLike.get());
-            liked = false;
-            log.info("Like removido do filme {} pelo usuário {}", filmeId, user.getId());
-        } else {
-            Like newLike = new Like();
-            newLike.setUser(user);
-            newLike.setFilme(filme);
-            likeRepository.save(newLike);
-            liked = true;
-            log.info("Like adicionado ao filme {} pelo usuário {}", filmeId, user.getId());
+        // Verifica se já não está na lista
+        boolean alreadyInList = minhaListaRepository.existsByUserAndMedia(user, media);
+        if (alreadyInList) {
+            throw new RuntimeException("Mídia já está na sua lista");
         }
 
-        long totalLikes = likeRepository.countByFilme(filme);
+        MinhaLista minhaLista = new MinhaLista();
+        minhaLista.setUser(user);
+        minhaLista.setMedia(media);
 
-        return MediaDTO.LikeResponse.builder()
-                .liked(liked)
-                .totalLikes(totalLikes)
-                .build();
+        minhaListaRepository.save(minhaLista);
     }
 
-    /// ADICIONA OU REMOVE LIKE DE SERIE
+    /**
+     * Remove uma mídia da lista do usuário
+     */
     @Transactional
-    public MediaDTO.LikeResponse toggleSerieLike(User user, Long serieId) {
-        Serie serie = serieRepository.findById(serieId)
-                .orElseThrow(() -> new EntityNotFoundException("Série não encontrada com id: " + serieId));
+    public void removeFromMyList(UUID userId, Long mediaId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        Optional<Like> existingLike = likeRepository.findByUserAndSerie(user, serie);
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
 
-        boolean liked;
-        if (existingLike.isPresent()) {
-            likeRepository.delete(existingLike.get());
-            liked = false;
-            log.info("Like removido da série {} pelo usuário {}", serieId, user.getId());
-        } else {
-            Like newLike = new Like();
-            newLike.setUser(user);
-            newLike.setSerie(serie);
-            likeRepository.save(newLike);
-            liked = true;
-            log.info("Like adicionado à série {} pelo usuário {}", serieId, user.getId());
+        MinhaLista minhaLista = minhaListaRepository.findByUserAndMedia(user, media)
+                .orElseThrow(() -> new RuntimeException("Mídia não está na sua lista"));
+
+        minhaListaRepository.delete(minhaLista);
+    }
+
+    /**
+     * Dá like em uma mídia
+     */
+    @Transactional
+    public void likeMedia(UUID userId, Long likeDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Media media = mediaRepository.findById(likeDTO)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
+
+        // Verifica se já não deu like
+        boolean alreadyLiked = likeRepository.existsByUserAndMedia(user, media);
+        if (alreadyLiked) {
+            throw new RuntimeException("Você já curtiu esta mídia");
         }
 
-        long totalLikes = likeRepository.countBySerie(serie);
+        Like like = new Like();
+        like.setUser(user);
+        like.setMedia(media);
 
-        return MediaDTO.LikeResponse.builder()
-                .liked(liked)
-                .totalLikes(totalLikes)
-                .build();
+        likeRepository.save(like);
     }
 
-    /// VERIFICA SE USUARIO JA CURTIU O FILME
-    public boolean hasUserLikedFilme(User user, Long filmeId) {
-        Filme filme = filmeRepository.findById(filmeId)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com id: " + filmeId));
+    /**
+     * Remove like de uma mídia
+     */
+    @Transactional
+    public void unlikeMedia(UUID userId, Long mediaId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        return likeRepository.existsByUserAndFilme(user, filme);
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
+
+        Like like = likeRepository.findByUserAndMedia(user, media)
+                .orElseThrow(() -> new RuntimeException("Você não curtiu esta mídia"));
+
+        likeRepository.delete(like);
     }
 
-    /// VERIFICA SE USUARIO JA CURTIU A SERIE
-    public boolean hasUserLikedSerie(User user, Long serieId) {
-        Serie serie = serieRepository.findById(serieId)
-                .orElseThrow(() -> new EntityNotFoundException("Série não encontrada com id: " + serieId));
+    /**
+     * Retorna a lista pessoal do usuário
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMyList(UUID userId, int page, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        return likeRepository.existsByUserAndSerie(user, serie);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
+        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
+
+        List<MediaSimpleDTO> mediaList = myListPage.getContent().stream()
+                .map(minhaLista -> convertToSimpleDTO(minhaLista.getMedia()))
+                .collect(Collectors.toList());
+
+        return new PaginatedResponseDTO<>(
+                mediaList,
+                myListPage.getNumber(),
+                myListPage.getTotalPages(),
+                myListPage.getTotalElements(),
+                myListPage.getSize(),
+                myListPage.isFirst(),
+                myListPage.isLast(),
+                myListPage.hasNext(),
+                myListPage.hasPrevious()
+        );
+    }
+
+    /**
+     * Busca mídias por título
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> searchByTitle(String title, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
+        Page<Media> mediaPage = mediaRepository.findByTitleContainingIgnoreCase(title, pageable);
+
+        List<MediaSimpleDTO> mediaList = mediaPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponseDTO<>(
+                mediaList,
+                mediaPage.getNumber(),
+                mediaPage.getTotalPages(),
+                mediaPage.getTotalElements(),
+                mediaPage.getSize(),
+                mediaPage.isFirst(),
+                mediaPage.isLast(),
+                mediaPage.hasNext(),
+                mediaPage.hasPrevious()
+        );
+    }
+
+    // Métodos privados de conversão
+    private MediaSimpleDTO convertToSimpleDTO(Media media) {
+        MediaSimpleDTO dto = new MediaSimpleDTO();
+        dto.setId(media.getId());
+        dto.setTitle(media.getTitle());
+        dto.setFilme(media.isFilme());
+        dto.setAnoLancamento(media.getAnoLancamento());
+        dto.setDuracaoMinutos(media.getDuracaoMinutos());
+        dto.setCategoria(media.getCategoria());
+        dto.setMinAge(media.getMinAge());
+        dto.setAvaliacao(media.getAvaliacao());
+        dto.setImageURL(media.getImageURL());
+        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
+        return dto;
+    }
+
+    private MediaCompleteDTO convertToCompleteDTO(Media media, UUID userId) {
+        MediaCompleteDTO dto = new MediaCompleteDTO();
+        dto.setId(media.getId());
+        dto.setTitle(media.getTitle());
+        dto.setFilme(media.isFilme());
+        dto.setAnoLancamento(media.getAnoLancamento());
+        dto.setDuracaoMinutos(media.getDuracaoMinutos());
+        dto.setSinopse(media.getSinopse());
+        dto.setDataCadastro(media.getDataCadastro());
+        dto.setCategoria(media.getCategoria());
+        dto.setMinAge(media.getMinAge());
+        dto.setAvaliacao(media.getAvaliacao());
+        dto.setEmbed1(media.getEmbed1());
+        dto.setEmbed2(media.getEmbed2());
+        dto.setTrailer(media.getTrailer());
+        dto.setImageURL(media.getImageURL());
+        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
+
+        // Verifica se o usuário curtiu
+        if (userId != null) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                dto.setUserLiked(likeRepository.existsByUserAndMedia(user, media));
+                dto.setInUserList(minhaListaRepository.existsByUserAndMedia(user, media));
+            }
+        }
+
+        return dto;
     }
 }

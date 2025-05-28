@@ -1,9 +1,9 @@
 package com.lucaflix.config;
 
-import com.chicahot.api.model.AdminProfile;
-import com.chicahot.api.model.User;
-import com.chicahot.api.model.enums.UserRole;
-import com.chicahot.api.repository.UserRepository;
+import com.lucaflix.model.AdminPanel;
+import com.lucaflix.model.User;
+import com.lucaflix.model.enums.Role;
+import com.lucaflix.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -43,17 +43,16 @@ public class InitAdminUser {
             }
 
             User user = new User();
-            user.setEmailVerified(true);
+            user.setLastName(adminLastName );
             user.setFirstName(adminFirstName);
-            user.setLastName(adminLastName);
-            user.setMyUserName(adminUsername);
+            user.setUsername(adminUsername);
             user.setEmail(adminEmail);
             user.setPassword(passwordEncoder.encode(adminPassword));
-            user.setRole(UserRole.SUPER_ADMIN);
+            user.setRole(Role.SUPER_ADMIN);
 
-            AdminProfile adminProfile = new AdminProfile();
-            adminProfile.setUser(user);
-            user.setAdminProfile(adminProfile);
+            AdminPanel adminPanel = new AdminPanel();
+            adminPanel.setUser(user);
+            user.setAdminPanel(adminPanel);
 
             userRepository.save(user);
 

@@ -147,10 +147,10 @@ public class AuthService {
         if (signUpRequest == null) {
             throw new IllegalArgumentException("Requisicao de registro nao pode ser nula");
         }
-        if (signUpRequest.getNomeCompleto() == null || signUpRequest.getNomeCompleto().trim().isEmpty()) {
+        if (signUpRequest.getName() == null || signUpRequest.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Nome completo nao pode estar vazio");
         }
-        if (signUpRequest.getNomeCompleto().length() < 2 || signUpRequest.getNomeCompleto().length() > 100) {
+        if (signUpRequest.getName().length() < 2 || signUpRequest.getName().length() > 100) {
             throw new IllegalArgumentException("Nome deve ter entre 2 e 100 caracteres");
         }
         if (signUpRequest.getEmail() == null || signUpRequest.getEmail().trim().isEmpty()) {

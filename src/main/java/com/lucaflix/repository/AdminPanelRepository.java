@@ -15,16 +15,6 @@ public interface AdminPanelRepository extends JpaRepository<AdminPanel, UUID> {
 
     Optional<AdminPanel> findByUser(User user);
 
-    @Query("SELECT ap FROM AdminPanel ap WHERE ap.user.id = :userId")
-    Optional<AdminPanel> findByUserId(@Param("userId") UUID userId);
-
     boolean existsByUser(User user);
 
-    @Query("SELECT CASE WHEN COUNT(ap) > 0 THEN true ELSE false END FROM AdminPanel ap WHERE ap.user.id = :userId")
-    boolean existsByUserId(@Param("userId") UUID userId);
-
-    void deleteByUser(User user);
-
-    @Query("DELETE FROM AdminPanel ap WHERE ap.user.id = :userId")
-    void deleteByUserId(@Param("userId") UUID userId);
 }

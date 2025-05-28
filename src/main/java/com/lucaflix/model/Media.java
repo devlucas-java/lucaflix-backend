@@ -5,12 +5,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
-import java.util.Timer;
 
 @Entity
-@Table(name = "filmes")
+@Table(name = "media")
 @Data
-public class Filme {
+public class Media {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +17,9 @@ public class Filme {
 
     @Column(nullable = false)
     private String title;
+
+    @Column(nullable = false)
+    private boolean isFilme = true;
 
     @Column(name = "ano_lancamento")
     @Temporal(TemporalType.DATE)
@@ -36,6 +38,12 @@ public class Filme {
     @Enumerated(EnumType.STRING)
     private Categoria categoria;
 
+    @Column(name = "min_age")
+    private String minAge;
+
+    @Column(name = "avaliacao")
+    private Double avaliacao;
+
     @Column(name = "embed_url_1")
     private String embed1;
 
@@ -48,9 +56,10 @@ public class Filme {
     @Column(name = "image_url")
     private String imageURL;
 
-    @OneToMany(mappedBy = "filme", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Like> likes;
 
-    @OneToMany(mappedBy = "filme", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MinhaLista> minhaLista;
+
 }

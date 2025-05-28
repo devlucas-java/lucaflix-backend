@@ -2,7 +2,6 @@ package com.lucaflix.service;
 
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Role;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -81,112 +81,16 @@ public class UserController {
         }
     }
 
-    /// VERIFICA SENHA DO USUARIO ATUAL
-    @PostMapping("/verify-password")
-    @Operation(summary = "Verificar senha", description = "Verifica se a senha fornecida está correta")
-    public ResponseEntity<Map<String, Boolean>> verifyPassword(
-            @RequestBody UserDTO.PasswordVerificationRequest request,
-            @CurrentUser User user) {
-        try {
-            boolean isValid = userService.verifyPassword(user, request.getPassword());
-            return ResponseEntity.ok(Map.of("valid", isValid));
-        } catch (IllegalArgumentException e) {
-            log.warn("Verificação de senha falhou para usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.badRequest()
-                    .body(Map.of("valid", false));
-        } catch (Exception e) {
-            log.error("Erro inesperado durante verificação de senha para usuário: {}", user.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("valid", false));
-        }
-    }
 
-    /// ADICIONA FILME COMO ASSISTIDO PARA O USUARIO
-    @PostMapping("/watched-movies")
-    @Operation(summary = "Marcar filme como assistido", description = "Adiciona um filme à lista de filmes assistidos do usuário")
-    public ResponseEntity<Map<String, String>> addWatchedMovie(
-            @RequestBody UserDTO.WatchedMovieRequest request,
-            @CurrentUser User user) {
-        try {
-            userService.addMovieAsWatched(user, request.getFilmeId());
-            return ResponseEntity.ok(Map.of("message", "Filme marcado como assistido"));
-        } catch (Exception e) {
-            log.error("Erro ao marcar filme como assistido para usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao marcar filme como assistido"));
-        }
-    }
 
-    /// ADICIONA SERIE COMO ASSISTINDO PARA O USUARIO
-    @PostMapping("/watching-series")
-    @Operation(summary = "Adicionar série como assistindo", description = "Adiciona uma série à lista de séries sendo assistidas pelo usuário")
-    public ResponseEntity<Map<String, String>> addWatchingSeries(
-            @RequestBody UserDTO.WatchingSeriesRequest request,
-            @CurrentUser User user) {
-        try {
-            userService.addSeriesAsWatching(user, request.getSerieId());
-            return ResponseEntity.ok(Map.of("message", "Série adicionada como assistindo"));
-        } catch (Exception e) {
-            log.error("Erro ao adicionar série como assistindo para usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao adicionar série como assistindo"));
-        }
-    }
 
-    /// MARCA EPISODIO COMO ASSISTIDO PARA O USUARIO
-    @PostMapping("/watched-episodes")
-    @Operation(summary = "Marcar episódio como assistido", description = "Marca um episódio como assistido para o usuário")
-    public ResponseEntity<Map<String, String>> markEpisodeAsWatched(
-            @RequestBody UserDTO.WatchedEpisodeRequest request,
-            @CurrentUser User user) {
-        try {
-            userService.markEpisodeAsWatched(user, request.getEpisodioId());
-            return ResponseEntity.ok(Map.of("message", "Episódio marcado como assistido"));
-        } catch (Exception e) {
-            log.error("Erro ao marcar episódio como assistido para usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao marcar episódio como assistido"));
-        }
-    }
 
-    /// OBTEM LISTA COMPLETA DO USUARIO
-    @GetMapping("/my-list")
-    @Operation(summary = "Obter minha lista", description = "Retorna a lista completa de filmes e séries do usuário")
-    public ResponseEntity<List<MinhaLista>> getUserList(@CurrentUser User user) {
-        try {
-            List<MinhaLista> userList = userService.getUserList(user);
-            return ResponseEntity.ok(userList);
-        } catch (Exception e) {
-            log.error("Erro ao obter lista do usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
-    /// OBTEM FILMES ASSISTIDOS DO USUARIO
-    @GetMapping("/watched-movies")
-    @Operation(summary = "Obter filmes assistidos", description = "Retorna a lista de filmes assistidos pelo usuário")
-    public ResponseEntity<List<MinhaLista>> getWatchedMovies(@CurrentUser User user) {
-        try {
-            List<MinhaLista> watchedMovies = userService.getUserWatchedMovies(user);
-            return ResponseEntity.ok(watchedMovies);
-        } catch (Exception e) {
-            log.error("Erro ao obter filmes assistidos do usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 
-    /// OBTEM SERIES ASSISTINDO DO USUARIO
-    @GetMapping("/watching-series")
-    @Operation(summary = "Obter séries assistindo", description = "Retorna a lista de séries sendo assistidas pelo usuário")
-    public ResponseEntity<List<MinhaLista>> getWatchingSeries(@CurrentUser User user) {
-        try {
-            List<MinhaLista> watchingSeries = userService.getUserWatchingSeries(user);
-            return ResponseEntity.ok(watchingSeries);
-        } catch (Exception e) {
-            log.error("Erro ao obter séries assistindo do usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+
+
+
+
 
     /// ENDPOINTS ADMINISTRATIVOS - REQUEREM PERMISSOES ESPECIAIS
 

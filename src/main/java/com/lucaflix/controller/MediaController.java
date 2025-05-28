@@ -1,204 +1,330 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.MediaDTO;
-import com.lucaflix.model.User;
-import com.lucaflix.model.enums.Categoria;
-import com.lucaflix.security.CurrentUser;
+import com.lucaflix.dto.media.MediaCompleteDTO;
+import com.lucaflix.dto.media.MediaSimpleDTO;
+import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.service.MediaService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
-@Slf4j
 @RestController
-@RequestMapping("/media")
+@RequestMapping("/api/media")
 @RequiredArgsConstructor
-@Tag(name = "Media", description = "Endpoints para gerenciamento de mídia (filmes e séries)")
+@CrossOrigin(origins = "*")
 public class MediaController {
 
     private final MediaService mediaService;
 
-    /// BUSCA FILME PARA SINGLE PAGE DO FRONTEND
-    @GetMapping("/filmes/{filmeId}")
-    @Operation(summary = "Obter detalhes do filme", description = "Retorna informações detalhadas de um filme específico")
-    public ResponseEntity<MediaDTO.FilmeDetailsResponse> getFilmeById(
-            @Parameter(description = "ID do filme") @PathVariable Long filmeId) {
-        try {
-            MediaDTO.FilmeDetailsResponse filme = mediaService.getFilmeById(filmeId);
-            return ResponseEntity.ok(filme);
-        } catch (Exception e) {
-            log.error("Erro ao buscar filme {}: {}", filmeId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    /**
+     * Lista todas as mídias com paginação
+     */
+    @GetMapping
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getAllMedia(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getAllMedia(page, size);
+        return ResponseEntity.ok(response);
     }
 
-    /// BUSCA SERIE E SUAS TEMPORADAS E EPISODIOS PARA SINGLE PAGE DO FRONTEND
-    @GetMapping("/series/{serieId}")
-    @Operation(summary = "Obter detalhes da série", description = "Retorna informações detalhadas de uma série com temporadas e episódios")
-    public ResponseEntity<MediaDTO.SerieDetailsResponse> getSerieById(
-            @Parameter(description = "ID da série") @PathVariable Long serieId) {
-        try {
-            MediaDTO.SerieDetailsResponse serie = mediaService.getSerieById(serieId);
-            return ResponseEntity.ok(serie);
-        } catch (Exception e) {
-            log.error("Erro ao buscar série {}: {}", serieId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    /**
+     * Lista apenas séries com paginação
+     */
+    @GetMapping("/series")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getSeries(page, size);
+        return ResponseEntity.ok(response);
     }
 
-    /// BUSCA TOP 10 SERIES COM MAIS LIKES
-    @GetMapping("/series/top-likes")
-    @Operation(summary = "Top 10 séries mais curtidas", description = "Retorna as 10 séries com mais likes")
-    public ResponseEntity<List<MediaDTO.SerieResponse>> getTop10SeriesByLikes() {
-        try {
-            List<MediaDTO.SerieResponse> topSeries = mediaService.getTop10SeriesByLikes();
-            return ResponseEntity.ok(topSeries);
-        } catch (Exception e) {
-            log.error("Erro ao buscar top séries: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    /**
+     * Lista apenas filmes com paginação
+     */
+    @GetMapping("/filmes")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getFilmes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getFilmes(page, size);
+        return ResponseEntity.ok(response);
     }
 
-    /// BUSCA TOP 10 FILMES COM MAIS LIKES
-    @GetMapping("/filmes/top-likes")
-    @Operation(summary = "Top 10 filmes mais curtidos", description = "Retorna os 10 filmes com mais likes")
-    public ResponseEntity<List<MediaDTO.FilmeResponse>> getTop10FilmesByLikes() {
-        try {
-            List<MediaDTO.FilmeResponse> topFilmes = mediaService.getTop10FilmesByLikes();
-            return ResponseEntity.ok(topFilmes);
-        } catch (Exception e) {
-            log.error("Erro ao buscar top filmes: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    /**
+     * Retorna as top 10 mídias com mais likes
+     */
+    @GetMapping("/top10")
+    public ResponseEntity<List<MediaSimpleDTO>> getTop10MostLiked() {
+        List<MediaSimpleDTO> response = mediaService.getTop10MostLiked();
+        return ResponseEntity.ok(response);
     }
 
-    /// BUSCA SERIES E FILMES QUE O USER MARCOU COMO ASSISTIDO OU ESTA ASSISTINDO
-    @GetMapping("/my-watched-content")
-    @Operation(summary = "Meu conteúdo assistido", description = "Retorna filmes assistidos e séries sendo assistidas pelo usuário")
-    public ResponseEntity<MediaDTO.UserWatchedContentResponse> getUserWatchedContent(@CurrentUser User user) {
-        try {
-            MediaDTO.UserWatchedContentResponse watchedContent = mediaService.getUserWatchedContent(user);
-            return ResponseEntity.ok(watchedContent);
-        } catch (Exception e) {
-            log.error("Erro ao buscar conteúdo assistido do usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /// BUSCA MINHA LISTA
-    @GetMapping("/my-list")
-    @Operation(summary = "Minha lista", description = "Retorna a lista completa de filmes e séries do usuário")
-    public ResponseEntity<MediaDTO.MinhaListaResponse> getMinhaLista(@CurrentUser User user) {
-        try {
-            MediaDTO.MinhaListaResponse minhaLista = mediaService.getMinhaLista(user);
-            return ResponseEntity.ok(minhaLista);
-        } catch (Exception e) {
-            log.error("Erro ao buscar minha lista do usuário {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /// SISTEMA DE FILTRAR POR SERIES, FILMES E CATEGORIA
-    @GetMapping("/filter")
-    @Operation(summary = "Filtrar conteúdo", description = "Filtra conteúdo por tipo (filme/serie/todos) e categoria")
-    public ResponseEntity<MediaDTO.FilteredContentResponse> filterContent(
-            @Parameter(description = "Tipo de conteúdo (filme, serie, todos)") @RequestParam(defaultValue = "todos") String tipo,
-            @Parameter(description = "Categoria do conteúdo") @RequestParam(required = false) Categoria categoria,
-            @Parameter(description = "Número da página") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size) {
-        try {
-            MediaDTO.FilteredContentResponse filteredContent = mediaService.filterContent(tipo, categoria, page, size);
-            return ResponseEntity.ok(filteredContent);
-        } catch (Exception e) {
-            log.error("Erro ao filtrar conteúdo: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /// SISTEMA DE BUSCAR SERIE OU FILMES POR NOME OU PARTE DO NOME
+    /**
+     * Busca mídias por título
+     */
     @GetMapping("/search")
-    @Operation(summary = "Buscar conteúdo", description = "Busca filmes e séries por nome ou parte do nome")
-    public ResponseEntity<MediaDTO.SearchResultResponse> searchContent(
-            @Parameter(description = "Termo de busca") @RequestParam String q) {
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> searchByTitle(
+            @RequestParam String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.searchByTitle(title, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Retorna uma mídia completa por ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<MediaCompleteDTO> getMediaById(@PathVariable Long id) {
+        UUID userId = getCurrentUserId();
+        MediaCompleteDTO response = mediaService.getMediaById(id, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Adiciona uma mídia à lista do usuário
+     */
+    @PostMapping("/my-list/{id}")
+    public ResponseEntity<String> addToMyList(@PathVariable("id") Long id) {
         try {
-            if (q == null || q.trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
+            UUID userId = getCurrentUserId();
+            mediaService.addToMyList(userId, id);
+            return ResponseEntity.ok("Mídia adicionada à sua lista com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * Remove uma mídia da lista do usuário
+     */
+    @DeleteMapping("/my-list/{mediaId}")
+    public ResponseEntity<String> removeFromMyList(@PathVariable Long mediaId) {
+        try {
+            UUID userId = getCurrentUserId();
+            mediaService.removeFromMyList(userId, mediaId);
+            return ResponseEntity.ok("Mídia removida da sua lista com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * Retorna a lista pessoal do usuário
+     */
+    @GetMapping("/my-list")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMyList(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        UUID userId = getCurrentUserId();
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMyList(userId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Dá like em uma mídia
+     */
+    @PostMapping("/like/{id}")
+    public ResponseEntity<String> likeMedia(@PathVariable("id") Long mediaId) {
+        try {
+            UUID userId = getCurrentUserId();
+            mediaService.likeMedia(userId, mediaId);
+            return ResponseEntity.ok("Like adicionado com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * Remove like de uma mídia
+     */
+    @DeleteMapping("/like/{mediaId}")
+    public ResponseEntity<String> unlikeMedia(@PathVariable Long mediaId) {
+        try {
+            UUID userId = getCurrentUserId();
+            mediaService.unlikeMedia(userId, mediaId);
+            return ResponseEntity.ok("Like removido com sucesso!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * Toggle like - Se não curtiu, curte. Se já curtiu, descurte.
+     */
+    @PostMapping("/like/toggle/{mediaId}")
+    public ResponseEntity<String> toggleLike(@PathVariable Long mediaId) {
+        try {
+            UUID userId = getCurrentUserId();
+
+            // Verifica se já curtiu
+            MediaCompleteDTO media = mediaService.getMediaById(mediaId, userId);
+
+            if (media.isUserLiked()) {
+                mediaService.unlikeMedia(userId, mediaId);
+                return ResponseEntity.ok("Like removido com sucesso!");
+            } else {
+                mediaService.likeMedia(userId, mediaId);
+                return ResponseEntity.ok("Like adicionado com sucesso!");
             }
-
-            MediaDTO.SearchResultResponse searchResults = mediaService.searchContent(q.trim());
-            return ResponseEntity.ok(searchResults);
-        } catch (Exception e) {
-            log.error("Erro ao buscar conteúdo com termo '{}': {}", q, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    /// ADICIONA OU REMOVE LIKE DE FILME
-    @PostMapping("/filmes/{filmeId}/like")
-    @Operation(summary = "Curtir/Descurtir filme", description = "Adiciona ou remove like de um filme")
-    public ResponseEntity<MediaDTO.LikeResponse> toggleFilmeLike(
-            @Parameter(description = "ID do filme") @PathVariable Long filmeId,
-            @CurrentUser User user) {
+    /**
+     * Toggle lista - Se não está na lista, adiciona. Se já está, remove.
+     */
+    @PostMapping("/my-list/toggle/{mediaId}")
+    public ResponseEntity<String> toggleMyList(@PathVariable Long mediaId) {
         try {
-            MediaDTO.LikeResponse likeResponse = mediaService.toggleFilmeLike(user, filmeId);
-            return ResponseEntity.ok(likeResponse);
-        } catch (Exception e) {
-            log.error("Erro ao alterar like do filme {} para usuário {}: {}", filmeId, user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            UUID userId = getCurrentUserId();
+
+            // Verifica se já está na lista
+            MediaCompleteDTO media = mediaService.getMediaById(mediaId, userId);
+
+            if (media.isInUserList()) {
+                mediaService.removeFromMyList(userId, mediaId);
+                return ResponseEntity.ok("Mídia removida da sua lista com sucesso!");
+            } else {
+                mediaService.addToMyList(userId, mediaId);
+                return ResponseEntity.ok("Mídia adicionada à sua lista com sucesso!");
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    /// ADICIONA OU REMOVE LIKE DE SERIE
-    @PostMapping("/series/{serieId}/like")
-    @Operation(summary = "Curtir/Descurtir série", description = "Adiciona ou remove like de uma série")
-    public ResponseEntity<MediaDTO.LikeResponse> toggleSerieLike(
-            @Parameter(description = "ID da série") @PathVariable Long serieId,
-            @CurrentUser User user) {
+    /**
+     * Busca filmes da lista pessoal do usuário
+     */
+    @GetMapping("/my-list/filmes")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMyListFilmes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        UUID userId = getCurrentUserId();
+        // Implementar no service se necessário
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMyList(userId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Busca séries da lista pessoal do usuário
+     */
+    @GetMapping("/my-list/series")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMyListSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        UUID userId = getCurrentUserId();
+        // Implementar no service se necessário
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMyList(userId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint para admin - Estatísticas gerais
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<Object> getMediaStats() {
+        // Implementar estatísticas se necessário
+        return ResponseEntity.ok("Estatísticas não implementadas ainda");
+    }
+
+    /**
+     * Método auxiliar para obter o ID do usuário atual
+     */
+    private UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Usuário não autenticado");
+        }
+
+        // Assumindo que o username é o UUID do usuário
+        // Ajuste conforme sua implementação de autenticação
         try {
-            MediaDTO.LikeResponse likeResponse = mediaService.toggleSerieLike(user, serieId);
-            return ResponseEntity.ok(likeResponse);
+            return UUID.fromString(authentication.getName());
         } catch (Exception e) {
-            log.error("Erro ao alterar like da série {} para usuário {}: {}", serieId, user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Se o authentication.getName() retorna o username em vez do UUID
+            // você precisará buscar o usuário pelo username
+            throw new RuntimeException("Erro ao obter ID do usuário: " + e.getMessage());
         }
     }
 
-    /// VERIFICA SE USUARIO JA CURTIU O FILME
-    @GetMapping("/filmes/{filmeId}/like-status")
-    @Operation(summary = "Status do like do filme", description = "Verifica se o usuário já curtiu o filme")
-    public ResponseEntity<Map<String, Boolean>> getFilmeLikeStatus(
-            @Parameter(description = "ID do filme") @PathVariable Long filmeId,
-            @CurrentUser User user) {
-        try {
-            boolean liked = mediaService.hasUserLikedFilme(user, filmeId);
-            return ResponseEntity.ok(Map.of("liked", liked));
-        } catch (Exception e) {
-            log.error("Erro ao verificar like do filme {} para usuário {}: {}", filmeId, user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    /**
+     * Endpoint público para mídia específica (sem informações do usuário)
+     */
+    @GetMapping("/public/{id}")
+    public ResponseEntity<MediaCompleteDTO> getPublicMediaById(@PathVariable Long id) {
+        MediaCompleteDTO response = mediaService.getMediaById(id, null);
+        return ResponseEntity.ok(response);
     }
 
-    /// VERIFICA SE USUARIO JA CURTIU A SERIE
-    @GetMapping("/series/{serieId}/like-status")
-    @Operation(summary = "Status do like da série", description = "Verifica se o usuário já curtiu a série")
-    public ResponseEntity<Map<String, Boolean>> getSerieLikeStatus(
-            @Parameter(description = "ID da série") @PathVariable Long serieId,
-            @CurrentUser User user) {
-        try {
-            boolean liked = mediaService.hasUserLikedSerie(user, serieId);
-            return ResponseEntity.ok(Map.of("liked", liked));
-        } catch (Exception e) {
-            log.error("Erro ao verificar like da série {} para usuário {}: {}", serieId, user.getUsername(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    /**
+     * Endpoint público para top 10
+     */
+    @GetMapping("/public/top10")
+    public ResponseEntity<List<MediaSimpleDTO>> getPublicTop10MostLiked() {
+        List<MediaSimpleDTO> response = mediaService.getTop10MostLiked();
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint público para busca
+     */
+    @GetMapping("/public/search")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> publicSearchByTitle(
+            @RequestParam String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.searchByTitle(title, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint público para listar todas as mídias
+     */
+    @GetMapping("/public")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getPublicAllMedia(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getAllMedia(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint público para séries
+     */
+    @GetMapping("/public/series")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getPublicSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getSeries(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint público para filmes
+     */
+    @GetMapping("/public/filmes")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getPublicFilmes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getFilmes(page, size);
+        return ResponseEntity.ok(response);
     }
 }

@@ -147,23 +147,4 @@ public class AuthController {
         }
     }
 
-    /// OBTEM INFORMACOES DO USUARIO ATUAL
-    @GetMapping("/me")
-    @Operation(summary = "Obter informações do usuário", description = "Retorna as informações do usuário autenticado atual")
-    public ResponseEntity<AuthDTO.UserResponse> getCurrentUser(@CurrentUser User user) {
-
-        // Check if user is authenticated
-        if (user == null) {
-            log.warn("Tentativa de obter informações do usuário sem autenticação válida");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        try {
-            AuthDTO.UserResponse userResponse = authService.getCurrentUserInfo(user);
-            return ResponseEntity.ok(userResponse);
-        } catch (Exception e) {
-            log.error("Erro ao obter informações do usuário: {}", user.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 }

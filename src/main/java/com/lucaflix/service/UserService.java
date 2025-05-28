@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
-import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Random;
@@ -28,21 +26,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final AdminPanelRepository adminPanelRepository;
     private final MinhaListaRepository minhaListaRepository;
-    private final FilmeRepository filmeRepository;
-    private final SerieRepository serieRepository;
-    private final EpisodioRepository episodioRepository;
+    private final MediaRepository mediaRepository;
+    private final LikeRepository likeRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-    /// BUSCA USUARIO POR USERNAME OU EMAIL
-    public Optional<User> findByUsernameOrEmail(String usernameOrEmail) {
-        return userRepository.findByUsernameOrEmail(usernameOrEmail);
-    }
-
-    /// BUSCA USUARIO POR ID
-    public Optional<User> findById(UUID id) {
-        return userRepository.findById(id);
-    }
 
     /// OBTEM USUARIO POR ID OU LANCA EXCECAO
     public User getUserById(UUID id) {
@@ -135,7 +123,7 @@ public class UserService {
         }
 
         /// GERA USERNAME UNICO BASEADO NO NOME
-        String username = generateUniqueUsername(signUpRequest.getNomeCompleto());
+        String username = generateUniqueUsername(signUpRequest.getName());
 
         User user = new User();
         user.setUsername(username);
@@ -325,118 +313,30 @@ public class UserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
-    /// DELETA USUARIO
     @Transactional
     public void deleteUser(UUID userId) {
         User user = getUserById(userId);
 
-        /// DELETA PAINEL ADMIN SE EXISTIR
+        // Remove apenas as relações, mantendo as entidades Media intactas
+        if (user.getMinhaLista() != null) {
+            user.getMinhaLista().forEach(minhaLista -> {
+                minhaLista.setUser(null);
+                minhaListaRepository.save(minhaLista);
+            });
+        }
+
+        if (user.getLikes() != null) {
+            user.getLikes().forEach(like -> {
+                like.setUser(null);
+                likeRepository.save(like);
+            });
+        }
+
+        // Remove o painel admin se existir
         adminPanelRepository.findByUser(user).ifPresent(adminPanelRepository::delete);
 
-        /// DELETA USUARIO
+        // Deleta o usuário
         userRepository.delete(user);
         log.info("Usuário deletado: {}", userId);
-    }
-
-    /// ADICIONA FILME COMO ASSISTIDO
-    @Transactional
-    public void addMovieAsWatched(User user, Long filmeId) {
-        Filme filme = filmeRepository.findById(filmeId)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com id: " + filmeId));
-
-        /// VERIFICA SE JA EXISTE NA LISTA
-        Optional<MinhaLista> existingItem = minhaListaRepository.findByUserAndFilme(user, filme);
-
-        if (existingItem.isPresent()) {
-            /// ATUALIZA COMO ASSISTIDO
-            MinhaLista item = existingItem.get();
-            item.setAssistido(true);
-            item.setDataUltimaVisualizacao(new Date());
-            minhaListaRepository.save(item);
-        } else {
-            /// CRIA NOVO ITEM NA LISTA
-            MinhaLista novaLista = new MinhaLista();
-            novaLista.setUser(user);
-            novaLista.setFilme(filme);
-            novaLista.setAssistido(true);
-            novaLista.setDataUltimaVisualizacao(new Date());
-            minhaListaRepository.save(novaLista);
-        }
-
-        log.info("Filme {} marcado como assistido para usuário: {}", filmeId, user.getId());
-    }
-
-    /// ADICIONA SERIE COMO ASSISTINDO
-    @Transactional
-    public void addSeriesAsWatching(User user, Long serieId) {
-        Serie serie = serieRepository.findById(serieId)
-                .orElseThrow(() -> new EntityNotFoundException("Série não encontrada com id: " + serieId));
-
-        /// VERIFICA SE JA EXISTE NA LISTA
-        Optional<MinhaLista> existingItem = minhaListaRepository.findByUserAndSerie(user, serie);
-
-        if (!existingItem.isPresent()) {
-            /// CRIA NOVO ITEM NA LISTA
-            MinhaLista novaLista = new MinhaLista();
-            novaLista.setUser(user);
-            novaLista.setSerie(serie);
-            novaLista.setAssistido(false); /// SERIES SEMPRE FALSE (CONTROLE POR EPISODIO)
-            novaLista.setEpisodiosAssistidos(0);
-            novaLista.setDataUltimaVisualizacao(new Date());
-            minhaListaRepository.save(novaLista);
-
-            log.info("Série {} adicionada como assistindo para usuário: {}", serieId, user.getId());
-        }
-    }
-
-    /// MARCA EPISODIO COMO ASSISTIDO
-    @Transactional
-    public void markEpisodeAsWatched(User user, Long episodioId) {
-        Episodio episodio = episodioRepository.findById(episodioId)
-                .orElseThrow(() -> new EntityNotFoundException("Episódio não encontrado com id: " + episodioId));
-
-        Serie serie = episodio.getTemporada().getSerie();
-
-        /// BUSCA OU CRIA ITEM NA LISTA
-        Optional<MinhaLista> itemLista = minhaListaRepository.findByUserAndSerie(user, serie);
-
-        if (!itemLista.isPresent()) {
-            /// CRIA NOVO ITEM NA LISTA
-            MinhaLista novaLista = new MinhaLista();
-            novaLista.setUser(user);
-            novaLista.setSerie(serie);
-            novaLista.setAssistido(false);
-            novaLista.setEpisodiosAssistidos(1);
-            novaLista.setDataUltimaVisualizacao(new Date());
-            minhaListaRepository.save(novaLista);
-        } else {
-            /// INCREMENTA CONTADOR DE EPISODIOS ASSISTIDOS
-            MinhaLista item = itemLista.get();
-            item.setEpisodiosAssistidos(item.getEpisodiosAssistidos() + 1);
-            item.setDataUltimaVisualizacao(new Date());
-            minhaListaRepository.save(item);
-        }
-
-        log.info("Episódio {} marcado como assistido para usuário: {}", episodioId, user.getId());
-    }
-
-    /// OBTEM LISTA DO USUARIO
-    public List<MinhaLista> getUserList(User user) {
-        return minhaListaRepository.findByUserOrderByDataAdicaoDesc(user);
-    }
-
-    /// OBTEM FILMES ASSISTIDOS DO USUARIO
-    public List<MinhaLista> getUserWatchedMovies(User user) {
-        return minhaListaRepository.findByUserAndFilmeIsNotNullAndAssistidoTrueOrderByDataUltimaVisualizacaoDesc(user);
-    }
-
-    /// OBTEM SERIES ASSISTINDO DO USUARIO
-    public List<MinhaLista> getUserWatchingSeries(User user) {
-        return minhaListaRepository.findByUserAndSerieIsNotNullOrderByDataUltimaVisualizacaoDesc(user);
-    }
-
-    /// OBTEM INFORMACOES COMPLETAS DO USUARIO
-    public AuthDTO.UserResponse getUserInfo(User user) {
-        return convertToAuthUserResponse(user);
     }
 }

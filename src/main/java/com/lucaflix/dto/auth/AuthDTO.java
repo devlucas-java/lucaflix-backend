@@ -20,7 +20,7 @@ public class AuthDTO {
     public static class SignUpRequest {
         @NotBlank(message = "Nome completo é obrigatório")
         @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
-        private String nomeCompleto;
+        private String name;
 
         @NotBlank(message = "Email é obrigatório")
         @Email(message = "Email deve ser válido")
@@ -47,6 +47,8 @@ public class AuthDTO {
     public static class UserResponse {
         private String id;
         private String username;
+        private String firstName;
+        private String lastName;
         private String email;
         private String role;
         private Boolean isAccountEnabled;
@@ -59,17 +61,6 @@ public class AuthDTO {
         public static class AdminPanelInfo {
             private String id;
             private Integer adminLevel;
-        }
-    }
-
-    @Data
-    public static class RegisterResponse {
-        private String message;
-        private UserResponse user;
-
-        public RegisterResponse(String message, UserResponse user) {
-            this.message = message;
-            this.user = user;
         }
     }
 

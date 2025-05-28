@@ -19,6 +19,8 @@ public class UserDTO {
     public static class UserResponse {
         private String id;
         private String username;
+        private String firstName;
+        private String lastName;
         private String email;
         private String role;
         private Boolean isAccountEnabled;
@@ -31,25 +33,12 @@ public class UserDTO {
     public static class UserListResponse {
         private String id;
         private String username;
+        private String firstName;
+        private String lastName;
         private String email;
         private String role;
         private Boolean isAccountEnabled;
         private Boolean isAccountLocked;
-    }
-
-    @Data
-    public static class WatchedMovieRequest {
-        private Long filmeId;
-    }
-
-    @Data
-    public static class WatchingSeriesRequest {
-        private Long serieId;
-    }
-
-    @Data
-    public static class WatchedEpisodeRequest {
-        private Long episodioId;
     }
 
     @Data

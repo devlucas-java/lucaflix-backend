@@ -15,33 +15,11 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByUsername(String username);
-
     Optional<User> findByEmail(String email);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 
     @Query("SELECT u FROM User u WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(:value)) OR LOWER(TRIM(u.email)) = LOWER(TRIM(:value))")
     Optional<User> findByUsernameOrEmail(@Param("value") String usernameOrEmail);
 
-    boolean existsByUsername(String username);
-
-    boolean existsByEmail(String email);
-
-    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(:username))")
-    boolean existsByUsernameIgnoreCase(@Param("username") String username);
-
-    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email))")
-    boolean existsByEmailIgnoreCase(@Param("email") String email);
-
-    List<User> findByRole(Role role);
-
-    @Query("SELECT u FROM User u WHERE u.isAccountEnabled = true")
-    List<User> findAllEnabledUsers();
-
-    @Query("SELECT u FROM User u WHERE u.isAccountLocked = true")
-    List<User> findAllLockedUsers();
-
-    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
-    long countByRole(@Param("role") Role role);
-
-    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    List<User> findByUsernameOrEmailContaining(@Param("searchTerm") String searchTerm);
 }

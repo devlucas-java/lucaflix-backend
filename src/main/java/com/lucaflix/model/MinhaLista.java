@@ -7,8 +7,7 @@ import java.util.Date;
 @Entity
 @Table(name = "minha_lista",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "filme_id"}),
-                @UniqueConstraint(columnNames = {"user_id", "serie_id"})
+                @UniqueConstraint(columnNames = {"user_id", "media_id"})
         })
 @Data
 public class MinhaLista {
@@ -22,12 +21,8 @@ public class MinhaLista {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "filme_id")
-    private Filme filme;
-
-    @ManyToOne
-    @JoinColumn(name = "serie_id")
-    private Serie serie;
+    @JoinColumn(name = "media_id")
+    private Media media;
 
     @Column(name = "data_adicao")
     @Temporal(TemporalType.TIMESTAMP)
@@ -45,13 +40,4 @@ public class MinhaLista {
     @Column(name = "data_ultima_visualizacao")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataUltimaVisualizacao;
-
-    // Constraint: um item da lista deve estar associado a UM filme OU UMA série, não ambos
-    @PrePersist
-    @PreUpdate
-    private void validateMinhaLista() {
-        if ((filme == null && serie == null) || (filme != null && serie != null)) {
-            throw new IllegalStateException("Item da lista deve estar associado a exatamente um filme OU uma série");
-        }
-    }
 }
