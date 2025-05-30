@@ -1,5 +1,6 @@
 package com.lucaflix.model;
 
+import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,8 +36,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-
-
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Plan plan = Plan.FREE;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

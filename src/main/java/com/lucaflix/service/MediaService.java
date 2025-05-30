@@ -30,48 +30,34 @@ public class MediaService {
 
 
     public PaginatedResponseDTO<MediaSimpleDTO> filtrarMedia(MediaFilter filter, int page, int size) {
-        List<Media> mediaList = mediaRepository.buscarPorFiltros(
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+
+        Page<Media> mediaPage = mediaRepository.buscarPorFiltros(
                 filter.getIsFilme(),
                 filter.getTitle(),
                 filter.getAvaliacao(),
                 filter.getAnoLancamentoInicio(),
                 filter.getAnoLancamentoFim(),
-                filter.getCategoria()
+                filter.getCategoria(),
+                pageable
         );
 
-        long totalElements = mediaRepository.contarPorFiltros(
-                filter.getIsFilme(),
-                filter.getTitle(),
-                filter.getAvaliacao(),
-                filter.getAnoLancamentoInicio(),
-                filter.getAnoLancamentoFim(),
-                filter.getCategoria()
-        );
-
-        // Paginação manual dos resultados
-        int inicio = page * size;
-        mediaList = mediaList.stream()
-                .sorted((m1, m2) -> m2.getDataCadastro().compareTo(m1.getDataCadastro()))
-                .skip(inicio)
-                .limit(size)
+        List<MediaSimpleDTO> mediaDTOs = mediaPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
                 .collect(Collectors.toList());
 
         return new PaginatedResponseDTO<>(
-                mediaList.stream()
-                        .map(this::convertToSimpleDTO)
-                        .collect(Collectors.toList()),
-                page,
-                (int) Math.ceil((double) totalElements / size),
-                totalElements,
-                size,
-                page == 0,
-                totalElements <= size,
-                totalElements > (page + 1) * size,
-                page > 0
+                mediaDTOs,
+                mediaPage.getNumber(),
+                mediaPage.getTotalPages(),
+                mediaPage.getTotalElements(),
+                mediaPage.getSize(),
+                mediaPage.isFirst(),
+                mediaPage.isLast(),
+                mediaPage.hasNext(),
+                mediaPage.hasPrevious()
         );
     }
-
-
 
 
 

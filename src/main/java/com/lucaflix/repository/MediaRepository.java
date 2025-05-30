@@ -1,7 +1,10 @@
 package com.lucaflix.repository;
 
 import com.lucaflix.model.Media;
+import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Categoria;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,18 +35,19 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
 
     @Query("SELECT m FROM Media m WHERE " +
             "(:isFilme IS NULL OR m.isFilme = :isFilme) AND " +
-            "(:title IS NULL OR LOWER(m.title) LIKE LOWER(:title)) AND " +
+            "(:title IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
             "(:avaliacao IS NULL OR m.avaliacao >= :avaliacao) AND " +
             "(:anoInicio IS NULL OR m.anoLancamento >= :anoInicio) AND " +
             "(:anoFim IS NULL OR m.anoLancamento <= :anoFim) AND " +
             "(:categoria IS NULL OR m.categoria = :categoria)")
-    List<Media> buscarPorFiltros(
+    Page<Media> buscarPorFiltros(
             @Param("isFilme") Boolean isFilme,
             @Param("title") String title,
             @Param("avaliacao") Double avaliacao,
             @Param("anoInicio") Date anoLancamentoInicio,
             @Param("anoFim") Date anoLancamentoFim,
-            @Param("categoria") Categoria categoria);
+            @Param("categoria") Categoria categoria,
+            Pageable pageable);
 
     @Query("SELECT COUNT(m) FROM Media m WHERE " +
             "(:isFilme IS NULL OR m.isFilme = :isFilme) AND " +

@@ -28,35 +28,7 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
-    @Autowired
-    private MediaService mediaService;
 
-    /**
-     * Lista todas as mídias com paginação
-     */
-    @GetMapping("/search")
-    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> buscarMediaPorFiltro(
-            @RequestParam(required = false) Boolean isFilme,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) Double avaliacao,
-            @RequestParam(required = false) String anoLancamentoInicio,
-            @RequestParam(required = false) String anoLancamentoFim,
-            @RequestParam(required = false) String categoria,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        MediaFilter filter = new MediaFilter();
-        filter.setIsFilme(isFilme);
-        filter.setTitle(title);
-        filter.setAvaliacao(avaliacao);
-
-        if (categoria != null) {
-            filter.setCategoria(Categoria.valueOf(categoria.toUpperCase()));
-        }
-
-        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.filtrarMedia(filter, page, size);
-        return ResponseEntity.ok(response);
-    }
 
     /**
      * Endpoint para adicionar uma nova mídia ao catálogo

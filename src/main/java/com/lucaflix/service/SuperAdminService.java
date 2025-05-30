@@ -4,6 +4,7 @@ import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.dto.user.UserDTO;
 import com.lucaflix.dto.user.UserMapper;
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
 import com.lucaflix.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,21 +29,28 @@ public class SuperAdminService {
 
 
     public PaginatedResponseDTO<UserDTO.UserListResponse> searchUsers(String searchTerm, Pageable pageable) {
-        // Se searchTerm for null ou vazio, busca todos os usuários
         if (StringUtils.isEmpty(searchTerm)) {
-            // Busca por qualquer campo que contenha o termo de pesquisa
             Page<User> users = userRepository.findAll(pageable);
 
             List<UserDTO.UserListResponse> responses = users.getContent().stream()
                     .map(this::convertToUserListResponse)
                     .collect(Collectors.toList());
+
+            return new PaginatedResponseDTO<>(
+                    responses,
+                    users.getNumber(),
+                    users.getTotalPages(),
+                    users.getTotalElements(),
+                    users.getSize(),
+                    users.isFirst(),
+                    users.isLast(),
+                    users.hasNext(),
+                    users.hasPrevious()
+            );
         }
 
-        // Busca por qualquer campo que contenha o termo de pesquisa
         Page<User> users = userRepository.findBySearchTerm(searchTerm, pageable);
 
-
-        // Converte cada usuário para UserListResponse
         List<UserDTO.UserListResponse> responses = users.getContent().stream()
                 .map(this::convertToUserListResponse)
                 .collect(Collectors.toList());
@@ -60,6 +68,7 @@ public class SuperAdminService {
         );
     }
 
+
     private UserDTO.UserListResponse convertToUserListResponse(User user) {
         return new UserDTO.UserListResponse(
                 user.getId().toString(),
@@ -73,19 +82,8 @@ public class SuperAdminService {
         );
     }
 
-    private <T> PaginatedResponseDTO<T> convertToPaginatedResponse(Page<T> page) {
-        return new PaginatedResponseDTO<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getTotalPages(),
-                page.getTotalElements(),
-                page.getSize(),
-                page.isFirst(),
-                page.isLast(),
-                page.hasNext(),
-                page.hasPrevious()
-        );
-    }
+
+
 
 
     /**
@@ -177,15 +175,15 @@ public class SuperAdminService {
     public User updateUserPlan(UUID userId) {
         User user = userService.getUserById(userId);
 
-        // Habilita a conta
-        userService.setAccountEnabled(userId, true);
-
-        // Remove bloqueio se existir
-        userService.setAccountLocked(userId, false);
 
         // Redefine credenciais como não expiradas
         user.setIsCredentialsExpired(false);
         user.setIsAccountExpired(false);
+        // Remove bloqueio se existir
+        userService.setAccountLocked(userId, false);
+        // Atualiza o plano para PREMIUM
+        user.setPlan(Plan.PREMIUM);
+        userRepository.save(user);
 
         user = userService.getUserById(userId); // Refresh user data
         log.info("Plano do usuário {} foi atualizado por 30 dias", userId);
@@ -206,8 +204,50 @@ public class SuperAdminService {
             throw new IllegalStateException("Não é possível cortar o plano de um usuário SUPER_ADMIN");
         }
 
-        // Desabilita a conta
-        userService.setAccountEnabled(userId, false);
+        user = userService.getUserById(userId); // Refresh user data
+
+        user.setPlan(Plan.FREE);
+        userRepository.save(user);
+        log.info("Plano do usuário {} foi cortado/suspenso", userId);
+
+        return user;
+    }
+
+
+
+    /**
+     * Atualiza o plano do usuário por 30 dias
+     * Habilita a conta e remove bloqueios
+     */
+    @Transactional
+    public User notBlock(UUID userId) {
+        User user = userService.getUserById(userId);
+
+        // Remove bloqueio se existir
+        userService.setAccountLocked(userId, false);
+
+        // Redefine credenciais como não expiradas
+        user.setIsCredentialsExpired(false);
+        user.setIsAccountExpired(false);
+
+        user = userService.getUserById(userId); // Refresh user data
+        log.info("Plano do usuário {} foi atualizado por 30 dias", userId);
+
+        return user;
+    }
+
+    /**
+     * Corta/suspende o plano do usuário
+     * Desabilita a conta e bloqueia o acesso
+     */
+    @Transactional
+    public User block(UUID userId) {
+        User user = userService.getUserById(userId);
+
+        // Não permite cortar plano de super admin
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            throw new IllegalStateException("Não é possível cortar o plano de um usuário SUPER_ADMIN");
+        }
 
         // Bloqueia a conta
         userService.setAccountLocked(userId, true);

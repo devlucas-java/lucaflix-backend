@@ -28,7 +28,7 @@ public class SuperAdminController {
 
 
 
-    @GetMapping
+    @GetMapping("/search")
     public ResponseEntity<PaginatedResponseDTO<UserDTO.UserListResponse>> searchUsers(
             @RequestParam(required = false) String searchTerm,
             @PageableDefault(size = 10) Pageable pageable
@@ -204,6 +204,68 @@ public class SuperAdminController {
                     .body(new ApiResponse("Erro interno do servidor", null));
         }
     }
+
+
+
+    /**
+     * FUNCOA PARA ATUALIZAR O PLANO DO USUSARIO POR 30 DIAS
+     * Ativa/renova o plano do usuário
+     */
+    @PutMapping("/users/{userId}/not-blocked")
+    public ResponseEntity<?> notBlocked(
+            @PathVariable UUID userId,
+            @CurrentUser User currentUser) {
+
+        try {
+            // Valida permissão de super admin
+            superAdminService.validateSuperAdminPermission(currentUser);
+
+            // Atualiza o plano
+            User updatedUser = superAdminService.notBlock(userId);
+            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
+
+            return ResponseEntity.ok()
+                    .body(new ApiResponse("Plano do usuário atualizado por 30 dias", response));
+
+        } catch (Exception e) {
+            log.error("Erro ao atualizar plano do usuário {}", userId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @PutMapping("/users/{userId}/block")
+    public ResponseEntity<?> block(
+            @PathVariable UUID userId,
+            @CurrentUser User currentUser) {
+
+        try {
+            // Valida permissão de super admin
+            superAdminService.validateSuperAdminPermission(currentUser);
+
+            // Não permite cortar próprio plano
+            if (userId.equals(currentUser.getId())) {
+                return ResponseEntity.badRequest()
+                        .body(new ApiResponse("Não é possível cortar o próprio plano", null));
+            }
+
+            // Corta o plano
+            User updatedUser = superAdminService.block(userId);
+            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
+
+            return ResponseEntity.ok()
+                    .body(new ApiResponse("Plano do usuário foi cortado/suspenso", response));
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao cortar plano do usuário {}", userId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
 
     /**
      * Endpoint para obter informações de um usuário específico
