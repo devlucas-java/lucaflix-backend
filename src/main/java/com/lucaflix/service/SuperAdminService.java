@@ -1,13 +1,22 @@
 package com.lucaflix.service;
 
+import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.user.UserDTO;
+import com.lucaflix.dto.user.UserMapper;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Role;
+import com.lucaflix.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +24,69 @@ import java.util.UUID;
 public class SuperAdminService {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+
+
+    public PaginatedResponseDTO<UserDTO.UserListResponse> searchUsers(String searchTerm, Pageable pageable) {
+        // Se searchTerm for null ou vazio, busca todos os usuários
+        if (StringUtils.isEmpty(searchTerm)) {
+            // Busca por qualquer campo que contenha o termo de pesquisa
+            Page<User> users = userRepository.findAll(pageable);
+
+            List<UserDTO.UserListResponse> responses = users.getContent().stream()
+                    .map(this::convertToUserListResponse)
+                    .collect(Collectors.toList());
+        }
+
+        // Busca por qualquer campo que contenha o termo de pesquisa
+        Page<User> users = userRepository.findBySearchTerm(searchTerm, pageable);
+
+
+        // Converte cada usuário para UserListResponse
+        List<UserDTO.UserListResponse> responses = users.getContent().stream()
+                .map(this::convertToUserListResponse)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponseDTO<>(
+                responses,
+                users.getNumber(),
+                users.getTotalPages(),
+                users.getTotalElements(),
+                users.getSize(),
+                users.isFirst(),
+                users.isLast(),
+                users.hasNext(),
+                users.hasPrevious()
+        );
+    }
+
+    private UserDTO.UserListResponse convertToUserListResponse(User user) {
+        return new UserDTO.UserListResponse(
+                user.getId().toString(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isAccountNonExpired(),
+                user.isAccountNonLocked()
+        );
+    }
+
+    private <T> PaginatedResponseDTO<T> convertToPaginatedResponse(Page<T> page) {
+        return new PaginatedResponseDTO<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getSize(),
+                page.isFirst(),
+                page.isLast(),
+                page.hasNext(),
+                page.hasPrevious()
+        );
+    }
+
 
     /**
      * Faz upgrade do role do usuário

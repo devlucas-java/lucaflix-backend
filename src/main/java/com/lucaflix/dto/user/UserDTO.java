@@ -13,6 +13,12 @@ public class UserDTO {
 
         @Email(message = "Email deve ser válido")
         private String email;
+
+        @Size(min = 3, max = 20, message = "Nome deve ter entre 3 e 20 caracteres")
+        private String firstName;
+
+        @Size(min = 3, max = 20, message = "Sobrenome deve ter entre 3 e 20 caracteres")
+        private String lastName;
     }
 
     @Data
@@ -39,6 +45,17 @@ public class UserDTO {
         private String role;
         private Boolean isAccountEnabled;
         private Boolean isAccountLocked;
+
+        public UserListResponse(String string, String username, String firstName, String lastName, String email, String name, boolean accountNonExpired, boolean accountNonLocked) {
+            this.id = string;
+            this.username = username;
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.email = email;
+            this.role = name;
+            this.isAccountEnabled = accountNonExpired;
+            this.isAccountLocked = accountNonLocked;
+        }
     }
 
     @Data

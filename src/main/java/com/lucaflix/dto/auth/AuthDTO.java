@@ -20,7 +20,11 @@ public class AuthDTO {
     public static class SignUpRequest {
         @NotBlank(message = "Nome completo é obrigatório")
         @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
-        private String name;
+        private String firstName;
+
+        @NotBlank(message = "Nome completo é obrigatório")
+        @Size(min = 2, max = 100, message = "Sobrenome deve ter entre 2 e 100 caracteres")
+        private String lastName;
 
         @NotBlank(message = "Email é obrigatório")
         @Email(message = "Email deve ser válido")

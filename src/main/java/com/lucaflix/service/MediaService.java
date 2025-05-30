@@ -1,6 +1,7 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.media.MediaCompleteDTO;
+import com.lucaflix.dto.media.MediaFilter;
 import com.lucaflix.dto.media.MediaSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.*;
@@ -26,77 +27,53 @@ public class MediaService {
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
 
-    /**
-     * Lista todas as mídias com paginação
-     */
-    public PaginatedResponseDTO<MediaSimpleDTO> getAllMedia(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> mediaPage = mediaRepository.findAll(pageable);
 
-        List<MediaSimpleDTO> mediaList = mediaPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
+
+    public PaginatedResponseDTO<MediaSimpleDTO> filtrarMedia(MediaFilter filter, int page, int size) {
+        List<Media> mediaList = mediaRepository.buscarPorFiltros(
+                filter.getIsFilme(),
+                filter.getTitle(),
+                filter.getAvaliacao(),
+                filter.getAnoLancamentoInicio(),
+                filter.getAnoLancamentoFim(),
+                filter.getCategoria()
+        );
+
+        long totalElements = mediaRepository.contarPorFiltros(
+                filter.getIsFilme(),
+                filter.getTitle(),
+                filter.getAvaliacao(),
+                filter.getAnoLancamentoInicio(),
+                filter.getAnoLancamentoFim(),
+                filter.getCategoria()
+        );
+
+        // Paginação manual dos resultados
+        int inicio = page * size;
+        mediaList = mediaList.stream()
+                .sorted((m1, m2) -> m2.getDataCadastro().compareTo(m1.getDataCadastro()))
+                .skip(inicio)
+                .limit(size)
                 .collect(Collectors.toList());
 
         return new PaginatedResponseDTO<>(
-                mediaList,
-                mediaPage.getNumber(),
-                mediaPage.getTotalPages(),
-                mediaPage.getTotalElements(),
-                mediaPage.getSize(),
-                mediaPage.isFirst(),
-                mediaPage.isLast(),
-                mediaPage.hasNext(),
-                mediaPage.hasPrevious()
+                mediaList.stream()
+                        .map(this::convertToSimpleDTO)
+                        .collect(Collectors.toList()),
+                page,
+                (int) Math.ceil((double) totalElements / size),
+                totalElements,
+                size,
+                page == 0,
+                totalElements <= size,
+                totalElements > (page + 1) * size,
+                page > 0
         );
     }
 
-    /**
-     * Lista apenas séries com paginação
-     */
-    public PaginatedResponseDTO<MediaSimpleDTO> getSeries(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> seriesPage = mediaRepository.findByIsFilmeFalse(pageable);
 
-        List<MediaSimpleDTO> seriesList = seriesPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
-                .collect(Collectors.toList());
 
-        return new PaginatedResponseDTO<>(
-                seriesList,
-                seriesPage.getNumber(),
-                seriesPage.getTotalPages(),
-                seriesPage.getTotalElements(),
-                seriesPage.getSize(),
-                seriesPage.isFirst(),
-                seriesPage.isLast(),
-                seriesPage.hasNext(),
-                seriesPage.hasPrevious()
-        );
-    }
 
-    /**
-     * Lista apenas filmes com paginação
-     */
-    public PaginatedResponseDTO<MediaSimpleDTO> getFilmes(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> filmesPage = mediaRepository.findByIsFilmeTrue(pageable);
-
-        List<MediaSimpleDTO> filmesList = filmesPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                filmesList,
-                filmesPage.getNumber(),
-                filmesPage.getTotalPages(),
-                filmesPage.getTotalElements(),
-                filmesPage.getSize(),
-                filmesPage.isFirst(),
-                filmesPage.isLast(),
-                filmesPage.hasNext(),
-                filmesPage.hasPrevious()
-        );
-    }
 
     /**
      * Retorna as top 10 mídias com mais likes
@@ -227,29 +204,6 @@ public class MediaService {
         );
     }
 
-    /**
-     * Busca mídias por título
-     */
-    public PaginatedResponseDTO<MediaSimpleDTO> searchByTitle(String title, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> mediaPage = mediaRepository.findByTitleContainingIgnoreCase(title, pageable);
-
-        List<MediaSimpleDTO> mediaList = mediaPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                mediaList,
-                mediaPage.getNumber(),
-                mediaPage.getTotalPages(),
-                mediaPage.getTotalElements(),
-                mediaPage.getSize(),
-                mediaPage.isFirst(),
-                mediaPage.isLast(),
-                mediaPage.hasNext(),
-                mediaPage.hasPrevious()
-        );
-    }
 
     // Métodos privados de conversão
     private MediaSimpleDTO convertToSimpleDTO(Media media) {

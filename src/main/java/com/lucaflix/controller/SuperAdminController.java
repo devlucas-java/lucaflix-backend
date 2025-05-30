@@ -1,5 +1,6 @@
 package com.lucaflix.controller;
 
+import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.dto.user.UserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.security.CurrentUser;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.UUID;
 
@@ -22,6 +25,17 @@ public class SuperAdminController {
 
     private final SuperAdminService superAdminService;
     private final UserService userService;
+
+
+
+    @GetMapping
+    public ResponseEntity<PaginatedResponseDTO<UserDTO.UserListResponse>> searchUsers(
+            @RequestParam(required = false) String searchTerm,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        return ResponseEntity.ok(superAdminService.searchUsers(searchTerm, pageable));
+    }
+
 
     /**
      * FUNCAO DE FAZER UPGRADE

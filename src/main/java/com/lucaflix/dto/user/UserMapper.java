@@ -51,34 +51,4 @@ public class UserMapper {
 
         return userResponse;
     }
-
-    /// CONVERTE USER ENTITY PARA USER LIST RESPONSE DTO
-    public UserDTO.UserListResponse toUserListResponse(User user) {
-        UserDTO.UserListResponse response = new UserDTO.UserListResponse();
-        response.setId(user.getId().toString());
-        response.setUsername(user.getUsername());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole().name());
-        response.setIsAccountEnabled(user.getIsAccountEnabled());
-        response.setIsAccountLocked(user.getIsAccountLocked());
-        return response;
-    }
-
-    /// CONVERTE AUTH USER RESPONSE PARA USER RESPONSE DTO
-    public UserDTO.UserResponse fromAuthUserResponse(AuthDTO.UserResponse authUserResponse) {
-        UserDTO.UserResponse response = new UserDTO.UserResponse();
-        response.setId(authUserResponse.getId());
-        response.setFirstName(authUserResponse.getFirstName());
-        response.setLastName(authUserResponse.getLastName());
-        response.setUsername(authUserResponse.getUsername());
-        response.setEmail(authUserResponse.getEmail());
-        response.setRole(authUserResponse.getRole());
-        response.setIsAccountEnabled(authUserResponse.getIsAccountEnabled());
-        response.setIsAccountLocked(authUserResponse.getIsAccountLocked());
-        response.setIsCredentialsExpired(authUserResponse.getIsCredentialsExpired());
-        response.setIsAccountExpired(authUserResponse.getIsAccountExpired());
-        return response;
-    }
 }

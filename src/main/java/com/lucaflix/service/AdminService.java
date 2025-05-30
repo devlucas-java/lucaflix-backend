@@ -26,35 +26,8 @@ public class AdminService {
     private final MediaRepository mediaRepository;
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
-    private final UserRepository userRepository;
-    private final AdminPanelRepository adminPanelRepository;
 
 
-
-    /**
-     * Lista todas as mídias para admin (com estatísticas)
-     */
-    public PaginatedResponseDTO<AdminMediaDTO> getAllMediaForAdmin( int page, int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> mediaPage = mediaRepository.findAll(pageable);
-
-        List<AdminMediaDTO> mediaList = mediaPage.getContent().stream()
-                .map(this::convertToAdminDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                mediaList,
-                mediaPage.getNumber(),
-                mediaPage.getTotalPages(),
-                mediaPage.getTotalElements(),
-                mediaPage.getSize(),
-                mediaPage.isFirst(),
-                mediaPage.isLast(),
-                mediaPage.hasNext(),
-                mediaPage.hasPrevious()
-        );
-    }
 
     /**
      * Cria uma nova mídia
@@ -188,75 +161,6 @@ public class AdminService {
                 mostLikedMediaTitle,
                 mostPopularCategory
         );
-    }
-
-    /**
-     * Lista apenas filmes para admin
-     */
-    public PaginatedResponseDTO<AdminMediaDTO> getFilmesForAdmin( int page, int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> filmesPage = mediaRepository.findByIsFilmeTrue(pageable);
-
-        List<AdminMediaDTO> filmesList = filmesPage.getContent().stream()
-                .map(this::convertToAdminDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                filmesList,
-                filmesPage.getNumber(),
-                filmesPage.getTotalPages(),
-                filmesPage.getTotalElements(),
-                filmesPage.getSize(),
-                filmesPage.isFirst(),
-                filmesPage.isLast(),
-                filmesPage.hasNext(),
-                filmesPage.hasPrevious()
-        );
-    }
-
-    /**
-     * Lista apenas séries para admin
-     */
-    public PaginatedResponseDTO<AdminMediaDTO> getSeriesForAdmin( int page, int size) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCadastro").descending());
-        Page<Media> seriesPage = mediaRepository.findByIsFilmeFalse(pageable);
-
-        List<AdminMediaDTO> seriesList = seriesPage.getContent().stream()
-                .map(this::convertToAdminDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                seriesList,
-                seriesPage.getNumber(),
-                seriesPage.getTotalPages(),
-                seriesPage.getTotalElements(),
-                seriesPage.getSize(),
-                seriesPage.isFirst(),
-                seriesPage.isLast(),
-                seriesPage.hasNext(),
-                seriesPage.hasPrevious()
-        );
-    }
-
-    /**
-     * Atualiza apenas a avaliação de uma mídia
-     */
-    @Transactional
-    public AdminMediaDTO updateMediaRating( Long mediaId, Double rating) {
-
-        if (rating < 0 || rating > 10) {
-            throw new RuntimeException("Avaliação deve estar entre 0 e 10");
-        }
-
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
-
-        media.setAvaliacao(rating);
-        Media updatedMedia = mediaRepository.save(media);
-
-        return convertToAdminDTO(updatedMedia);
     }
 
     // Método privado de conversão

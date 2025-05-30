@@ -123,10 +123,12 @@ public class UserService {
         }
 
         /// GERA USERNAME UNICO BASEADO NO NOME
-        String username = generateUniqueUsername(signUpRequest.getName());
+        String username = generateUniqueUsername(signUpRequest.getFirstName());
 
         User user = new User();
         user.setUsername(username);
+        user.setLastName(signUpRequest.getLastName());
+        user.setFirstName(signUpRequest.getFirstName());
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         user.setRole(Role.USER);
