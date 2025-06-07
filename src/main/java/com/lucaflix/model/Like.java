@@ -21,7 +21,7 @@ public class Like {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "media_id")
+    @JoinColumn(name = "media_id", nullable = false)
     private Media media;
 
     @Column(name = "data_like")

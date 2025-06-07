@@ -5,6 +5,7 @@ import com.lucaflix.dto.media.MediaFilter;
 import com.lucaflix.dto.media.MediaSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.*;
+import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -65,7 +66,7 @@ public class MediaService {
      * Retorna as top 10 mídias com mais likes
      */
     public List<MediaSimpleDTO> getTop10MostLiked() {
-        List<Media> topMedia = mediaRepository.findTop10ByOrderByLikesDesc();
+        List<Media> topMedia = mediaRepository.findTop10ByLikes(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataCadastro")));
         return topMedia.stream()
                 .map(this::convertToSimpleDTO)
                 .collect(Collectors.toList());
@@ -235,5 +236,189 @@ public class MediaService {
         }
 
         return dto;
+    }
+
+
+
+
+
+
+
+
+    // Adicione estes métodos na classe MediaService
+
+    /**
+     * Mídias com avaliação alta (acima de 7.0)
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getHighRatedMedia(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
+        Page<Media> mediaPage = mediaRepository.findByAvaliacaoGreaterThanEqual(7.0, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Novos lançamentos - últimas mídias adicionadas
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getNewReleases(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Page<Media> mediaPage = mediaRepository.findAll(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Apenas filmes
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMovies(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Page<Media> mediaPage = mediaRepository.findByIsFilmeTrue(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Apenas séries
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getSeries(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Page<Media> mediaPage = mediaRepository.findByIsFilmeFalse(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Mídias por categoria
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMediaByCategory(String categoria, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Categoria cat = Categoria.valueOf(categoria.toUpperCase());
+        Page<Media> mediaPage = mediaRepository.findByCategoria(cat, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Filmes populares (mais curtidos)
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getPopularMovies(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Media> mediaPage = mediaRepository.findPopularMovies(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Séries populares (mais curtidas)
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getPopularSeries(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Media> mediaPage = mediaRepository.findPopularSeries(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Filmes recentes
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getRecentMovies(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "anoLancamento"));
+        Page<Media> mediaPage = mediaRepository.findByIsFilmeTrue(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Séries recentes
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getRecentSeries(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "anoLancamento"));
+        Page<Media> mediaPage = mediaRepository.findByIsFilmeFalse(pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Mídias por faixa etária
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMediaByAgeRating(String minAge, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Page<Media> mediaPage = mediaRepository.findByMinAge(minAge, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Mídias por duração
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMediaByDuration(Integer minDuration, Integer maxDuration, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        Page<Media> mediaPage = mediaRepository.findByDurationRange(minDuration, maxDuration, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Mídias por ano
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMediaByYear(Integer year, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
+        Page<Media> mediaPage = mediaRepository.findByYear(year, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Recomendações baseadas no que o usuário curtiu
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getRecommendations(UUID userId, int page, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
+        Page<Media> mediaPage = mediaRepository.findRecommendations(userId, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Continuar assistindo (lista do usuário)
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getContinueWatching(UUID userId, int page, int size) {
+        return getMyList(userId, page, size); // Reutiliza a lista do usuário
+    }
+
+    /**
+     * Mídias similares
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getSimilarMedia(Long mediaId, int page, int size) {
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
+        Page<Media> mediaPage = mediaRepository.findSimilarMedia(media.getCategoria(), media.getId(), pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Método auxiliar para criar resposta paginada
+     */
+    private PaginatedResponseDTO<MediaSimpleDTO> createPaginatedResponse(Page<Media> mediaPage) {
+        List<MediaSimpleDTO> mediaDTOs = mediaPage.getContent().stream()
+                .map(this::convertToSimpleDTO)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponseDTO<>(
+                mediaDTOs,
+                mediaPage.getNumber(),
+                mediaPage.getTotalPages(),
+                mediaPage.getTotalElements(),
+                mediaPage.getSize(),
+                mediaPage.isFirst(),
+                mediaPage.isLast(),
+                mediaPage.hasNext(),
+                mediaPage.hasPrevious()
+        );
     }
 }

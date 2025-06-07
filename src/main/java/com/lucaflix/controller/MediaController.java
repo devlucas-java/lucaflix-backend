@@ -194,4 +194,200 @@ public class MediaController {
         MediaCompleteDTO response = mediaService.getMediaById(id, null);
         return ResponseEntity.ok(response);
     }
+
+
+
+
+
+
+
+    // Adicione estes novos endpoints na classe MediaController
+
+    /**
+     * Top 20 mídias com avaliação acima de 7.0
+     */
+    @GetMapping("/trending/high-rated")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getHighRatedMedia(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getHighRatedMedia(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Novos lançamentos - últimas mídias adicionadas
+     */
+    @GetMapping("/trending/new-releases")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getNewReleases(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getNewReleases(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Apenas filmes
+     */
+    @GetMapping("/movies")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMovies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMovies(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Apenas séries
+     */
+    @GetMapping("/series")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getSeries(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mídias por categoria específica
+     */
+    @GetMapping("/category/{categoria}")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMediaByCategory(
+            @PathVariable String categoria,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMediaByCategory(categoria, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Filmes populares (mais curtidos)
+     */
+    @GetMapping("/trending/popular-movies")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getPopularMovies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getPopularMovies(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Séries populares (mais curtidas)
+     */
+    @GetMapping("/trending/popular-series")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getPopularSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getPopularSeries(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Filmes recentes
+     */
+    @GetMapping("/movies/recent")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getRecentMovies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getRecentMovies(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Séries recentes
+     */
+    @GetMapping("/series/recent")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getRecentSeries(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getRecentSeries(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mídias por faixa etária
+     */
+    @GetMapping("/age-rating/{minAge}")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMediaByAgeRating(
+            @PathVariable String minAge,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMediaByAgeRating(minAge, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mídias por duração (filmes curtos/longos)
+     */
+    @GetMapping("/duration")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMediaByDuration(
+            @RequestParam(required = false) Integer minDuration,
+            @RequestParam(required = false) Integer maxDuration,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMediaByDuration(minDuration, maxDuration, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mídias por ano específico
+     */
+    @GetMapping("/year/{year}")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getMediaByYear(
+            @PathVariable Integer year,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getMediaByYear(year, page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Recomendações baseadas no que o usuário curtiu
+     */
+    @GetMapping("/recommendations")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getRecommendations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser User user) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getRecommendations(user.getId(), page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Continuar assistindo (baseado na lista do usuário)
+     */
+    @GetMapping("/continue-watching")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getContinueWatching(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @CurrentUser User user) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getContinueWatching(user.getId(), page, size);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Mídias similares a uma específica (mesmo gênero/categoria)
+     */
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<PaginatedResponseDTO<MediaSimpleDTO>> getSimilarMedia(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        PaginatedResponseDTO<MediaSimpleDTO> response = mediaService.getSimilarMedia(id, page, size);
+        return ResponseEntity.ok(response);
+    }
 }

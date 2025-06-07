@@ -48,7 +48,7 @@ public class SecurityConfig {
                 // Configure endpoint security
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/media/**").permitAll()
                         // Fix: Explicitly allow all webhook endpoints with more specific patterns
                         .requestMatchers("/payments/webhook/**").permitAll()
