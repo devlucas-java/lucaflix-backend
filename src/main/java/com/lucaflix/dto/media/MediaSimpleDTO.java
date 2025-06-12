@@ -18,6 +18,7 @@ public class MediaSimpleDTO {
     private List<Categoria> categoria;
     private String minAge;
     private Double avaliacao;
-    private String imageURL;
+    private String imageURL1;
+    private String imageURL2;
     private Long totalLikes;
 }

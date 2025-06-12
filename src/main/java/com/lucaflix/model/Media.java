@@ -69,16 +69,15 @@ public class Media {
     @Column(name = "trailer_url")
     private String trailer;
 
-    @Column(name = "image_url")
-    private String imageURL;
+    @Column(name = "image_url_1")
+    private String imageURL1;
 
-    // CORRIGIDO: Sem cascade para preservar a mídia quando likes são deletados
-    // Os likes serão removidos automaticamente por constraint de FK ou manualmente
+    @Column(name = "image_url_2")
+    private String imageURL2;
+
     @OneToMany(mappedBy = "media", fetch = FetchType.LAZY)
     private List<Like> likes;
 
-    // CORRIGIDO: Sem cascade para preservar a mídia quando itens da lista são deletados
-    // Os itens da lista serão removidos automaticamente por constraint de FK ou manualmente
     @OneToMany(mappedBy = "media", fetch = FetchType.LAZY)
     private List<MinhaLista> minhaLista;
 }

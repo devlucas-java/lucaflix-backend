@@ -48,7 +48,8 @@ public class AdminService {
         media.setEmbed1(createMediaDTO.getEmbed1());
         media.setEmbed2(createMediaDTO.getEmbed2());
         media.setTrailer(createMediaDTO.getTrailer());
-        media.setImageURL(createMediaDTO.getImageURL());
+        media.setImageURL1(createMediaDTO.getImageURL1());
+        media.setImageURL2(createMediaDTO.getImageURL2());
         media.setDataCadastro(new Date());
 
         Media savedMedia = mediaRepository.save(media);
@@ -98,8 +99,11 @@ public class AdminService {
         if (updateMediaDTO.getTrailer() != null) {
             media.setTrailer(updateMediaDTO.getTrailer());
         }
-        if (updateMediaDTO.getImageURL() != null) {
-            media.setImageURL(updateMediaDTO.getImageURL());
+        if (updateMediaDTO.getImageURL1() != null) {
+            media.setImageURL1(updateMediaDTO.getImageURL1());
+        }
+        if (updateMediaDTO.getImageURL2() != null) {
+            media.setImageURL2(updateMediaDTO.getImageURL2());
         }
 
         Media updatedMedia = mediaRepository.save(media);
@@ -232,7 +236,8 @@ public class AdminService {
         dto.setEmbed1(media.getEmbed1());
         dto.setEmbed2(media.getEmbed2());
         dto.setTrailer(media.getTrailer());
-        dto.setImageURL(media.getImageURL());
+        dto.setImageURL1(media.getImageURL1());
+        dto.setImageURL2(media.getImageURL2());
         dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
         dto.setTotalInLists((long) (media.getMinhaLista() != null ? media.getMinhaLista().size() : 0));
         return dto;

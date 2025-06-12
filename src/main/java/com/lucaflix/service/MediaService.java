@@ -368,7 +368,8 @@ public class MediaService {
         dto.setCategoria(media.getCategoria()); // Agora retorna lista
         dto.setMinAge(media.getMinAge());
         dto.setAvaliacao(media.getAvaliacao());
-        dto.setImageURL(media.getImageURL());
+        dto.setImageURL1(media.getImageURL1());
+        dto.setImageURL2(media.getImageURL2());
         dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
         return dto;
     }
@@ -391,7 +392,8 @@ public class MediaService {
         dto.setEmbed1(media.getEmbed1());
         dto.setEmbed2(media.getEmbed2());
         dto.setTrailer(media.getTrailer());
-        dto.setImageURL(media.getImageURL());
+        dto.setImageURL1(media.getImageURL1());
+        dto.setImageURL2(media.getImageURL2());
         dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
 
         // Verifica se o usuário curtiu

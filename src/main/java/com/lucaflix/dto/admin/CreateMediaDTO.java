@@ -38,5 +38,6 @@ public class CreateMediaDTO {
     private String embed1;
     private String embed2;
     private String trailer;
-    private String imageURL;
+    private String imageURL1;
+    private String imageURL2;
 }
