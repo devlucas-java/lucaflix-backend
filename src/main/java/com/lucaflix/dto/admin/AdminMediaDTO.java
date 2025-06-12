@@ -3,6 +3,7 @@ package com.lucaflix.dto.admin;
 import com.lucaflix.model.enums.Categoria;
 import lombok.Data;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class AdminMediaDTO {
@@ -13,7 +14,7 @@ public class AdminMediaDTO {
     private Integer duracaoMinutos;
     private String sinopse;
     private Date dataCadastro;
-    private Categoria categoria;
+    private List<Categoria> categoria;
     private String minAge;
     private Double avaliacao;
     private String embed1;

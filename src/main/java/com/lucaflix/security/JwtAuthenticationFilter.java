@@ -36,10 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         logger.debug("Checking if path should be filtered: {}", path);
 
-        // Don't apply JWT filter to Stripe webhook paths
-        return path.contains("/api/payments/webhook/stripe") ||
-                path.contains("/webhook/stripe");
+        // Ignore endpoints that don't require authentication
+        return path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/register") ||
+                path.startsWith("/api/sitemap.xml") ||
+                path.startsWith("/api/sitemap/urls") ||
+                path.contains("/api/payments/webhook/stripe") ||
+                path.contains("/webhook/stripe") ||
+                "OPTIONS".equalsIgnoreCase(request.getMethod());
     }
+
 
     @Override
     protected void doFilterInternal(

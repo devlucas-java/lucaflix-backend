@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -134,34 +135,86 @@ public class AdminService {
     /**
      * Retorna estatísticas gerais das mídias
      */
-    public MediaStatsDTO getMediaStats(){
+    public MediaStatsDTO getMediaStats() {
+        try {
+            long totalMedias = mediaRepository.count();
+            long totalFilmes = mediaRepository.countByIsFilmeTrue();
+            long totalSeries = mediaRepository.countByIsFilmeFalse();
+            long totalLikes = likeRepository.count();
+            long totalUsersWithLists = minhaListaRepository.countDistinctUsers();
 
-        long totalMedias = mediaRepository.count();
-        long totalFilmes = mediaRepository.countByIsFilmeTrue();
-        long totalSeries = mediaRepository.countByIsFilmeFalse();
-        long totalLikes = likeRepository.count();
-        long totalUsersWithLists = minhaListaRepository.countDistinctUsers();
+            Double averageRating = mediaRepository.getAverageRating();
+            if (averageRating == null) averageRating = 0.0;
 
-        Double averageRating = mediaRepository.getAverageRating();
-        if (averageRating == null) averageRating = 0.0;
+            // Usa queries nativas mais seguras
+            String mostLikedMediaTitle = getMostLikedMediaTitleSafe();
+            String mostPopularCategory = getMostPopularCategorySafe();
 
-        String mostLikedMediaTitle = mediaRepository.findMostLikedMediaTitle();
-        if (mostLikedMediaTitle == null) mostLikedMediaTitle = "Nenhuma";
+            return new MediaStatsDTO(
+                    totalMedias,
+                    totalFilmes,
+                    totalSeries,
+                    totalLikes,
+                    totalUsersWithLists,
+                    averageRating,
+                    mostLikedMediaTitle,
+                    mostPopularCategory
+            );
+        } catch (Exception e) {
+            // Log do erro para debug
+            e.printStackTrace();
 
-        String mostPopularCategory = mediaRepository.findMostPopularCategory();
-        if (mostPopularCategory == null) mostPopularCategory = "Nenhuma";
-
-        return new MediaStatsDTO(
-                totalMedias,
-                totalFilmes,
-                totalSeries,
-                totalLikes,
-                totalUsersWithLists,
-                averageRating,
-                mostLikedMediaTitle,
-                mostPopularCategory
-        );
+            // Retorna estatísticas básicas em caso de erro
+            return getBasicStats();
+        }
     }
+
+    private MediaStatsDTO getBasicStats() {
+        try {
+            return new MediaStatsDTO(
+                    mediaRepository.count(),
+                    mediaRepository.countByIsFilmeTrue(),
+                    mediaRepository.countByIsFilmeFalse(),
+                    likeRepository.count(),
+                    0L,
+                    0.0,
+                    "Não disponível",
+                    "Não disponível"
+            );
+        } catch (Exception e) {
+            // Se até as queries básicas falharem, retorna zeros
+            return new MediaStatsDTO(0L, 0L, 0L, 0L, 0L, 0.0, "Erro", "Erro");
+        }
+    }
+
+    private String getMostLikedMediaTitleSafe() {
+        try {
+            // Usa query nativa mais segura
+            String title = mediaRepository.findMostLikedMediaTitleNative();
+            return title != null ? title : "Nenhuma";
+        } catch (Exception e) {
+            try {
+                // Fallback: usa a query que retorna a mídia completa
+                Optional<Media> media = mediaRepository.findMostLikedMediaNative();
+                return media.map(Media::getTitle).orElse("Nenhuma");
+            } catch (Exception e2) {
+                System.err.println("Erro ao buscar mídia mais curtida: " + e2.getMessage());
+                return "Nenhuma";
+            }
+        }
+    }
+
+    private String getMostPopularCategorySafe() {
+        try {
+            String category = mediaRepository.findMostPopularCategoryNative();
+            return category != null ? category : "Nenhuma";
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar categoria mais popular: " + e.getMessage());
+            return "Nenhuma";
+        }
+    }
+
+
 
     // Método privado de conversão
     private AdminMediaDTO convertToAdminDTO(Media media) {

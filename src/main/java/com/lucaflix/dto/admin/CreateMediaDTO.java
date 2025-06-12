@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class CreateMediaDTO {
@@ -26,7 +27,7 @@ public class CreateMediaDTO {
     private String sinopse;
 
     @NotNull(message = "Categoria é obrigatória")
-    private Categoria categoria;
+    private List<Categoria> categoria;
 
     private String minAge;
 

@@ -28,8 +28,6 @@ public class MediaService {
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
 
-
-
     public PaginatedResponseDTO<MediaSimpleDTO> filtrarMedia(MediaFilter filter, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
 
@@ -59,8 +57,6 @@ public class MediaService {
                 mediaPage.hasPrevious()
         );
     }
-
-
 
     /**
      * Retorna as top 10 mídias com mais likes
@@ -191,62 +187,6 @@ public class MediaService {
         );
     }
 
-
-    // Métodos privados de conversão
-    private MediaSimpleDTO convertToSimpleDTO(Media media) {
-        MediaSimpleDTO dto = new MediaSimpleDTO();
-        dto.setId(media.getId());
-        dto.setTitle(media.getTitle());
-        dto.setFilme(media.isFilme());
-        dto.setAnoLancamento(media.getAnoLancamento());
-        dto.setDuracaoMinutos(media.getDuracaoMinutos());
-        dto.setCategoria(media.getCategoria());
-        dto.setMinAge(media.getMinAge());
-        dto.setAvaliacao(media.getAvaliacao());
-        dto.setImageURL(media.getImageURL());
-        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
-        return dto;
-    }
-
-    private MediaCompleteDTO convertToCompleteDTO(Media media, UUID userId) {
-        MediaCompleteDTO dto = new MediaCompleteDTO();
-        dto.setId(media.getId());
-        dto.setTitle(media.getTitle());
-        dto.setFilme(media.isFilme());
-        dto.setAnoLancamento(media.getAnoLancamento());
-        dto.setDuracaoMinutos(media.getDuracaoMinutos());
-        dto.setSinopse(media.getSinopse());
-        dto.setDataCadastro(media.getDataCadastro());
-        dto.setCategoria(media.getCategoria());
-        dto.setMinAge(media.getMinAge());
-        dto.setAvaliacao(media.getAvaliacao());
-        dto.setEmbed1(media.getEmbed1());
-        dto.setEmbed2(media.getEmbed2());
-        dto.setTrailer(media.getTrailer());
-        dto.setImageURL(media.getImageURL());
-        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
-
-        // Verifica se o usuário curtiu
-        if (userId != null) {
-            User user = userRepository.findById(userId).orElse(null);
-            if (user != null) {
-                dto.setUserLiked(likeRepository.existsByUserAndMedia(user, media));
-                dto.setInUserList(minhaListaRepository.existsByUserAndMedia(user, media));
-            }
-        }
-
-        return dto;
-    }
-
-
-
-
-
-
-
-
-    // Adicione estes métodos na classe MediaService
-
     /**
      * Mídias com avaliação alta (acima de 7.0)
      */
@@ -288,12 +228,25 @@ public class MediaService {
     }
 
     /**
-     * Mídias por categoria
+     * Mídias por categoria - AJUSTADO para lista de categorias
      */
     public PaginatedResponseDTO<MediaSimpleDTO> getMediaByCategory(String categoria, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
         Categoria cat = Categoria.valueOf(categoria.toUpperCase());
         Page<Media> mediaPage = mediaRepository.findByCategoria(cat, pageable);
+
+        return createPaginatedResponse(mediaPage);
+    }
+
+    /**
+     * Mídias por múltiplas categorias - NOVO MÉTODO
+     */
+    public PaginatedResponseDTO<MediaSimpleDTO> getMediaByCategories(List<String> categorias, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
+        List<Categoria> cats = categorias.stream()
+                .map(cat -> Categoria.valueOf(cat.toUpperCase()))
+                .collect(Collectors.toList());
+        Page<Media> mediaPage = mediaRepository.findByCategoriaIn(cats, pageable);
 
         return createPaginatedResponse(mediaPage);
     }
@@ -389,7 +342,7 @@ public class MediaService {
     }
 
     /**
-     * Mídias similares
+     * Mídias similares - AJUSTADO para lista de categorias
      */
     public PaginatedResponseDTO<MediaSimpleDTO> getSimilarMedia(Long mediaId, int page, int size) {
         Media media = mediaRepository.findById(mediaId)
@@ -399,6 +352,58 @@ public class MediaService {
         Page<Media> mediaPage = mediaRepository.findSimilarMedia(media.getCategoria(), media.getId(), pageable);
 
         return createPaginatedResponse(mediaPage);
+    }
+
+    // Métodos privados de conversão
+    private MediaSimpleDTO convertToSimpleDTO(Media media) {
+        MediaSimpleDTO dto = new MediaSimpleDTO();
+        dto.setId(media.getId());
+        dto.setTitle(media.getTitle());
+        dto.setFilme(media.isFilme());
+        dto.setAnoLancamento(media.getAnoLancamento());
+        dto.setDuracaoMinutos(media.getDuracaoMinutos());
+        dto.setTmdbId(media.getTmdbId());
+        dto.setImdbId(media.getImdbId());
+        dto.setPaisOrigen(media.getPaisOrigen());
+        dto.setCategoria(media.getCategoria()); // Agora retorna lista
+        dto.setMinAge(media.getMinAge());
+        dto.setAvaliacao(media.getAvaliacao());
+        dto.setImageURL(media.getImageURL());
+        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
+        return dto;
+    }
+
+    private MediaCompleteDTO convertToCompleteDTO(Media media, UUID userId) {
+        MediaCompleteDTO dto = new MediaCompleteDTO();
+        dto.setId(media.getId());
+        dto.setTitle(media.getTitle());
+        dto.setFilme(media.isFilme());
+        dto.setAnoLancamento(media.getAnoLancamento());
+        dto.setDuracaoMinutos(media.getDuracaoMinutos());
+        dto.setTmdbId(media.getTmdbId());
+        dto.setImdbId(media.getImdbId());
+        dto.setPaisOrigen(media.getPaisOrigen());
+        dto.setSinopse(media.getSinopse());
+        dto.setDataCadastro(media.getDataCadastro());
+        dto.setCategoria(media.getCategoria()); // Agora retorna lista
+        dto.setMinAge(media.getMinAge());
+        dto.setAvaliacao(media.getAvaliacao());
+        dto.setEmbed1(media.getEmbed1());
+        dto.setEmbed2(media.getEmbed2());
+        dto.setTrailer(media.getTrailer());
+        dto.setImageURL(media.getImageURL());
+        dto.setTotalLikes((long) (media.getLikes() != null ? media.getLikes().size() : 0));
+
+        // Verifica se o usuário curtiu
+        if (userId != null) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                dto.setUserLiked(likeRepository.existsByUserAndMedia(user, media));
+                dto.setInUserList(minhaListaRepository.existsByUserAndMedia(user, media));
+            }
+        }
+
+        return dto;
     }
 
     /**
@@ -420,5 +425,23 @@ public class MediaService {
                 mediaPage.hasNext(),
                 mediaPage.hasPrevious()
         );
+    }
+
+    /**
+     * Busca uma única mídia por título e ano exatos
+     */
+    public MediaCompleteDTO buscarPorTituloEAno(String title, Integer year, UUID userId) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new RuntimeException("Título não pode ser vazio");
+        }
+
+        if (year == null) {
+            throw new RuntimeException("Ano não pode ser nulo");
+        }
+
+        Media media = mediaRepository.findByTitleAndYear(title.trim(), year)
+                .orElseThrow(() -> new RuntimeException("Mídia não encontrada com título '" + title + "' e ano " + year));
+
+        return convertToCompleteDTO(media, userId);
     }
 }

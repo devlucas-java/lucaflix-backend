@@ -10,12 +10,9 @@ import com.lucaflix.security.CurrentUser;
 import com.lucaflix.service.MediaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/media")
@@ -33,8 +30,6 @@ public class MediaController {
             @RequestParam(required = false) Boolean isFilme,
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Double avaliacao,
-            @RequestParam(required = false) String anoLancamentoInicio,
-            @RequestParam(required = false) String anoLancamentoFim,
             @RequestParam(required = false) String categoria,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -43,14 +38,6 @@ public class MediaController {
         filter.setIsFilme(isFilme);
         filter.setTitle(title);
         filter.setAvaliacao(avaliacao);
-
-//        if (anoLancamentoInicio != null) {
-//            filter.setAnoLancamentoInicio(LocalDate.parse(anoLancamentoInicio, DateTimeFormatter.ISO_DATE));
-//        }
-//
-//        if (anoLancamentoFim != null) {
-//            filter.setAnoLancamentoFim(LocalDate.parse(anoLancamentoFim, DateTimeFormatter.ISO_DATE));
-//        }
 
         if (categoria != null) {
             filter.setCategoria(Categoria.valueOf(categoria.toUpperCase()));
@@ -148,8 +135,6 @@ public class MediaController {
     @PostMapping("/my-list/toggle/{mediaId}")
     public ResponseEntity<String> toggleMyList(@PathVariable Long mediaId, @CurrentUser User user) {
         try {
-
-
             // Verifica se já está na lista
             MediaCompleteDTO media = mediaService.getMediaById(mediaId, user.getId());
 
@@ -165,26 +150,6 @@ public class MediaController {
         }
     }
 
-
-    /**
-     * Metodo auxiliar para obter o ID do usuário atual
-     */
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Usuário não autenticado");
-        }
-
-        // Assumindo que o username é o UUID do usuário
-        // Ajuste conforme sua implementação de autenticação
-        try {
-            return UUID.fromString(authentication.getName());
-        } catch (Exception e) {
-            // Se o authentication.getName() retorna o username em vez do UUID
-            // você precisará buscar o usuário pelo username
-            throw new RuntimeException("Erro ao obter ID do usuário: " + e.getMessage());
-        }
-    }
 
     /**
      * Endpoint público para mídia específica (sem informações do usuário)

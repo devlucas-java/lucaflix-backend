@@ -67,17 +67,21 @@ public class UserController {
         }
     }
 
-    /// DELETA CONTA DO USUARIO ATUAL
+    /// DELETA CONTA DO USUARIO ATUAL - CORRIGIDO PARA EVITAR DADOS ÓRFÃOS
     @DeleteMapping("/me")
-    @Operation(summary = "Deletar conta", description = "Deleta a conta do usuário autenticado")
+    @Operation(summary = "Deletar conta", description = "Deleta a conta do usuário autenticado e todos os dados relacionados, mantendo as mídias")
     public ResponseEntity<Map<String, String>> deleteCurrentUser(@CurrentUser User user) {
         try {
-            userService.deleteUser(user.getId());
-            return ResponseEntity.ok(Map.of("message", "Conta deletada com sucesso"));
+            // Chama o serviço que fará a exclusão segura
+            userService.deleteUserAndRelatedData(user.getId());
+
+            log.info("Usuário {} deletado com sucesso junto com todos os dados relacionados", user.getUsername());
+            return ResponseEntity.ok(Map.of("message", "Conta e todos os dados relacionados foram deletados com sucesso"));
+
         } catch (Exception e) {
-            log.error("Erro ao deletar usuário: {}", user.getUsername(), e);
+            log.error("Erro ao deletar usuário {}: {}", user.getUsername(), e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao deletar conta"));
+                    .body(Map.of("error", "Falha ao deletar conta. Tente novamente mais tarde."));
         }
     }
 }

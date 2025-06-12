@@ -56,12 +56,17 @@ public class User implements UserDetails {
     @Column(name = "account_expired")
     private Boolean isAccountExpired = false;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // CORRIGIDO: Removido CascadeType.ALL para evitar exclusão das mídias
+    // Os likes serão deletados quando o usuário for deletado, mas as mídias permanecem
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private List<Like> likes;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // CORRIGIDO: Removido CascadeType.ALL para evitar exclusão das mídias
+    // Os itens da lista serão deletados quando o usuário for deletado, mas as mídias permanecem
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private List<MinhaLista> minhaLista;
 
+    // CORRIGIDO: Mantém cascade para AdminPanel pois é específico do usuário
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private AdminPanel adminPanel;
 
@@ -73,21 +78,21 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return !isAccountExpired; // Corrigido: deve retornar o oposto do valor armazenado
+        return !isAccountExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !isAccountLocked; // Corrigido: deve retornar o oposto do valor armazenado
+        return !isAccountLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !isCredentialsExpired; // Corrigido: deve retornar o oposto do valor armazenado
+        return !isCredentialsExpired;
     }
 
     @Override
     public boolean isEnabled() {
-        return isAccountEnabled; // Este está correto
+        return isAccountEnabled;
     }
 }

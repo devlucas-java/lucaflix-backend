@@ -315,30 +315,38 @@ public class UserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
+
     @Transactional
-    public void deleteUser(UUID userId) {
-        User user = getUserById(userId);
+    public void deleteUserAndRelatedData(UUID userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
-        // Remove apenas as relações, mantendo as entidades Media intactas
-        if (user.getMinhaLista() != null) {
-            user.getMinhaLista().forEach(minhaLista -> {
-                minhaLista.setUser(null);
-                minhaListaRepository.save(minhaLista);
-            });
+            // 1. Deletar todos os likes do usuário
+            // Isso remove os likes mas mantém as mídias
+            likeRepository.deleteByUserId(userId);
+            log.info("Likes do usuário {} deletados", user.getUsername());
+
+            // 2. Deletar todos os itens da MinhaLista do usuário
+            // Isso remove os itens da lista mas mantém as mídias
+            minhaListaRepository.deleteByUserId(userId);
+            log.info("Itens da lista do usuário {} deletados", user.getUsername());
+
+            // 3. Deletar o painel admin se existir
+            // O cascade já cuida disso, mas podemos ser explícitos
+            if (user.getAdminPanel() != null) {
+                adminPanelRepository.deleteByUserId(userId);
+                log.info("Painel admin do usuário {} deletado", user.getUsername());
+            }
+
+            // 4. Finalmente deletar o usuário
+            // Agora não há mais referências que possam causar problemas
+            userRepository.deleteById(userId);
+            log.info("Usuário {} deletado com sucesso", user.getUsername());
+
+        } catch (Exception e) {
+            log.error("Erro ao deletar usuário e dados relacionados: {}", e.getMessage(), e);
+            throw new RuntimeException("Falha ao deletar usuário e dados relacionados", e);
         }
-
-        if (user.getLikes() != null) {
-            user.getLikes().forEach(like -> {
-                like.setUser(null);
-                likeRepository.save(like);
-            });
-        }
-
-        // Remove o painel admin se existir
-        adminPanelRepository.findByUser(user).ifPresent(adminPanelRepository::delete);
-
-        // Deleta o usuário
-        userRepository.delete(user);
-        log.info("Usuário deletado: {}", userId);
     }
 }

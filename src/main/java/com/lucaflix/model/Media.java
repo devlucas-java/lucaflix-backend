@@ -28,6 +28,15 @@ public class Media {
     @Column(name = "duracao_minutos")
     private Integer duracaoMinutos = 0;
 
+    @Column(name = "tmdb_id")
+    private String tmdbId = null;
+
+    @Column(name = "imdb_id")
+    private String imdbId = null;
+
+    @Column(name = "pais_origem")
+    private String paisOrigen = null;
+
     @Column(columnDefinition = "TEXT")
     private String sinopse;
 
@@ -35,8 +44,15 @@ public class Media {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCadastro = new Date();
 
+    // ALTERAÇÃO PRINCIPAL: ElementCollection para armazenar lista de categorias
+    @ElementCollection(targetClass = Categoria.class)
     @Enumerated(EnumType.STRING)
-    private Categoria categoria;
+    @CollectionTable(
+            name = "media_categoria",
+            joinColumns = @JoinColumn(name = "media_id")
+    )
+    @Column(name = "categoria")
+    private List<Categoria> categoria;
 
     @Column(name = "min_age")
     private String minAge;
@@ -56,10 +72,13 @@ public class Media {
     @Column(name = "image_url")
     private String imageURL;
 
-    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // CORRIGIDO: Sem cascade para preservar a mídia quando likes são deletados
+    // Os likes serão removidos automaticamente por constraint de FK ou manualmente
+    @OneToMany(mappedBy = "media", fetch = FetchType.LAZY)
     private List<Like> likes;
 
-    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // CORRIGIDO: Sem cascade para preservar a mídia quando itens da lista são deletados
+    // Os itens da lista serão removidos automaticamente por constraint de FK ou manualmente
+    @OneToMany(mappedBy = "media", fetch = FetchType.LAZY)
     private List<MinhaLista> minhaLista;
-
 }

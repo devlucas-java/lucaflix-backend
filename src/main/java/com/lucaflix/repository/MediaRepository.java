@@ -12,16 +12,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface MediaRepository extends JpaRepository<Media, Long> {
 
-
     @Query("SELECT m FROM Media m LEFT JOIN m.likes l GROUP BY m.id ORDER BY COUNT(l) DESC")
     List<Media> findTop10ByLikes(Pageable pageable);
-
-
 
     long countByIsFilmeTrue();
 
@@ -30,19 +28,13 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
     @Query("SELECT AVG(m.avaliacao) FROM Media m")
     Double getAverageRating();
 
-    @Query("SELECT m.title FROM Media m LEFT JOIN m.likes l GROUP BY m.title ORDER BY COUNT(l) DESC")
-    String findMostLikedMediaTitle();
-
-    @Query("SELECT m.categoria FROM Media m GROUP BY m.categoria ORDER BY COUNT(m) DESC")
-    String findMostPopularCategory();
-
     @Query("SELECT m FROM Media m WHERE " +
             "(:isFilme IS NULL OR m.isFilme = :isFilme) AND " +
-            "(:title IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
+            "(:title IS NULL OR UPPER(CAST(m.title AS string)) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
             "(:avaliacao IS NULL OR m.avaliacao >= :avaliacao) AND " +
             "(:anoInicio IS NULL OR m.anoLancamento >= :anoInicio) AND " +
             "(:anoFim IS NULL OR m.anoLancamento <= :anoFim) AND " +
-            "(:categoria IS NULL OR m.categoria = :categoria)")
+            "(:categoria IS NULL OR :categoria MEMBER OF m.categoria)")
     Page<Media> buscarPorFiltros(
             @Param("isFilme") Boolean isFilme,
             @Param("title") String title,
@@ -52,27 +44,31 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
             @Param("categoria") Categoria categoria,
             Pageable pageable);
 
-    @Query("SELECT COUNT(m) FROM Media m WHERE " +
-            "(:isFilme IS NULL OR m.isFilme = :isFilme) AND " +
-            "(:title IS NULL OR LOWER(m.title) LIKE LOWER(:title)) AND " +
-            "(:avaliacao IS NULL OR m.avaliacao >= :avaliacao) AND " +
-            "(:anoInicio IS NULL OR m.anoLancamento >= :anoInicio) AND " +
-            "(:anoFim IS NULL OR m.anoLancamento <= :anoFim) AND " +
-            "(:categoria IS NULL OR m.categoria = :categoria)")
-    long contarPorFiltros(
-            @Param("isFilme") Boolean isFilme,
-            @Param("title") String title,
-            @Param("avaliacao") Double avaliacao,
-            @Param("anoInicio") Date anoLancamentoInicio,
-            @Param("anoFim") Date anoLancamentoFim,
-            @Param("categoria") Categoria categoria);
+    // Queries nativas corrigidas para PostgreSQL
+    @Query(value = "SELECT CAST(m.title AS VARCHAR) FROM media m " +
+            "LEFT JOIN likes l ON m.id = l.media_id " +
+            "GROUP BY m.title " +
+            "ORDER BY COUNT(l.id) DESC " +
+            "LIMIT 1", nativeQuery = true)
+    String findMostLikedMediaTitleNative();
 
+    @Query(value = "SELECT CAST(m.categoria AS VARCHAR) FROM media m " +
+            "GROUP BY m.categoria " +
+            "ORDER BY COUNT(m.id) DESC " +
+            "LIMIT 1", nativeQuery = true)
+    String findMostPopularCategoryNative();
 
+    // Query para pegar estatísticas de likes de forma mais eficiente
+    @Query(value = "SELECT COUNT(DISTINCT l.media_id) FROM likes l", nativeQuery = true)
+    Long countMediasWithLikes();
 
-
-
-
-    // Adicione estas queries na interface MediaRepository
+    // Query para pegar a mídia específica mais curtida (com todos os dados)
+    @Query(value = "SELECT m.* FROM media m " +
+            "LEFT JOIN likes l ON m.id = l.media_id " +
+            "GROUP BY m.id, m.title, m.is_filme, m.ano_lancamento, m.duracao_minutos, m.sinopse, m.data_cadastro, m.categoria, m.min_age, m.avaliacao, m.embed_url_1, m.embed_url_2, m.trailer_url, m.image_url " +
+            "ORDER BY COUNT(l.id) DESC " +
+            "LIMIT 1", nativeQuery = true)
+    Optional<Media> findMostLikedMediaNative();
 
     // Mídias com avaliação alta
     Page<Media> findByAvaliacaoGreaterThanEqual(Double avaliacao, Pageable pageable);
@@ -81,8 +77,13 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
     Page<Media> findByIsFilmeTrue(Pageable pageable);
     Page<Media> findByIsFilmeFalse(Pageable pageable);
 
-    // Por categoria
-    Page<Media> findByCategoria(Categoria categoria, Pageable pageable);
+    // Por categoria - AJUSTADO para lista de categorias
+    @Query("SELECT m FROM Media m WHERE :categoria MEMBER OF m.categoria")
+    Page<Media> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
+
+    // Por múltiplas categorias
+    @Query("SELECT DISTINCT m FROM Media m JOIN m.categoria c WHERE c IN :categorias")
+    Page<Media> findByCategoriaIn(@Param("categorias") List<Categoria> categorias, Pageable pageable);
 
     // Por faixa etária
     Page<Media> findByMinAge(String minAge, Pageable pageable);
@@ -105,69 +106,30 @@ public interface MediaRepository extends JpaRepository<Media, Long> {
             Pageable pageable);
 
     // Por ano
-    @Query("SELECT m FROM Media m WHERE YEAR(m.anoLancamento) = :year")
+    @Query("SELECT m FROM Media m WHERE EXTRACT(YEAR FROM m.anoLancamento) = :year")
     Page<Media> findByYear(@Param("year") Integer year, Pageable pageable);
 
-    // Recomendações baseadas nas categorias que o usuário mais curte
-    @Query("SELECT m FROM Media m WHERE m.categoria IN " +
-            "(SELECT DISTINCT media.categoria FROM Like l JOIN l.media media WHERE l.user.id = :userId) " +
+    // Recomendações baseadas nas categorias que o usuário mais curte - AJUSTADO
+    @Query("SELECT DISTINCT m FROM Media m JOIN m.categoria cat WHERE cat IN " +
+            "(SELECT DISTINCT c FROM Media media JOIN media.categoria c JOIN media.likes l WHERE l.user.id = :userId) " +
             "AND m.id NOT IN (SELECT l2.media.id FROM Like l2 WHERE l2.user.id = :userId) " +
             "ORDER BY m.avaliacao DESC")
     Page<Media> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
 
-    // Mídias similares (mesma categoria, excluindo a atual)
-    @Query("SELECT m FROM Media m WHERE m.categoria = :categoria AND m.id != :excludeId")
+    // Mídias similares (categorias em comum, excluindo a atual) - AJUSTADO
+    @Query("SELECT DISTINCT m FROM Media m JOIN m.categoria cat WHERE cat IN :categorias AND m.id != :excludeId")
     Page<Media> findSimilarMedia(
-            @Param("categoria") Categoria categoria,
+            @Param("categorias") List<Categoria> categorias,
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
-    // Mídias por múltiplas categorias
-    @Query("SELECT m FROM Media m WHERE m.categoria IN :categorias")
-    Page<Media> findByCategoriaIn(@Param("categorias") List<Categoria> categorias, Pageable pageable);
+    // Busca uma única mídia por título e ano exatos - Corrigida
+    @Query("SELECT m FROM Media m WHERE UPPER(CAST(m.title AS string)) = UPPER(:title) AND EXTRACT(YEAR FROM m.anoLancamento) = :year")
+    Optional<Media> findByTitleAndYear(@Param("title") String title, @Param("year") Integer year);
 
-    // Mídias lançadas nos últimos X dias
-    @Query("SELECT m FROM Media m WHERE m.dataCadastro >= :dataLimite")
-    Page<Media> findRecentMedia(@Param("dataLimite") Date dataLimite, Pageable pageable);
+    @Query("SELECT m FROM Media m WHERE m.title IS NOT NULL AND m.title != ''")
+    List<Media> findAllForSitemap();
 
-    // Mídias mais assistidas (baseado na quantidade de vezes que estão em listas)
-    @Query("SELECT m FROM Media m LEFT JOIN m.minhaLista ml GROUP BY m ORDER BY COUNT(ml) DESC")
-    Page<Media> findMostWatched(Pageable pageable);
-
-    // Filmes por faixa de duração específica
-    @Query("SELECT m FROM Media m WHERE m.isFilme = true AND m.duracaoMinutos BETWEEN :min AND :max")
-    Page<Media> findMoviesByDurationRange(
-            @Param("min") Integer minDuration,
-            @Param("max") Integer maxDuration,
-            Pageable pageable);
-
-    // Séries por faixa de duração específica
-    @Query("SELECT m FROM Media m WHERE m.isFilme = false AND m.duracaoMinutos BETWEEN :min AND :max")
-    Page<Media> findSeriesByDurationRange(
-            @Param("min") Integer minDuration,
-            @Param("max") Integer maxDuration,
-            Pageable pageable);
-
-    // Busca por múltiplos critérios (versão mais flexível)
-    @Query("SELECT m FROM Media m WHERE " +
-            "(:isFilme IS NULL OR m.isFilme = :isFilme) AND " +
-            "(:categoria IS NULL OR m.categoria = :categoria) AND " +
-            "(:minAvaliacao IS NULL OR m.avaliacao >= :minAvaliacao) AND " +
-            "(:minAge IS NULL OR m.minAge = :minAge) AND " +
-            "(:minDuration IS NULL OR m.duracaoMinutos >= :minDuration) AND " +
-            "(:maxDuration IS NULL OR m.duracaoMinutos <= :maxDuration)")
-    Page<Media> findByMultipleCriteria(
-            @Param("isFilme") Boolean isFilme,
-            @Param("categoria") Categoria categoria,
-            @Param("minAvaliacao") Double minAvaliacao,
-            @Param("minAge") String minAge,
-            @Param("minDuration") Integer minDuration,
-            @Param("maxDuration") Integer maxDuration,
-            Pageable pageable);
-
-
-
-
-
-
+    // Busca mídias por tipo (filme ou série)
+    List<Media> findByIsFilme(boolean isFilme);
 }

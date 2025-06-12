@@ -1,6 +1,5 @@
 package com.lucaflix.config;
 
-
 import com.lucaflix.security.JwtAuthenticationEntryPoint;
 import com.lucaflix.security.JwtAuthenticationFilter;
 import com.lucaflix.service.CustomUserDetailsService;
@@ -18,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -28,12 +28,16 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // Disable CSRF as we're using token-based authentication
                 .csrf(csrf -> csrf.disable())
+
+                // Enable CORS with our custom configuration
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
                 // Configure exception handling
                 .exceptionHandling(exception -> exception
@@ -47,17 +51,18 @@ public class SecurityConfig {
 
                 // Configure endpoint security
                 .authorizeHttpRequests(auth -> auth
+                        // Allow OPTIONS requests for CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/media/**").permitAll()
-                        // Fix: Explicitly allow all webhook endpoints with more specific patterns
+                        .requestMatchers("/api/sitemap/**").permitAll()
+                        .requestMatchers("/api/sitemap.xml").permitAll()
+                        // Webhook endpoints
                         .requestMatchers("/payments/webhook/**").permitAll()
                         .requestMatchers("/payments/webhook/stripe").permitAll()
-                        // New: Allow external webhook URL from Stripe
                         .requestMatchers("/webhook/stripe").permitAll()
-
-                        // Allow OPTIONS requests for CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()

@@ -163,7 +163,7 @@ public class SuperAdminService {
             throw new IllegalStateException("Não é possível deletar um usuário SUPER_ADMIN");
         }
 
-        userService.deleteUser(userId);
+        userService.deleteUserAndRelatedData(userId);
         log.info("Usuário {} foi completamente deletado do sistema", userId);
     }
 
