@@ -6,18 +6,21 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class MovieSimpleDTO {
+public class SearchResultDTO {
     private Long id;
     private String title;
+    private String type; // "movie" ou "serie"
     private Date anoLancamento;
-    private Integer duracaoMinutos;
-    private String tmdbId;
-    private String imdbId;
-    private String paisOrigen;
     private List<Categoria> categoria;
-    private String minAge;
+    private String sinopse;
     private Double avaliacao;
     private String imageURL1;
     private String imageURL2;
-    private Long totalLikes;
+    private String minAge;
+
+    // Campos específicos para filmes
+    private Integer duracaoMinutos;
+
+    private Integer totalTemporadas;
+    private Integer totalEpisodios;
 }

@@ -93,27 +93,16 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT COUNT(m) FROM Movie m WHERE m.avaliacao < :rating")
     Long countByAvaliacaoLessThan(@Param("rating") Double rating);
-
-    // Filmes com trailer
-    @Query("SELECT COUNT(m) FROM Movie m WHERE m.trailer IS NOT NULL AND m.trailer != ''")
-    Long countMoviesWithTrailer();
-
-    // Filme mais antigo e mais novo
-    @Query("SELECT m FROM Movie m WHERE m.anoLancamento = (SELECT MIN(m2.anoLancamento) FROM Movie m2)")
-    Optional<Movie> findOldestMovie();
-
-    @Query("SELECT m FROM Movie m WHERE m.anoLancamento = (SELECT MAX(m2.anoLancamento) FROM Movie m2)")
-    Optional<Movie> findNewestMovie();
-
-    // Duração média dos filmes
-    @Query("SELECT AVG(m.duracaoMinutos) FROM Movie m WHERE m.duracaoMinutos IS NOT NULL AND m.duracaoMinutos > 0")
-    Double getAverageMovieDuration();
-
-    // Estatísticas mensais (filmes adicionados por mês)
-    @Query("SELECT EXTRACT(YEAR FROM m.dataCadastro) as year, EXTRACT(MONTH FROM m.dataCadastro) as month, COUNT(m) " +
-            "FROM Movie m GROUP BY EXTRACT(YEAR FROM m.dataCadastro), EXTRACT(MONTH FROM m.dataCadastro) " +
-            "ORDER BY year DESC, month DESC")
-    List<Object[]> getMonthlyAdditionStats();
+    @Query("SELECT DISTINCT m FROM Movie m " +
+            "LEFT JOIN m.categoria c " +
+            "WHERE (:texto IS NULL OR " +
+            "       LOWER(m.title) LIKE LOWER(CONCAT('%', :texto, '%')) OR " +
+            "       LOWER(m.sinopse) LIKE LOWER(CONCAT('%', :texto, '%'))) " +
+            "AND (:categoria IS NULL OR c = :categoria) " +
+            "ORDER BY m.dataCadastro DESC")
+    Page<Movie> searchMovies(@Param("texto") String texto,
+                             @Param("categoria") Categoria categoria,
+                             Pageable pageable);
 
 // ====================================================================
 }

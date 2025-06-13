@@ -44,7 +44,4 @@ public class CreateSerieDTO {
     private String imageURL1;
 
     private String imageURL2;
-
-    @NotBlank(message = "Status é obrigatório")
-    private String status; // "Em exibição", "Finalizada", "Cancelada"
 }

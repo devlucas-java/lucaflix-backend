@@ -16,20 +16,17 @@ import java.util.UUID;
 @Repository
 public interface SerieRepository extends JpaRepository<Serie, Long> {
 
+    // NOVA QUERY OTIMIZADA PARA BUSCAR SÉRIE COM TEMPORADAS E EPISÓDIOS
+    @Query("SELECT DISTINCT s FROM Serie s " +
+            "LEFT JOIN FETCH s.temporadas t " +
+            "LEFT JOIN FETCH t.episodios e " +
+            "WHERE s.id = :id " +
+            "ORDER BY t.numeroTemporada ASC, e.numeroEpisodio ASC")
+    Optional<Serie> findByIdWithTemporadasAndEpisodios(@Param("id") Long id);
+
     // Top 10 mais curtidas
     @Query("SELECT s FROM Serie s LEFT JOIN s.likes l GROUP BY s.id ORDER BY COUNT(l) DESC")
     List<Serie> findTop10ByLikes(Pageable pageable);
-
-    // Busca com filtros (similar ao MovieRepository)
-    @Query("SELECT s FROM Serie s WHERE " +
-            "(:title IS NULL OR UPPER(s.title) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
-            "(:avaliacao IS NULL OR s.avaliacao >= :avaliacao) AND " +
-            "(:categoria IS NULL OR :categoria MEMBER OF s.categoria)")
-    Page<Serie> buscarPorFiltros(
-            @Param("title") String title,
-            @Param("avaliacao") Double avaliacao,
-            @Param("categoria") Categoria categoria,
-            Pageable pageable);
 
     // Por categoria
     @Query("SELECT s FROM Serie s WHERE :categoria MEMBER OF s.categoria")
@@ -64,21 +61,27 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     @Query("SELECT s FROM Serie s WHERE s.title IS NOT NULL AND s.title != ''")
     List<Serie> findAllForSitemap();
 
-    // Busca de texto livre (título e sinopse)
-    @Query("SELECT s FROM Serie s WHERE " +
-            "UPPER(s.title) LIKE UPPER(CONCAT('%', :searchTerm, '%')) OR " +
-            "UPPER(s.sinopse) LIKE UPPER(CONCAT('%', :searchTerm, '%'))")
-    Page<Serie> searchByTitleOrSinopse(@Param("searchTerm") String searchTerm, Pageable pageable);
-
     // Contagem de séries por categoria
     @Query("SELECT cat, COUNT(s) FROM Serie s JOIN s.categoria cat GROUP BY cat")
     List<Object[]> countByCategoria();
 
     // Avaliação média
-    @Query("SELECT AVG(m.avaliacao) FROM Movie m WHERE m.avaliacao IS NOT NULL")
+    @Query("SELECT AVG(s.avaliacao) FROM Serie s WHERE s.avaliacao IS NOT NULL")
     Double getAverageRating();
 
     // Contagem por ano
-    @Query("SELECT EXTRACT(YEAR FROM m.anoLancamento) as year, COUNT(m) FROM Movie m GROUP BY EXTRACT(YEAR FROM m.anoLancamento) ORDER BY year DESC")
+    @Query("SELECT EXTRACT(YEAR FROM s.anoLancamento) as year, COUNT(s) FROM Serie s GROUP BY EXTRACT(YEAR FROM s.anoLancamento) ORDER BY year DESC")
     List<Object[]> countByYear();
+
+    // Busca de séries
+    @Query("SELECT DISTINCT s FROM Serie s " +
+            "LEFT JOIN s.categoria c " +
+            "WHERE (:texto IS NULL OR " +
+            "       LOWER(s.title) LIKE LOWER(CONCAT('%', :texto, '%')) OR " +
+            "       LOWER(s.sinopse) LIKE LOWER(CONCAT('%', :texto, '%'))) " +
+            "AND (:categoria IS NULL OR c = :categoria) " +
+            "ORDER BY s.dataCadastro DESC")
+    Page<Serie> searchSeries(@Param("texto") String texto,
+                             @Param("categoria") Categoria categoria,
+                             Pageable pageable);
 }

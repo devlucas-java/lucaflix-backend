@@ -43,7 +43,6 @@ public class AdminSerieService {
         serie.setTrailer(createDTO.getTrailer());
         serie.setImageURL1(createDTO.getImageURL1());
         serie.setImageURL2(createDTO.getImageURL2());
-        serie.setStatus(createDTO.getStatus());
         serie.setDataCadastro(new Date());
 
         Serie savedSerie = serieRepository.save(serie);
@@ -90,9 +89,6 @@ public class AdminSerieService {
         }
         if (updateDTO.getImageURL2() != null) {
             serie.setImageURL2(updateDTO.getImageURL2());
-        }
-        if (updateDTO.getStatus() != null) {
-            serie.setStatus(updateDTO.getStatus());
         }
 
         Serie updatedSerie = serieRepository.save(serie);

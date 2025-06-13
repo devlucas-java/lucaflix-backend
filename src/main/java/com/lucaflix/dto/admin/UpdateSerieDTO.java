@@ -39,6 +39,4 @@ public class UpdateSerieDTO {
     private String imageURL1;
 
     private String imageURL2;
-
-    private String status; // "Em exibição", "Finalizada", "Cancelada"
 }

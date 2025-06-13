@@ -62,9 +62,6 @@ public class Serie {
     @Column(name = "image_url_2")
     private String imageURL2;
 
-    @Column(name = "status")
-    private String status; // "Em exibição", "Finalizada", "Cancelada"
-
     @Column(name = "total_temporadas")
     private Integer totalTemporadas = 0;
 

@@ -40,9 +40,9 @@ public class SerieService {
         return topSeries.stream().map(this::convertToSimpleDTO).collect(Collectors.toList());
     }
 
-    // Obter série por ID
+    // Obter série por ID - MÉTODO ATUALIZADO PARA INCLUIR TEMPORADAS E EPISÓDIOS
     public SerieCompleteDTO getSerieById(Long serieId, UUID userId) {
-        Serie serie = serieRepository.findById(serieId)
+        Serie serie = serieRepository.findByIdWithTemporadasAndEpisodios(serieId)
                 .orElseThrow(() -> new RuntimeException("Série não encontrada"));
         return convertToCompleteDTO(serie, userId);
     }
@@ -184,13 +184,13 @@ public class SerieService {
         dto.setAvaliacao(serie.getAvaliacao());
         dto.setImageURL1(serie.getImageURL1());
         dto.setImageURL2(serie.getImageURL2());
-        dto.setStatus(serie.getStatus());
         dto.setTotalTemporadas(serie.getTotalTemporadas());
         dto.setTotalEpisodios(serie.getTotalEpisodios());
         dto.setTotalLikes((long) (serie.getLikes() != null ? serie.getLikes().size() : 0));
         return dto;
     }
 
+    // MÉTODO ATUALIZADO PARA INCLUIR TEMPORADAS E EPISÓDIOS
     private SerieCompleteDTO convertToCompleteDTO(Serie serie, UUID userId) {
         SerieCompleteDTO dto = new SerieCompleteDTO();
         dto.setId(serie.getId());
@@ -211,6 +211,16 @@ public class SerieService {
         dto.setTotalEpisodios(serie.getTotalEpisodios());
         dto.setTotalLikes((long) (serie.getLikes() != null ? serie.getLikes().size() : 0));
 
+        // Converter temporadas e episódios
+        if (serie.getTemporadas() != null) {
+            List<SerieCompleteDTO.TemporadaDTO> temporadasDTO = serie.getTemporadas().stream()
+                    .sorted((t1, t2) -> t1.getNumeroTemporada().compareTo(t2.getNumeroTemporada()))
+                    .map(this::convertToTemporadaDTO)
+                    .collect(Collectors.toList());
+            dto.setTemporadas(temporadasDTO);
+        }
+
+        // Verificar se usuário curtiu e se está na lista
         if (userId != null) {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
@@ -218,6 +228,42 @@ public class SerieService {
                 dto.setInUserList(minhaListaRepository.existsByUserAndSerie(user, serie));
             }
         }
+
+        return dto;
+    }
+
+    // NOVO MÉTODO PARA CONVERTER TEMPORADA
+    private SerieCompleteDTO.TemporadaDTO convertToTemporadaDTO(Temporada temporada) {
+        SerieCompleteDTO.TemporadaDTO dto = new SerieCompleteDTO.TemporadaDTO();
+        dto.setId(temporada.getId());
+        dto.setNumeroTemporada(temporada.getNumeroTemporada());
+        dto.setAnoLancamento(temporada.getAnoLancamento());
+        dto.setDataCadastro(temporada.getDataCadastro());
+        dto.setTotalEpisodios(temporada.getTotalEpisodios());
+
+        // Converter episódios
+        if (temporada.getEpisodios() != null) {
+            List<SerieCompleteDTO.EpisodioDTO> episodiosDTO = temporada.getEpisodios().stream()
+                    .sorted((e1, e2) -> e1.getNumeroEpisodio().compareTo(e2.getNumeroEpisodio()))
+                    .map(this::convertToEpisodioDTO)
+                    .collect(Collectors.toList());
+            dto.setEpisodios(episodiosDTO);
+        }
+
+        return dto;
+    }
+
+    // NOVO MÉTODO PARA CONVERTER EPISÓDIO
+    private SerieCompleteDTO.EpisodioDTO convertToEpisodioDTO(Episodio episodio) {
+        SerieCompleteDTO.EpisodioDTO dto = new SerieCompleteDTO.EpisodioDTO();
+        dto.setId(episodio.getId());
+        dto.setNumeroEpisodio(episodio.getNumeroEpisodio());
+        dto.setTitle(episodio.getTitle());
+        dto.setSinopse(episodio.getSinopse());
+        dto.setDuracaoMinutos(episodio.getDuracaoMinutos());
+        dto.setDataCadastro(episodio.getDataCadastro());
+        dto.setEmbed1(episodio.getEmbed1());
+        dto.setEmbed2(episodio.getEmbed2());
         return dto;
     }
 

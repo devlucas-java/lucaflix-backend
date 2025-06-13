@@ -9,7 +9,6 @@ import java.util.List;
 public class MovieCompleteDTO {
     private Long id;
     private String title;
-    private boolean isFilme;
     private Date anoLancamento;
     private Integer duracaoMinutos;
     private String tmdbId;

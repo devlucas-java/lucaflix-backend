@@ -26,4 +26,29 @@ public class SerieCompleteDTO {
     private Long totalLikes;
     private boolean userLiked;
     private boolean inUserList;
+
+    // Nova propriedade para incluir temporadas com episódios
+    private List<TemporadaDTO> temporadas;
+
+    @Data
+    public static class TemporadaDTO {
+        private Long id;
+        private Integer numeroTemporada;
+        private Date anoLancamento;
+        private Date dataCadastro;
+        private Integer totalEpisodios;
+        private List<EpisodioDTO> episodios;
+    }
+
+    @Data
+    public static class EpisodioDTO {
+        private Long id;
+        private Integer numeroEpisodio;
+        private String title;
+        private String sinopse;
+        private Integer duracaoMinutos;
+        private Date dataCadastro;
+        private String embed1;
+        private String embed2;
+    }
 }

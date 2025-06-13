@@ -18,7 +18,6 @@ public class SerieSimpleDTO {
     private Double avaliacao;
     private String imageURL1;
     private String imageURL2;
-    private String status;
     private Integer totalTemporadas;
     private Integer totalEpisodios;
     private Long totalLikes;
