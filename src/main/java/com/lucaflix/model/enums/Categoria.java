@@ -11,6 +11,7 @@ public enum Categoria {
     ROMANCE,
     AVENTURA,
     FANTASIA,
+    INFANTIL,
     TEEN,
     REALITY,
     DOCUMENTARIO,
