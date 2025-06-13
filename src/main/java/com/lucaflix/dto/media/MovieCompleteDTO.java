@@ -1,4 +1,4 @@
-package com.lucaflix.dto.admin;
+package com.lucaflix.dto.media;
 
 import com.lucaflix.model.enums.Categoria;
 import lombok.Data;
@@ -6,12 +6,15 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class AdminMediaDTO {
+public class MovieCompleteDTO {
     private Long id;
     private String title;
     private boolean isFilme;
     private Date anoLancamento;
     private Integer duracaoMinutos;
+    private String tmdbId;
+    private String imdbId;
+    private String paisOrigen;
     private String sinopse;
     private Date dataCadastro;
     private List<Categoria> categoria;
@@ -23,5 +26,6 @@ public class AdminMediaDTO {
     private String imageURL1;
     private String imageURL2;
     private Long totalLikes;
-    private Long totalInLists;
+    private boolean userLiked;
+    private boolean inUserList;
 }

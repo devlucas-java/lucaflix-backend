@@ -1,7 +1,8 @@
 package com.lucaflix.repository;
 
+import com.lucaflix.model.Movie;
 import com.lucaflix.model.MinhaLista;
-import com.lucaflix.model.Media;
+import com.lucaflix.model.Serie;
 import com.lucaflix.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,23 +18,38 @@ import java.util.UUID;
 @Repository
 public interface MinhaListaRepository extends JpaRepository<MinhaLista, Long> {
 
-    // Verifica se a mídia já está na lista do usuário
-    boolean existsByUserAndMedia(User user, Media media);
+    // Para filmes
+    boolean existsByUserAndMovie(User user, Movie movie);
+    Optional<MinhaLista> findByUserAndMovie(User user, Movie movie);
+    void deleteByMovie(Movie movie);
 
-    // Busca a entrada específica da lista do usuário
-    Optional<MinhaLista> findByUserAndMedia(User user, Media media);
+    // Para séries
+    boolean existsByUserAndSerie(User user, Serie serie);
+    Optional<MinhaLista> findByUserAndSerie(User user, Serie serie);
+    void deleteBySerie(Serie serie);
 
     // Busca toda a lista do usuário com paginação
     Page<MinhaLista> findByUser(User user, Pageable pageable);
 
-    void deleteByMedia(Media media);
+    // Busca apenas filmes na lista do usuário
+    @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.movie IS NOT NULL")
+    Page<MinhaLista> findMoviesByUser(@Param("user") User user, Pageable pageable);
 
+    // Busca apenas séries na lista do usuário
+    @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.serie IS NOT NULL")
+    Page<MinhaLista> findSeriesByUser(@Param("user") User user, Pageable pageable);
+
+    // Estatísticas
     @Query("SELECT COUNT(DISTINCT u.id) FROM MinhaLista ml JOIN ml.user u")
     long countDistinctUsers();
+
+    @Query("SELECT COUNT(ml) FROM MinhaLista ml WHERE ml.movie IS NOT NULL")
+    long countMovieItems();
+
+    @Query("SELECT COUNT(ml) FROM MinhaLista ml WHERE ml.serie IS NOT NULL")
+    long countSerieItems();
 
     @Modifying
     @Query("DELETE FROM MinhaLista ml WHERE ml.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
-
-
 }

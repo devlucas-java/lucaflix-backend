@@ -56,17 +56,13 @@ public class User implements UserDetails {
     @Column(name = "account_expired")
     private Boolean isAccountExpired = false;
 
-    // CORRIGIDO: Removido CascadeType.ALL para evitar exclusão das mídias
-    // Os likes serão deletados quando o usuário for deletado, mas as mídias permanecem
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    // Relacionamentos - os likes e lista do usuário são removidos quando ele é deletado
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Like> likes;
 
-    // CORRIGIDO: Removido CascadeType.ALL para evitar exclusão das mídias
-    // Os itens da lista serão deletados quando o usuário for deletado, mas as mídias permanecem
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<MinhaLista> minhaLista;
 
-    // CORRIGIDO: Mantém cascade para AdminPanel pois é específico do usuário
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private AdminPanel adminPanel;
 

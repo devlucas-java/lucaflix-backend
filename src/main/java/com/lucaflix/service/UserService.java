@@ -26,7 +26,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final AdminPanelRepository adminPanelRepository;
     private final MinhaListaRepository minhaListaRepository;
-    private final MediaRepository mediaRepository;
     private final LikeRepository likeRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;

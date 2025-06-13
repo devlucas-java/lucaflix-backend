@@ -7,7 +7,8 @@ import java.util.Date;
 @Entity
 @Table(name = "likes",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "media_id"}),
+                @UniqueConstraint(columnNames = {"user_id", "movie_id"}),
+                @UniqueConstraint(columnNames = {"user_id", "serie_id"})
         })
 @Data
 public class Like {
@@ -16,15 +17,30 @@ public class Like {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "media_id", nullable = false)
-    private Media media;
+    // Para filmes - pode ser null se for série
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
 
-    @Column(name = "data_like")
+    // Para séries - pode ser null se for movie
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "serie_id")
+    private Serie serie;
+
+    @Column(name = "data_like", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataLike = new Date();
+
+    // Constraint: deve ter OU movie OU serie, não ambos nem nenhum
+    @PrePersist
+    @PreUpdate
+    private void validateContent() {
+        if ((movie == null && serie == null) || (movie != null && serie != null)) {
+            throw new IllegalStateException("Like deve ter OU movie OU serie, não ambos nem nenhum");
+        }
+    }
 }

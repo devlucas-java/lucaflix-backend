@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class MediaSimpleDTO {
+public class MovieSimpleDTO {
     private Long id;
     private String title;
     private boolean isFilme;
