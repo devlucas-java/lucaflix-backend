@@ -6,6 +6,8 @@ import com.lucaflix.dto.media.MovieSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.security.CurrentUser;
+import com.lucaflix.security.OptionalAuthentication;
+import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class MovieController {
      * Filtrar filmes com critérios específicos
      */
     @PostMapping("/filter")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(
             @RequestBody MovieFilter filter,
             @RequestParam(defaultValue = "0") int page,
@@ -38,6 +41,7 @@ public class MovieController {
      * Obter todos os filmes com paginação
      */
     @GetMapping
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getAllMovies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -50,6 +54,7 @@ public class MovieController {
      * Top 10 filmes mais curtidos
      */
     @GetMapping("/top10")
+    @SkipJwtAuthentication
     public ResponseEntity<List<MovieSimpleDTO>> getTop10MostLiked() {
         List<MovieSimpleDTO> movies = movieService.getTop10MostLiked();
         return ResponseEntity.ok(movies);
@@ -59,6 +64,7 @@ public class MovieController {
      * Obter filme por ID
      */
     @GetMapping("/{id}")
+    @OptionalAuthentication
     public ResponseEntity<MovieCompleteDTO> getMovieById(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -112,6 +118,7 @@ public class MovieController {
      * Filmes populares (mais curtidos)
      */
     @GetMapping("/popular")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getPopularMovies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -124,6 +131,7 @@ public class MovieController {
      * Novos lançamentos
      */
     @GetMapping("/new-releases")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getNewReleases(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -136,6 +144,7 @@ public class MovieController {
      * Filmes por categoria
      */
     @GetMapping("/category/{categoria}")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMoviesByCategory(
             @PathVariable String categoria,
             @RequestParam(defaultValue = "0") int page,
@@ -149,6 +158,7 @@ public class MovieController {
      * Filmes com avaliação alta (≥ 7.0)
      */
     @GetMapping("/high-rated")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getHighRatedMovies(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -175,6 +185,7 @@ public class MovieController {
      * Filmes similares
      */
     @GetMapping("/{id}/similar")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,

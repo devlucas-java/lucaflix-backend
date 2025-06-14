@@ -24,8 +24,8 @@ public class SerieCompleteDTO {
     private Integer totalTemporadas;
     private Integer totalEpisodios;
     private Long totalLikes;
-    private boolean userLiked;
-    private boolean inUserList;
+    private Boolean userLiked;
+    private Boolean inUserList;
 
     // Nova propriedade para incluir temporadas com episódios
     private List<TemporadaDTO> temporadas;

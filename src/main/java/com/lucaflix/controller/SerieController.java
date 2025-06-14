@@ -5,6 +5,8 @@ import com.lucaflix.dto.media.SerieCompleteDTO;
 import com.lucaflix.dto.media.SerieSimpleDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.security.CurrentUser;
+import com.lucaflix.security.OptionalAuthentication;
+import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.SerieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ public class SerieController {
      * Obter todas as séries com paginação
      */
     @GetMapping
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getAllSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -36,6 +39,7 @@ public class SerieController {
      * Top 10 séries mais curtidas
      */
     @GetMapping("/top10")
+    @SkipJwtAuthentication
     public ResponseEntity<List<SerieSimpleDTO>> getTop10MostLiked() {
         List<SerieSimpleDTO> series = serieService.getTop10MostLiked();
         return ResponseEntity.ok(series);
@@ -45,6 +49,7 @@ public class SerieController {
      * Obter série por ID
      */
     @GetMapping("/{id}")
+    @OptionalAuthentication
     public ResponseEntity<SerieCompleteDTO> getSerieById(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -98,6 +103,7 @@ public class SerieController {
      * Séries por categoria
      */
     @GetMapping("/category/{categoria}")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSeriesByCategory(
             @PathVariable String categoria,
             @RequestParam(defaultValue = "0") int page,
@@ -111,6 +117,7 @@ public class SerieController {
      * Séries populares (mais curtidas)
      */
     @GetMapping("/popular")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getPopularSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -123,6 +130,7 @@ public class SerieController {
      * Séries com avaliação alta (≥ 7.0)
      */
     @GetMapping("/high-rated")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getHighRatedSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -135,6 +143,7 @@ public class SerieController {
      * Séries recentes (ordenadas por ano de lançamento)
      */
     @GetMapping("/recent")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getRecentSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -147,6 +156,7 @@ public class SerieController {
      * Séries por ano de lançamento
      */
     @GetMapping("/year/{year}")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSeriesByYear(
             @PathVariable Integer year,
             @RequestParam(defaultValue = "0") int page,
@@ -160,6 +170,7 @@ public class SerieController {
      * Séries similares
      */
     @GetMapping("/{id}/similar")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSimilarSeries(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,

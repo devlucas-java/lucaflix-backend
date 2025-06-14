@@ -25,6 +25,6 @@ public class MovieCompleteDTO {
     private String imageURL1;
     private String imageURL2;
     private Long totalLikes;
-    private boolean userLiked;
-    private boolean inUserList;
+    private Boolean userLiked;
+    private Boolean inUserList;
 }

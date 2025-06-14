@@ -227,6 +227,10 @@ public class SerieService {
                 dto.setUserLiked(likeRepository.existsByUserAndSerie(user, serie));
                 dto.setInUserList(minhaListaRepository.existsByUserAndSerie(user, serie));
             }
+        } else if (userId == null) {
+            dto.setInUserList(null);
+            dto.setUserLiked(null);
+
         }
 
         return dto;

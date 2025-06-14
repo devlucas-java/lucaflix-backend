@@ -215,6 +215,10 @@ public class MovieService {
                 dto.setUserLiked(likeRepository.existsByUserAndMovie(user, movie));
                 dto.setInUserList(minhaListaRepository.existsByUserAndMovie(user, movie));
             }
+        } else if (userId == null) {
+            dto.setInUserList(null);
+            dto.setUserLiked(null);
+
         }
         return dto;
     }
