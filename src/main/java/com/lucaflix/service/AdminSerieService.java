@@ -1,11 +1,6 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.admin.CreateSerieDTO;
-import com.lucaflix.dto.admin.CreateTemporadaDTO;
-import com.lucaflix.dto.admin.CreateEpisodioDTO;
-import com.lucaflix.dto.admin.UpdateSerieDTO;
-import com.lucaflix.dto.admin.UpdateTemporadaDTO;
-import com.lucaflix.dto.admin.UpdateEpisodioDTO;
+import com.lucaflix.dto.admin.*;
 import com.lucaflix.dto.media.SerieCompleteDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.repository.*;
@@ -307,5 +302,140 @@ public class AdminSerieService {
         dto.setUserLiked(false); // Admin não precisa dessa info
         dto.setInUserList(false); // Admin não precisa dessa info
         return dto;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Adicionar este método na classe AdminSerieService
+
+    @Transactional
+    public SerieCompleteDTO createSerieComplete(CreateSerieCompleteDTO createDTO) {
+        try {
+            // 1. Criar a série principal
+            Serie serie = new Serie();
+            serie.setTitle(createDTO.getTitle());
+            serie.setSinopse(createDTO.getSinopse());
+            serie.setCategoria(createDTO.getCategoria());
+            serie.setPaisOrigem(createDTO.getPaisOrigem());
+            serie.setTmdbId(createDTO.getTmdbId());
+            serie.setImdbId(createDTO.getImdbId());
+            serie.setTrailer(createDTO.getTrailer());
+            serie.setAvaliacao(createDTO.getAvaliacao());
+            serie.setMinAge(createDTO.getMinAge() != null ? createDTO.getMinAge() : createDTO.getIdadeRecomendada());
+            serie.setDataCadastro(new Date());
+
+            // Definir URLs de imagem
+            if (createDTO.getImageURL1() != null) {
+                serie.setImageURL1(createDTO.getImageURL1());
+            } else if (createDTO.getCapa() != null) {
+                serie.setImageURL1(createDTO.getCapa());
+            } else if (createDTO.getPoster() != null) {
+                serie.setImageURL1(createDTO.getPoster());
+            }
+
+            if (createDTO.getImageURL2() != null) {
+                serie.setImageURL2(createDTO.getImageURL2());
+            }
+
+            // Definir ano de lançamento
+            if (createDTO.getAnoLancamento() != null) {
+                serie.setAnoLancamento(createDTO.getAnoLancamento());
+            } else if (createDTO.getAno() != null) {
+                // Converter ano (Integer) para Date
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                cal.set(createDTO.getAno(), 0, 1);
+                serie.setAnoLancamento(cal.getTime());
+            }
+
+            // Salvar série primeiro para obter o ID
+            Serie savedSerie = serieRepository.save(serie);
+
+            // 2. Criar temporadas e episódios
+            int totalTemporadas = 0;
+            int totalEpisodios = 0;
+
+            for (CreateSerieCompleteDTO.CreateTemporadaCompleteDTO temporadaDTO : createDTO.getTemporadas()) {
+                // Criar temporada
+                Temporada temporada = new Temporada();
+                temporada.setSerie(savedSerie);
+                temporada.setNumeroTemporada(temporadaDTO.getTemporada());
+                temporada.setDataCadastro(new Date());
+
+                // Definir ano da temporada
+                if (temporadaDTO.getAnoLancamento() != null) {
+                    java.util.Calendar cal = java.util.Calendar.getInstance();
+                    cal.set(temporadaDTO.getAnoLancamento(), 0, 1);
+                    temporada.setAnoLancamento(cal.getTime());
+                }
+
+                // Salvar temporada
+                Temporada savedTemporada = temporadaRepository.save(temporada);
+                totalTemporadas++;
+
+                // 3. Criar episódios da temporada
+                int episodiosTemporada = 0;
+
+                for (CreateSerieCompleteDTO.CreateEpisodioCompleteDTO episodioDTO : temporadaDTO.getEpisodios()) {
+                    Episodio episodio = new Episodio();
+                    episodio.setSerie(savedSerie);
+                    episodio.setTemporada(savedTemporada);
+                    episodio.setNumeroEpisodio(episodioDTO.getEpisodio());
+                    episodio.setTitle(episodioDTO.getNome());
+                    episodio.setSinopse(episodioDTO.getSinopse());
+                    episodio.setDataCadastro(new Date());
+
+                    // Definir duração
+                    if (episodioDTO.getDuracaoMinutos() != null) {
+                        episodio.setDuracaoMinutos(episodioDTO.getDuracaoMinutos());
+                    } else if (episodioDTO.getDuracao() != null) {
+                        episodio.setDuracaoMinutos(episodioDTO.getDuracao());
+                    } else if (createDTO.getDuracao() != null) {
+                        episodio.setDuracaoMinutos(createDTO.getDuracao());
+                    }
+
+                    // Definir embeds
+                    if (episodioDTO.getEmbed1() != null) {
+                        episodio.setEmbed1(episodioDTO.getEmbed1());
+                    }
+
+                    if (episodioDTO.getEmbed2() != null) {
+                        episodio.setEmbed2(episodioDTO.getEmbed2());
+                    }
+
+                    // Salvar episódio
+                    episodioRepository.save(episodio);
+                    episodiosTemporada++;
+                    totalEpisodios++;
+                }
+
+                // Atualizar total de episódios da temporada
+                savedTemporada.setTotalEpisodios(episodiosTemporada);
+                temporadaRepository.save(savedTemporada);
+            }
+
+            // 4. Atualizar estatísticas da série
+            savedSerie.setTotalTemporadas(totalTemporadas);
+            savedSerie.setTotalEpisodios(totalEpisodios);
+            Serie finalSerie = serieRepository.save(savedSerie);
+
+            // 5. Retornar DTO completo
+            return convertToCompleteDTO(finalSerie);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao criar série completa: " + e.getMessage(), e);
+        }
     }
 }

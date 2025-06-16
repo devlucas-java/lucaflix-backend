@@ -26,6 +26,9 @@ public class UpdateMovieDTO {
 
     private String embed1;
     private String embed2;
+    private String tmdbId;
+    private String imdbId;
+    private String paisOrigen;
     private String trailer;
     private String imageURL1;
     private String imageURL2;

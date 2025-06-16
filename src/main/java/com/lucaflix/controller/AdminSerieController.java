@@ -12,12 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/series")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
 @CrossOrigin(origins = "*")
 public class AdminSerieController {
 
@@ -166,6 +168,55 @@ public class AdminSerieController {
             return ResponseEntity.ok(episodios);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Adicionar este endpoint na classe AdminSerieController
+
+    /**
+     * Endpoint para criar uma série completa com todas as temporadas e episódios
+     */
+    @PostMapping("/complete")
+    public ResponseEntity<?> createSerieComplete(@Valid @RequestBody CreateSerieCompleteDTO createDTO) {
+        try {
+            SerieCompleteDTO createdSerie = adminSerieService.createSerieComplete(createDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSerie);
+        } catch (RuntimeException e) {
+            // Log do erro para debug
+            System.err.println("Erro ao criar série completa: " + e.getMessage());
+            e.printStackTrace();
+
+            // Retornar erro detalhado
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Erro ao criar série completa",
+                    "message", e.getMessage(),
+                    "timestamp", new Date()
+            ));
+        } catch (Exception e) {
+            // Log do erro para debug
+            System.err.println("Erro inesperado ao criar série completa: " + e.getMessage());
+            e.printStackTrace();
+
+            // Retornar erro genérico
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Erro interno do servidor",
+                    "message", "Erro inesperado ao processar a solicitação",
+                    "timestamp", new Date()
+            ));
         }
     }
 }

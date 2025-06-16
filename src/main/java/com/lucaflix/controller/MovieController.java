@@ -5,6 +5,7 @@ import com.lucaflix.dto.media.MovieFilter;
 import com.lucaflix.dto.media.MovieSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.security.CurrentUser;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
@@ -78,7 +79,7 @@ public class MovieController {
      * Toggle like em um filme (requer autenticação)
      */
     @PostMapping("/{id}/like")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleLike(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -91,7 +92,7 @@ public class MovieController {
      * Toggle filme na lista do usuário (requer autenticação)
      */
     @PostMapping("/{id}/my-list")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleMyList(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -104,7 +105,7 @@ public class MovieController {
      * Obter lista pessoal do usuário (requer autenticação)
      */
     @GetMapping("/my-list")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMyList(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,
@@ -146,7 +147,7 @@ public class MovieController {
     @GetMapping("/category/{categoria}")
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMoviesByCategory(
-            @PathVariable String categoria,
+            @PathVariable Categoria categoria,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -171,7 +172,7 @@ public class MovieController {
      * Recomendações personalizadas (requer autenticação)
      */
     @GetMapping("/recommendations")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getRecommendations(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,

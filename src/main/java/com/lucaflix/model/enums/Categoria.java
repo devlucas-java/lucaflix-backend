@@ -3,17 +3,15 @@ package com.lucaflix.model.enums;
 public enum Categoria {
     ACAO,
     COMEDIA,
-    FICCAO,
-    FICCAO_CIENTIFICA,
-    TERROR,
     DRAMA,
     SUSPENSE,
+    TERROR,
     ROMANCE,
+    FICCAO_CIENTIFICA,
     AVENTURA,
     FANTASIA,
-    INFANTIL,
-    TEEN,
-    REALITY,
     DOCUMENTARIO,
+    ANIMACAO,
+    INFANTIL,
     DESCONHECIDA;
 }

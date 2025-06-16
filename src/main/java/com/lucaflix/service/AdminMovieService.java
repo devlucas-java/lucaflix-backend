@@ -54,10 +54,14 @@ public class AdminMovieService {
         movie.setImageURL1(createDTO.getImageURL1());
         movie.setImageURL2(createDTO.getImageURL2());
         movie.setDataCadastro(new Date());
+        movie.setTmdbId(createDTO.getTmdbId());
+        movie.setImdbId(createDTO.getImdbId()); // Corrigido: adicionado imdbId
+        movie.setPaisOrigen(createDTO.getPaisOrigen()); // Corrigido: era getPaisOrigen(), não getPaisOrigin()
 
         Movie savedMovie = movieRepository.save(movie);
         return convertToCompleteDTO(savedMovie);
     }
+
 
     @Transactional
     public MovieCompleteDTO updateMovie(Long movieId, UpdateMovieDTO updateDTO) {
@@ -107,6 +111,15 @@ public class AdminMovieService {
         }
         if (updateDTO.getImageURL2() != null) {
             movie.setImageURL2(updateDTO.getImageURL2());
+        }
+        if (updateDTO.getImdbId() != null) {
+            movie.setImdbId(updateDTO.getImdbId());
+        }
+        if (updateDTO.getTmdbId() != null) {
+            movie.setTmdbId(updateDTO.getTmdbId());
+        }
+        if (updateDTO.getPaisOrigen() != null) {
+            movie.setPaisOrigen(updateDTO.getPaisOrigen());
         }
 
         Movie updatedMovie = movieRepository.save(movie);

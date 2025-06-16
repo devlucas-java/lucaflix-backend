@@ -12,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,10 +48,12 @@ public class MovieService {
         return topMovies.stream().map(this::convertToSimpleDTO).collect(Collectors.toList());
     }
 
-    // Obter mídia por ID
     public MovieCompleteDTO getMediaById(Long mediaId, UUID userId) {
         Movie movie = movieRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Filme não encontrado"
+                ));
         return convertToCompleteDTO(movie, userId);
     }
 
@@ -138,10 +142,9 @@ public class MovieService {
     }
 
     // Mídias por categoria
-    public PaginatedResponseDTO<MovieSimpleDTO> getMediaByCategory(String categoria, int page, int size) {
+    public PaginatedResponseDTO<MovieSimpleDTO> getMediaByCategory(Categoria categoria, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Categoria cat = Categoria.valueOf(categoria.toUpperCase());
-        Page<Movie> mediaPage = movieRepository.findByCategoria(cat, pageable);
+        Page<Movie> mediaPage = movieRepository.findByCategoria(categoria, pageable);
         return createPaginatedResponse(mediaPage);
     }
 

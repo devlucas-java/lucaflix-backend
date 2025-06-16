@@ -26,6 +26,10 @@ public class CreateMovieDTO {
     @NotNull(message = "Categoria é obrigatória")
     private List<Categoria> categoria;
 
+    private String tmdbId;
+    private String imdbId;
+    private String paisOrigen;
+
     private String minAge;
 
     @Min(value = 0, message = "Avaliação deve ser no mínimo 0")
