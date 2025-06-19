@@ -8,7 +8,8 @@ import java.util.Date;
 @Table(name = "minha_lista",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"user_id", "movie_id"}),
-                @UniqueConstraint(columnNames = {"user_id", "serie_id"})
+                @UniqueConstraint(columnNames = {"user_id", "serie_id"}),
+                @UniqueConstraint(columnNames = {"user_id", "anime_id"})
         })
 @Data
 public class MinhaLista {
@@ -30,6 +31,11 @@ public class MinhaLista {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "serie_id")
     private Serie serie;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anime_id")
+    private Anime anime;
 
     @Column(name = "data_adicao", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)

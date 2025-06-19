@@ -4,6 +4,7 @@ import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.dto.media.SerieCompleteDTO;
 import com.lucaflix.dto.media.SerieSimpleDTO;
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.security.CurrentUser;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
@@ -63,7 +64,7 @@ public class SerieController {
      * Toggle like em uma série (requer autenticação)
      */
     @PostMapping("/{id}/like")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleLike(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -76,7 +77,7 @@ public class SerieController {
      * Toggle série na lista do usuário (requer autenticação)
      */
     @PostMapping("/{id}/my-list")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleMyList(
             @PathVariable Long id,
             @CurrentUser User currentUser) {
@@ -89,7 +90,7 @@ public class SerieController {
      * Obter lista pessoal do usuário (requer autenticação)
      */
     @GetMapping("/my-list")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getMyList(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,
@@ -105,7 +106,7 @@ public class SerieController {
     @GetMapping("/category/{categoria}")
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSeriesByCategory(
-            @PathVariable String categoria,
+            @PathVariable Categoria categoria,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -184,7 +185,7 @@ public class SerieController {
      * Recomendações personalizadas (requer autenticação)
      */
     @GetMapping("/recommendations")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getRecommendations(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,

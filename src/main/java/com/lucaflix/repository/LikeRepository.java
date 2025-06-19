@@ -1,9 +1,6 @@
 package com.lucaflix.repository;
 
-import com.lucaflix.model.Movie;
-import com.lucaflix.model.Like;
-import com.lucaflix.model.Serie;
-import com.lucaflix.model.User;
+import com.lucaflix.model.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,15 +23,10 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     Optional<Like> findByUserAndSerie(User user, Serie serie);
     void deleteBySerie(Serie serie);
 
-    // Estatísticas e admin
-    @Query("SELECT COUNT(l) FROM Like l")
-    long countTotalLikes();
-
-    @Query("SELECT COUNT(l) FROM Like l WHERE l.movie IS NOT NULL")
-    long countMovieLikes();
-
-    @Query("SELECT COUNT(l) FROM Like l WHERE l.serie IS NOT NULL")
-    long countSerieLikes();
+    // Para animes
+    boolean existsByUserAndAnime(User user, Anime anime);
+    Optional<Like> findByUserAndAnime(User user, Anime anime);
+    void deleteByAnime(Anime anime);
 
     @Modifying
     @Query("DELETE FROM Like l WHERE l.user.id = :userId")

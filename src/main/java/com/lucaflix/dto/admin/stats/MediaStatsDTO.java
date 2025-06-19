@@ -11,6 +11,7 @@ public class MediaStatsDTO {
     private Long totalMedias;
     private Long totalFilmes;
     private Long totalSeries;
+    private Long totalAnimes;
     private Long totalEpisodios; // Total de episódios de todas as séries
     private Long totalTemporadas; // Total de temporadas de todas as séries
     private Long totalLikes;

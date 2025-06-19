@@ -334,27 +334,13 @@ public class AdminSerieService {
             serie.setImdbId(createDTO.getImdbId());
             serie.setTrailer(createDTO.getTrailer());
             serie.setAvaliacao(createDTO.getAvaliacao());
-            serie.setMinAge(createDTO.getMinAge() != null ? createDTO.getMinAge() : createDTO.getIdadeRecomendada());
+            serie.setMinAge(createDTO.getMinAge());
+            serie.setImageURL1(createDTO.getImageURL1());
+            serie.setImageURL2(createDTO.getImageURL2());
             serie.setDataCadastro(new Date());
 
-            // Definir URLs de imagem
-            if (createDTO.getImageURL1() != null) {
-                serie.setImageURL1(createDTO.getImageURL1());
-            } else if (createDTO.getCapa() != null) {
-                serie.setImageURL1(createDTO.getCapa());
-            } else if (createDTO.getPoster() != null) {
-                serie.setImageURL1(createDTO.getPoster());
-            }
-
-            if (createDTO.getImageURL2() != null) {
-                serie.setImageURL2(createDTO.getImageURL2());
-            }
-
             // Definir ano de lançamento
-            if (createDTO.getAnoLancamento() != null) {
-                serie.setAnoLancamento(createDTO.getAnoLancamento());
-            } else if (createDTO.getAno() != null) {
-                // Converter ano (Integer) para Date
+            if (createDTO.getAno() != null) {
                 java.util.Calendar cal = java.util.Calendar.getInstance();
                 cal.set(createDTO.getAno(), 0, 1);
                 serie.setAnoLancamento(cal.getTime());
@@ -371,7 +357,7 @@ public class AdminSerieService {
                 // Criar temporada
                 Temporada temporada = new Temporada();
                 temporada.setSerie(savedSerie);
-                temporada.setNumeroTemporada(temporadaDTO.getTemporada());
+                temporada.setNumeroTemporada(temporadaDTO.getNumeroTemporada());
                 temporada.setDataCadastro(new Date());
 
                 // Definir ano da temporada
@@ -392,28 +378,13 @@ public class AdminSerieService {
                     Episodio episodio = new Episodio();
                     episodio.setSerie(savedSerie);
                     episodio.setTemporada(savedTemporada);
-                    episodio.setNumeroEpisodio(episodioDTO.getEpisodio());
-                    episodio.setTitle(episodioDTO.getNome());
+                    episodio.setNumeroEpisodio(episodioDTO.getNumeroEpisodio());
+                    episodio.setTitle(episodioDTO.getTitle());
                     episodio.setSinopse(episodioDTO.getSinopse());
+                    episodio.setDuracaoMinutos(episodioDTO.getDuracaoMinutos());
+                    episodio.setEmbed1(episodioDTO.getEmbed1());
+                    episodio.setEmbed2(episodioDTO.getEmbed2());
                     episodio.setDataCadastro(new Date());
-
-                    // Definir duração
-                    if (episodioDTO.getDuracaoMinutos() != null) {
-                        episodio.setDuracaoMinutos(episodioDTO.getDuracaoMinutos());
-                    } else if (episodioDTO.getDuracao() != null) {
-                        episodio.setDuracaoMinutos(episodioDTO.getDuracao());
-                    } else if (createDTO.getDuracao() != null) {
-                        episodio.setDuracaoMinutos(createDTO.getDuracao());
-                    }
-
-                    // Definir embeds
-                    if (episodioDTO.getEmbed1() != null) {
-                        episodio.setEmbed1(episodioDTO.getEmbed1());
-                    }
-
-                    if (episodioDTO.getEmbed2() != null) {
-                        episodio.setEmbed2(episodioDTO.getEmbed2());
-                    }
 
                     // Salvar episódio
                     episodioRepository.save(episodio);

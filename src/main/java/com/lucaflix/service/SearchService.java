@@ -1,10 +1,11 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.SearchResultDTO;
+import com.lucaflix.dto.media.*;
+import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.Serie;
 import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.repository.AnimeRepository;
 import com.lucaflix.repository.MovieRepository;
 import com.lucaflix.repository.SerieRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,11 @@ public class SearchService {
 
     private final MovieRepository movieRepository;
     private final SerieRepository serieRepository;
+    private final AnimeRepository animeRepository;
 
-    public PaginatedResponseDTO<SearchResultDTO> searchMedia(String texto, String categoria, String tipo, int page, int size) {
+    public PaginatedResponseDTO<Object> searchMedia(String texto, String categoria, String tipo, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        List<SearchResultDTO> allResults = new ArrayList<>();
+        List<Object> allResults = new ArrayList<>();
 
         // Converter categoria string para enum se não for null
         Categoria categoriaEnum = null;
@@ -38,75 +40,150 @@ public class SearchService {
             }
         }
 
+        long totalElements = 0;
+
         // Buscar filmes se tipo for "all" ou "movie"
         if ("all".equals(tipo) || "movie".equals(tipo)) {
             Page<Movie> movies = movieRepository.searchMovies(texto, categoriaEnum, pageable);
-            List<SearchResultDTO> movieResults = movies.getContent().stream()
-                    .map(this::convertMovieToSearchResult)
+            List<MovieSimpleDTO> movieResults = movies.getContent().stream()
+                    .map(this::convertMovieToSimpleDTO)
                     .collect(Collectors.toList());
             allResults.addAll(movieResults);
+
+            if ("movie".equals(tipo)) {
+                totalElements = movies.getTotalElements();
+            }
         }
 
         // Buscar séries se tipo for "all" ou "serie"
         if ("all".equals(tipo) || "serie".equals(tipo)) {
             Page<Serie> series = serieRepository.searchSeries(texto, categoriaEnum, pageable);
-            List<SearchResultDTO> serieResults = series.getContent().stream()
-                    .map(this::convertSerieToSearchResult)
+            List<SerieSimpleDTO> serieResults = series.getContent().stream()
+                    .map(this::convertSerieToSimpleDTO)
                     .collect(Collectors.toList());
             allResults.addAll(serieResults);
+
+            if ("serie".equals(tipo)) {
+                totalElements = series.getTotalElements();
+            }
         }
 
-        // Calcular totais (simplificado - em produção você pode querer fazer isso de forma mais eficiente)
-        long totalElements = allResults.size();
+        // Buscar animes se tipo for "all" ou "anime"
+        if ("all".equals(tipo) || "anime".equals(tipo)) {
+            Page<Anime> animes = animeRepository.searchAnimes(texto, categoriaEnum, pageable);
+            List<AnimeSimpleDTO> animeResults = animes.getContent().stream()
+                    .map(this::convertAnimeToSimpleDTO)
+                    .collect(Collectors.toList());
+            allResults.addAll(animeResults);
+
+            if ("anime".equals(tipo)) {
+                totalElements = animes.getTotalElements();
+            }
+        }
+
+        // Para busca "all", calcular total combinado (aproximado)
+        if ("all".equals(tipo)) {
+            // Para busca combinada, fazemos uma estimativa baseada nos resultados
+            totalElements = allResults.size();
+
+            // Se temos resultados completos na página, assumimos que há mais páginas
+            if (allResults.size() == size) {
+                // Faz contagem real para ser mais preciso
+                long movieCount = movieRepository.searchMovies(texto, categoriaEnum, PageRequest.of(0, 1)).getTotalElements();
+                long serieCount = serieRepository.searchSeries(texto, categoriaEnum, PageRequest.of(0, 1)).getTotalElements();
+                long animeCount = animeRepository.searchAnimes(texto, categoriaEnum, PageRequest.of(0, 1)).getTotalElements();
+                totalElements = movieCount + serieCount + animeCount;
+            }
+        }
+
+        // Calcular total de páginas
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        // Aplicar paginação manual aos resultados combinados
-        int startIndex = page * size;
-        int endIndex = Math.min(startIndex + size, allResults.size());
-        List<SearchResultDTO> paginatedResults = allResults.subList(startIndex, endIndex);
+        // Para tipo "all", aplicar paginação manual se necessário
+        if ("all".equals(tipo) && allResults.size() > size) {
+            int startIndex = 0;
+            int endIndex = Math.min(size, allResults.size());
+            allResults = allResults.subList(startIndex, endIndex);
+        }
 
-        PaginatedResponseDTO<SearchResultDTO> response = new PaginatedResponseDTO<>();
-        response.setContent(paginatedResults);
+        // Criar resposta paginada
+        PaginatedResponseDTO<Object> response = new PaginatedResponseDTO<>();
+        response.setContent(allResults);
         response.setCurrentPage(page);
         response.setTotalPages(totalPages);
         response.setTotalElements(totalElements);
         response.setSize(size);
         response.setFirst(page == 0);
-        response.setLast(page >= totalPages - 1);
+        response.setLast(page >= totalPages - 1 || totalPages == 0);
 
         return response;
     }
 
-    private SearchResultDTO convertMovieToSearchResult(Movie movie) {
-        SearchResultDTO dto = new SearchResultDTO();
+    private MovieSimpleDTO convertMovieToSimpleDTO(Movie movie) {
+        MovieSimpleDTO dto = new MovieSimpleDTO();
         dto.setId(movie.getId());
         dto.setTitle(movie.getTitle());
-        dto.setType("movie");
         dto.setAnoLancamento(movie.getAnoLancamento());
+        dto.setDuracaoMinutos(movie.getDuracaoMinutos());
+        dto.setTmdbId(movie.getTmdbId());
+        dto.setImdbId(movie.getImdbId());
+        dto.setPaisOrigen(movie.getPaisOrigen());
         dto.setCategoria(movie.getCategoria());
-        dto.setSinopse(movie.getSinopse());
+        dto.setMinAge(movie.getMinAge());
         dto.setAvaliacao(movie.getAvaliacao());
         dto.setImageURL1(movie.getImageURL1());
         dto.setImageURL2(movie.getImageURL2());
-        dto.setMinAge(movie.getMinAge());
-        dto.setDuracaoMinutos(movie.getDuracaoMinutos());
+
+        // Calcular total de likes
+        dto.setTotalLikes(movie.getLikes() != null ? (long) movie.getLikes().size() : 0L);
+
         return dto;
     }
 
-    private SearchResultDTO convertSerieToSearchResult(Serie serie) {
-        SearchResultDTO dto = new SearchResultDTO();
+    private SerieSimpleDTO convertSerieToSimpleDTO(Serie serie) {
+        SerieSimpleDTO dto = new SerieSimpleDTO();
         dto.setId(serie.getId());
         dto.setTitle(serie.getTitle());
-        dto.setType("serie");
         dto.setAnoLancamento(serie.getAnoLancamento());
+        dto.setTmdbId(serie.getTmdbId());
+        dto.setImdbId(serie.getImdbId());
+        dto.setPaisOrigem(serie.getPaisOrigem());
         dto.setCategoria(serie.getCategoria());
-        dto.setSinopse(serie.getSinopse());
+        dto.setMinAge(serie.getMinAge());
         dto.setAvaliacao(serie.getAvaliacao());
         dto.setImageURL1(serie.getImageURL1());
         dto.setImageURL2(serie.getImageURL2());
-        dto.setMinAge(serie.getMinAge());
         dto.setTotalTemporadas(serie.getTotalTemporadas());
         dto.setTotalEpisodios(serie.getTotalEpisodios());
+
+        // Calcular total de likes
+        dto.setTotalLikes(serie.getLikes() != null ? (long) serie.getLikes().size() : 0L);
+
+        return dto;
+    }
+
+    private AnimeSimpleDTO convertAnimeToSimpleDTO(Anime anime) {
+        AnimeSimpleDTO dto = new AnimeSimpleDTO();
+        dto.setId(anime.getId());
+        dto.setTitle(anime.getTitle());
+        dto.setAnoLancamento(anime.getAnoLancamento());
+        dto.setTmdbId(anime.getTmdbId());
+        dto.setImdbId(anime.getImdbId());
+        dto.setPaisOrigen(anime.getPaisOrigen());
+        dto.setCategoria(anime.getCategoria());
+        dto.setMinAge(anime.getMinAge());
+        dto.setAvaliacao(anime.getAvaliacao());
+        dto.setEmbed1(anime.getEmbed1());
+        dto.setEmbed2(anime.getEmbed2());
+        dto.setTrailer(anime.getTrailer());
+        dto.setImageURL1(anime.getImageURL1());
+        dto.setImageURL2(anime.getImageURL2());
+        dto.setTotalTemporadas(anime.getTotalTemporadas());
+        dto.setTotalEpisodios(anime.getTotalEpisodios());
+
+        // Calcular total de likes
+        dto.setTotalLikes(anime.getLikes() != null ? (long) anime.getLikes().size() : 0L);
+
         return dto;
     }
 }

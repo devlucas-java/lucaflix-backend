@@ -1,5 +1,6 @@
 package com.lucaflix.dto.admin;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lucaflix.model.enums.Categoria;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +14,6 @@ import java.util.List;
 @Data
 public class CreateSerieCompleteDTO {
 
-    // Dados básicos da série
     @NotBlank(message = "Título é obrigatório")
     private String title;
 
@@ -30,17 +30,9 @@ public class CreateSerieCompleteDTO {
 
     private String paisOrigem;
 
-    private String capa;
-
-    private String poster;
-
     private String trailer;
 
     private Double avaliacao;
-
-    private Integer duracao;
-
-    private String idadeRecomendada;
 
     private String minAge;
 
@@ -48,11 +40,6 @@ public class CreateSerieCompleteDTO {
 
     private String imageURL2;
 
-    private Date anoLancamento;
-
-    private String embedId;
-
-    // Lista de temporadas com episódios
     @Valid
     @NotEmpty(message = "Pelo menos uma temporada é obrigatória")
     private List<CreateTemporadaCompleteDTO> temporadas;
@@ -60,11 +47,9 @@ public class CreateSerieCompleteDTO {
     @Data
     public static class CreateTemporadaCompleteDTO {
         @NotNull(message = "Número da temporada é obrigatório")
-        private Integer temporada;
+        private Integer numeroTemporada;
 
         private Integer anoLancamento;
-
-        private Integer totalEpisodios;
 
         @Valid
         @NotEmpty(message = "Pelo menos um episódio é obrigatório")
@@ -74,21 +59,17 @@ public class CreateSerieCompleteDTO {
     @Data
     public static class CreateEpisodioCompleteDTO {
         @NotNull(message = "Número do episódio é obrigatório")
-        private Integer episodio;
+        private Integer numeroEpisodio;
 
         @NotBlank(message = "Nome do episódio é obrigatório")
-        private String nome;
-
-        private String imdbId;
-
-        private Integer duracao;
+        private String title;
 
         private String sinopse;
+
+        private Integer duracaoMinutos;
 
         private String embed1;
 
         private String embed2;
-
-        private Integer duracaoMinutos;
     }
 }

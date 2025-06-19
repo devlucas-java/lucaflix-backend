@@ -1,7 +1,6 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.SearchResultDTO;
+import com.lucaflix.dto.media.*;
 import com.lucaflix.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,20 +14,22 @@ public class SearchController {
     private final SearchService searchService;
 
     /**
-     * Buscar filmes e séries por múltiplos critérios
+     * Buscar filmes, séries e animes por múltiplos critérios
      * @param texto - busca no título e sinopse (opcional)
      * @param categoria - filtro por categoria (opcional)
-     * @param tipo - movie, serie ou all (opcional, padrão: all)
+     * @param tipo - movie, serie, anime ou all (opcional, padrão: all)
+     * @param page - número da página (padrão: 0)
+     * @param size - tamanho da página (padrão: 20)
      */
     @GetMapping("/media")
-    public ResponseEntity<PaginatedResponseDTO<SearchResultDTO>> searchMedia(
+    public ResponseEntity<PaginatedResponseDTO<Object>> searchMedia(
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false, defaultValue = "all") String tipo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PaginatedResponseDTO<SearchResultDTO> response = searchService.searchMedia(texto, categoria, tipo, page, size);
+        PaginatedResponseDTO<Object> response = searchService.searchMedia(texto, categoria, tipo, page, size);
         return ResponseEntity.ok(response);
     }
 }
