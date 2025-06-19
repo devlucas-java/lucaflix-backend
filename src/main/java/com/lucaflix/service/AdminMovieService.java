@@ -3,7 +3,7 @@ package com.lucaflix.service;
 import com.lucaflix.dto.admin.CreateMovieDTO;
 import com.lucaflix.dto.admin.UpdateMovieDTO;
 import com.lucaflix.dto.admin.stats.*;
-import com.lucaflix.dto.media.MovieCompleteDTO;
+import com.lucaflix.dto.media.movie.MovieCompleteDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;

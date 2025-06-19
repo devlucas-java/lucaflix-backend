@@ -1,7 +1,7 @@
 package com.lucaflix.controller;
 
 import com.lucaflix.dto.admin.*;
-import com.lucaflix.dto.media.SerieCompleteDTO;
+import com.lucaflix.dto.media.serie.SerieCompleteDTO;
 import com.lucaflix.model.Temporada;
 import com.lucaflix.model.Episodio;
 import com.lucaflix.service.AdminSerieService;
@@ -170,22 +170,6 @@ public class AdminSerieController {
             return ResponseEntity.notFound().build();
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Adicionar este endpoint na classe AdminSerieController
 
     /**
      * Endpoint para criar uma série completa com todas as temporadas e episódios

@@ -1,8 +1,9 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.SerieCompleteDTO;
-import com.lucaflix.dto.media.SerieSimpleDTO;
+import com.lucaflix.dto.media.serie.SerieCompleteDTO;
+import com.lucaflix.dto.media.serie.SerieMapper;
+import com.lucaflix.dto.media.serie.SerieSimpleDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;
@@ -30,6 +31,7 @@ public class SerieService {
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
+    private final SerieMapper serieMapper;
 
     // Método para debug - verificar se existem séries
     public long getTotalSeriesCount() {
@@ -52,14 +54,14 @@ public class SerieService {
                 log.warn("Nenhuma série encontrada na página {}. Total de séries: {}", page, getTotalSeriesCount());
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar todas as séries: ", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar séries");
         }
     }
 
-    // Top 10 mais curtidas - CORRIGIDA
+    // Top 10 mais curtidas
     public List<SerieSimpleDTO> getTop10MostLiked() {
         log.info("Buscando top 10 séries mais curtidas");
 
@@ -67,14 +69,16 @@ public class SerieService {
             List<Serie> topSeries = serieRepository.findTop10ByLikes(PageRequest.of(0, 10));
             log.info("Top 10 séries encontradas: {}", topSeries.size());
 
-            return topSeries.stream().map(this::convertToSimpleDTO).collect(Collectors.toList());
+            return topSeries.stream()
+                    .map(serieMapper::convertToSimpleDTO)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Erro ao buscar top 10 séries: ", e);
             // Fallback para séries normais se der erro
             Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> fallbackSeries = serieRepository.findAll(pageable);
             return fallbackSeries.getContent().stream()
-                    .map(this::convertToSimpleDTO)
+                    .map(serieMapper::convertToSimpleDTO)
                     .collect(Collectors.toList());
         }
     }
@@ -101,7 +105,7 @@ public class SerieService {
         log.info("Série encontrada: {} com {} temporadas", serie.getTitle(),
                 serie.getTemporadas() != null ? serie.getTemporadas().size() : 0);
 
-        return convertToCompleteDTO(serie, userId);
+        return serieMapper.convertToCompleteDTO(serie, userId);
     }
 
     // Toggle Like - MANTIDA
@@ -148,32 +152,6 @@ public class SerieService {
         }
     }
 
-    // Minha lista do usuário - MANTIDA
-    public PaginatedResponseDTO<SerieSimpleDTO> getMyList(UUID userId, int page, int size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
-
-        List<SerieSimpleDTO> seriesList = myListPage.getContent().stream()
-                .filter(item -> item.getSerie() != null)
-                .map(item -> convertToSimpleDTO(item.getSerie()))
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                seriesList,
-                myListPage.getNumber(),
-                myListPage.getTotalPages(),
-                myListPage.getTotalElements(),
-                myListPage.getSize(),
-                myListPage.isFirst(),
-                myListPage.isLast(),
-                myListPage.hasNext(),
-                myListPage.hasPrevious()
-        );
-    }
-
     // Séries por categoria - CORRIGIDA
     public PaginatedResponseDTO<SerieSimpleDTO> getSeriesByCategory(Categoria categoria, int page, int size) {
         log.info("Buscando séries por categoria: {} - página: {}, tamanho: {}", categoria, page, size);
@@ -188,7 +166,7 @@ public class SerieService {
                 log.warn("Nenhuma série encontrada para categoria: {}", categoria);
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries por categoria {}: ", categoria, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -213,13 +191,13 @@ public class SerieService {
                 seriesPage = serieRepository.findAll(pageable);
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries populares: ", e);
             // Fallback
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
 
@@ -245,7 +223,7 @@ public class SerieService {
                 }
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries com avaliação alta: ", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -262,7 +240,7 @@ public class SerieService {
 
         log.info("Séries recentes encontradas: {}", seriesPage.getTotalElements());
 
-        return createPaginatedResponse(seriesPage);
+        return serieMapper.createPaginatedResponse(seriesPage);
     }
 
     // Séries por ano - CORRIGIDA
@@ -279,7 +257,7 @@ public class SerieService {
                 log.warn("Nenhuma série encontrada para o ano: {}", year);
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries do ano {}: ", year, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -299,7 +277,7 @@ public class SerieService {
                 log.warn("Série {} não possui categorias, retornando séries aleatórias", serieId);
                 Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
                 Page<Serie> seriesPage = serieRepository.findAll(pageable);
-                return createPaginatedResponse(seriesPage);
+                return serieMapper.createPaginatedResponse(seriesPage);
             }
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
@@ -311,13 +289,13 @@ public class SerieService {
                 log.warn("Nenhuma série similar encontrada para a série {}", serieId);
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries similares: ", e);
             // Fallback
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
 
@@ -336,131 +314,13 @@ public class SerieService {
                 seriesPage = serieRepository.findAll(pageable);
             }
 
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar recomendações: ", e);
             // Fallback
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
-            return createPaginatedResponse(seriesPage);
+            return serieMapper.createPaginatedResponse(seriesPage);
         }
-    }
-
-    // MÉTODOS DE CONVERSÃO - CORRIGIDOS para tratar userId null
-    private SerieSimpleDTO convertToSimpleDTO(Serie serie) {
-        SerieSimpleDTO dto = new SerieSimpleDTO();
-        dto.setId(serie.getId());
-        dto.setTitle(serie.getTitle());
-        dto.setAnoLancamento(serie.getAnoLancamento());
-        dto.setTmdbId(serie.getTmdbId());
-        dto.setImdbId(serie.getImdbId());
-        dto.setPaisOrigem(serie.getPaisOrigem());
-        dto.setCategoria(serie.getCategoria());
-        dto.setMinAge(serie.getMinAge());
-        dto.setAvaliacao(serie.getAvaliacao());
-        dto.setImageURL1(serie.getImageURL1());
-        dto.setImageURL2(serie.getImageURL2());
-        dto.setTotalTemporadas(serie.getTotalTemporadas());
-        dto.setTotalEpisodios(serie.getTotalEpisodios());
-        dto.setTotalLikes((long) (serie.getLikes() != null ? serie.getLikes().size() : 0));
-        return dto;
-    }
-
-    private SerieCompleteDTO convertToCompleteDTO(Serie serie, UUID userId) {
-        SerieCompleteDTO dto = new SerieCompleteDTO();
-        dto.setId(serie.getId());
-        dto.setTitle(serie.getTitle());
-        dto.setAnoLancamento(serie.getAnoLancamento());
-        dto.setTmdbId(serie.getTmdbId());
-        dto.setImdbId(serie.getImdbId());
-        dto.setPaisOrigem(serie.getPaisOrigem());
-        dto.setSinopse(serie.getSinopse());
-        dto.setDataCadastro(serie.getDataCadastro());
-        dto.setCategoria(serie.getCategoria());
-        dto.setMinAge(serie.getMinAge());
-        dto.setAvaliacao(serie.getAvaliacao());
-        dto.setTrailer(serie.getTrailer());
-        dto.setImageURL1(serie.getImageURL1());
-        dto.setImageURL2(serie.getImageURL2());
-        dto.setTotalTemporadas(serie.getTotalTemporadas());
-        dto.setTotalEpisodios(serie.getTotalEpisodios());
-        dto.setTotalLikes((long) (serie.getLikes() != null ? serie.getLikes().size() : 0));
-
-        // Converter temporadas e episódios
-        if (serie.getTemporadas() != null) {
-            List<SerieCompleteDTO.TemporadaDTO> temporadasDTO = serie.getTemporadas().stream()
-                    .sorted((t1, t2) -> t1.getNumeroTemporada().compareTo(t2.getNumeroTemporada()))
-                    .map(this::convertToTemporadaDTO)
-                    .collect(Collectors.toList());
-            dto.setTemporadas(temporadasDTO);
-        }
-
-        // CORRIGIDO: Verificar se usuário curtiu e se está na lista (tratando userId null)
-        if (userId != null) {
-            try {
-                dto.setUserLiked(serieRepository.existsLikeByUserAndSerie(userId, serie.getId()));
-                dto.setInUserList(serieRepository.existsInMyListByUserAndSerie(userId, serie.getId()));
-            } catch (Exception e) {
-                log.warn("Erro ao verificar like/lista do usuário {}: {}", userId, e.getMessage());
-                dto.setUserLiked(null);
-                dto.setInUserList(null);
-            }
-        } else {
-            dto.setUserLiked(null);
-            dto.setInUserList(null);
-        }
-
-        return dto;
-    }
-
-    private SerieCompleteDTO.TemporadaDTO convertToTemporadaDTO(Temporada temporada) {
-        SerieCompleteDTO.TemporadaDTO dto = new SerieCompleteDTO.TemporadaDTO();
-        dto.setId(temporada.getId());
-        dto.setNumeroTemporada(temporada.getNumeroTemporada());
-        dto.setAnoLancamento(temporada.getAnoLancamento());
-        dto.setDataCadastro(temporada.getDataCadastro());
-        dto.setTotalEpisodios(temporada.getTotalEpisodios());
-
-        // Converter episódios
-        if (temporada.getEpisodios() != null) {
-            List<SerieCompleteDTO.EpisodioDTO> episodiosDTO = temporada.getEpisodios().stream()
-                    .sorted((e1, e2) -> e1.getNumeroEpisodio().compareTo(e2.getNumeroEpisodio()))
-                    .map(this::convertToEpisodioDTO)
-                    .collect(Collectors.toList());
-            dto.setEpisodios(episodiosDTO);
-        }
-
-        return dto;
-    }
-
-    private SerieCompleteDTO.EpisodioDTO convertToEpisodioDTO(Episodio episodio) {
-        SerieCompleteDTO.EpisodioDTO dto = new SerieCompleteDTO.EpisodioDTO();
-        dto.setId(episodio.getId());
-        dto.setNumeroEpisodio(episodio.getNumeroEpisodio());
-        dto.setTitle(episodio.getTitle());
-        dto.setSinopse(episodio.getSinopse());
-        dto.setDuracaoMinutos(episodio.getDuracaoMinutos());
-        dto.setDataCadastro(episodio.getDataCadastro());
-        dto.setEmbed1(episodio.getEmbed1());
-        dto.setEmbed2(episodio.getEmbed2());
-        return dto;
-    }
-
-    private PaginatedResponseDTO<SerieSimpleDTO> createPaginatedResponse(Page<Serie> seriesPage) {
-        List<SerieSimpleDTO> seriesDTOs = seriesPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                seriesDTOs,
-                seriesPage.getNumber(),
-                seriesPage.getTotalPages(),
-                seriesPage.getTotalElements(),
-                seriesPage.getSize(),
-                seriesPage.isFirst(),
-                seriesPage.isLast(),
-                seriesPage.hasNext(),
-                seriesPage.hasPrevious()
-        );
     }
 }

@@ -1,6 +1,7 @@
 package com.lucaflix.controller;
 
 import com.lucaflix.dto.media.*;
+import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class SearchController {
      * @param size - tamanho da página (padrão: 20)
      */
     @GetMapping("/media")
+    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<Object>> searchMedia(
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) String categoria,

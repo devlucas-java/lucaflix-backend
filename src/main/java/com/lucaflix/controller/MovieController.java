@@ -1,8 +1,8 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.MovieCompleteDTO;
-import com.lucaflix.dto.media.MovieFilter;
-import com.lucaflix.dto.media.MovieSimpleDTO;
+import com.lucaflix.dto.media.movie.MovieCompleteDTO;
+import com.lucaflix.dto.media.movie.MovieFilter;
+import com.lucaflix.dto.media.movie.MovieSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Categoria;
@@ -99,20 +99,6 @@ public class MovieController {
 
         boolean added = movieService.toggleMyList(currentUser.getId(), id);
         return ResponseEntity.ok(added);
-    }
-
-    /**
-     * Obter lista pessoal do usuário (requer autenticação)
-     */
-    @GetMapping("/my-list")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMyList(
-            @CurrentUser User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMyList(currentUser.getId(), page, size);
-        return ResponseEntity.ok(response);
     }
 
     /**

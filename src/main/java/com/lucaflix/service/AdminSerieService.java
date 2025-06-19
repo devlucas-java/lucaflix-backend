@@ -1,7 +1,8 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.admin.*;
-import com.lucaflix.dto.media.SerieCompleteDTO;
+import com.lucaflix.dto.media.serie.SerieCompleteDTO;
+import com.lucaflix.dto.media.serie.SerieMapper;
 import com.lucaflix.model.*;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class AdminSerieService {
     private final EpisodioRepository episodioRepository;
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
+    private final SerieMapper serieMapper; // Injeção do mapper
 
     // ==================== GERENCIAMENTO DE SÉRIES ====================
 
@@ -41,7 +43,7 @@ public class AdminSerieService {
         serie.setDataCadastro(new Date());
 
         Serie savedSerie = serieRepository.save(serie);
-        return convertToCompleteDTO(savedSerie);
+        return serieMapper.convertToCompleteDTO(savedSerie, null); // Admin não precisa de userId
     }
 
     @Transactional
@@ -87,7 +89,7 @@ public class AdminSerieService {
         }
 
         Serie updatedSerie = serieRepository.save(serie);
-        return convertToCompleteDTO(updatedSerie);
+        return serieMapper.convertToCompleteDTO(updatedSerie, null); // Admin não precisa de userId
     }
 
     @Transactional
@@ -106,7 +108,7 @@ public class AdminSerieService {
     public SerieCompleteDTO getSerieById(Long serieId) {
         Serie serie = serieRepository.findById(serieId)
                 .orElseThrow(() -> new RuntimeException("Série não encontrada"));
-        return convertToCompleteDTO(serie);
+        return serieMapper.convertToCompleteDTO(serie, null); // Admin não precisa de userId
     }
 
     // ==================== GERENCIAMENTO DE TEMPORADAS ====================
@@ -280,47 +282,6 @@ public class AdminSerieService {
         serieRepository.save(serie);
     }
 
-    private SerieCompleteDTO convertToCompleteDTO(Serie serie) {
-        SerieCompleteDTO dto = new SerieCompleteDTO();
-        dto.setId(serie.getId());
-        dto.setTitle(serie.getTitle());
-        dto.setAnoLancamento(serie.getAnoLancamento());
-        dto.setTmdbId(serie.getTmdbId());
-        dto.setImdbId(serie.getImdbId());
-        dto.setPaisOrigem(serie.getPaisOrigem());
-        dto.setSinopse(serie.getSinopse());
-        dto.setDataCadastro(serie.getDataCadastro());
-        dto.setCategoria(serie.getCategoria());
-        dto.setMinAge(serie.getMinAge());
-        dto.setAvaliacao(serie.getAvaliacao());
-        dto.setTrailer(serie.getTrailer());
-        dto.setImageURL1(serie.getImageURL1());
-        dto.setImageURL2(serie.getImageURL2());
-        dto.setTotalTemporadas(serie.getTotalTemporadas());
-        dto.setTotalEpisodios(serie.getTotalEpisodios());
-        dto.setTotalLikes((long) (serie.getLikes() != null ? serie.getLikes().size() : 0));
-        dto.setUserLiked(false); // Admin não precisa dessa info
-        dto.setInUserList(false); // Admin não precisa dessa info
-        return dto;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Adicionar este método na classe AdminSerieService
-
     @Transactional
     public SerieCompleteDTO createSerieComplete(CreateSerieCompleteDTO createDTO) {
         try {
@@ -402,8 +363,8 @@ public class AdminSerieService {
             savedSerie.setTotalEpisodios(totalEpisodios);
             Serie finalSerie = serieRepository.save(savedSerie);
 
-            // 5. Retornar DTO completo
-            return convertToCompleteDTO(finalSerie);
+            // 5. Retornar DTO completo usando o mapper
+            return serieMapper.convertToCompleteDTO(finalSerie, null);
 
         } catch (Exception e) {
             throw new RuntimeException("Erro ao criar série completa: " + e.getMessage(), e);

@@ -1,4 +1,4 @@
-package com.lucaflix.dto.media;
+package com.lucaflix.dto.media.anime;
 
 import com.lucaflix.model.enums.Categoria;
 import lombok.Data;

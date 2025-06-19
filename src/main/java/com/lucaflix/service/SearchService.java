@@ -1,6 +1,9 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.media.*;
+import com.lucaflix.dto.media.movie.MovieSimpleDTO;
+import com.lucaflix.dto.media.anime.AnimeSimpleDTO;
+import com.lucaflix.dto.media.serie.SerieSimpleDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.Serie;

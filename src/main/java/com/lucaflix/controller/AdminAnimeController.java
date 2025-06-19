@@ -2,9 +2,7 @@ package com.lucaflix.controller;
 
 import com.lucaflix.dto.admin.CreateAnimeDTO;
 import com.lucaflix.dto.admin.UpdateAnimeDTO;
-import com.lucaflix.dto.admin.stats.DetailedStatsDTO;
-import com.lucaflix.dto.admin.stats.MediaStatsDTO;
-import com.lucaflix.dto.media.AnimeCompleteDTO;
+import com.lucaflix.dto.media.anime.AnimeCompleteDTO;
 import com.lucaflix.service.AdminAnimeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,17 +84,4 @@ public class AdminAnimeController {
         return ResponseEntity.ok(animes);
     }
 
-    // ==================== ESTATÍSTICAS ====================
-
-    @GetMapping("/stats")
-    public ResponseEntity<MediaStatsDTO> getCompleteStats() {
-        MediaStatsDTO stats = adminAnimeService.getCompleteStats();
-        return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/stats/detailed")
-    public ResponseEntity<DetailedStatsDTO> getDetailedStats() {
-        DetailedStatsDTO stats = adminAnimeService.getDetailedStats();
-        return ResponseEntity.ok(stats);
-    }
 }

@@ -2,9 +2,7 @@ package com.lucaflix.controller;
 
 import com.lucaflix.dto.admin.CreateMovieDTO;
 import com.lucaflix.dto.admin.UpdateMovieDTO;
-import com.lucaflix.dto.admin.stats.DetailedStatsDTO;
-import com.lucaflix.dto.admin.stats.MediaStatsDTO;
-import com.lucaflix.dto.media.MovieCompleteDTO;
+import com.lucaflix.dto.media.movie.MovieCompleteDTO;
 import com.lucaflix.service.AdminMovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,19 +83,5 @@ public class AdminMovieController {
             @RequestParam(defaultValue = "10") int size) {
         Page<MovieCompleteDTO> movies = adminMovieService.searchMovies(q, page, size);
         return ResponseEntity.ok(movies);
-    }
-
-    // ==================== ESTATÍSTICAS ====================
-
-    @GetMapping("/stats")
-    public ResponseEntity<MediaStatsDTO> getCompleteStats() {
-        MediaStatsDTO stats = adminMovieService.getCompleteStats();
-        return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/stats/detailed")
-    public ResponseEntity<DetailedStatsDTO> getDetailedStats() {
-        DetailedStatsDTO stats = adminMovieService.getDetailedStats();
-        return ResponseEntity.ok(stats);
     }
 }

@@ -1,4 +1,4 @@
-package com.lucaflix.dto.media;
+package com.lucaflix.dto.media.serie;
 
 import com.lucaflix.model.enums.Categoria;
 import lombok.Data;
@@ -9,6 +9,7 @@ import java.util.List;
 public class SerieCompleteDTO {
     private Long id;
     private String title;
+    private String type = "SERIE";
     private Date anoLancamento;
     private String tmdbId;
     private String imdbId;

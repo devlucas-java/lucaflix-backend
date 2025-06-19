@@ -58,6 +58,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/series/**").permitAll()
                         .requestMatchers("/api/movies/**").permitAll()
+                        .requestMatchers("/api/animes/**").permitAll()
+                        .requestMatchers("/api/search/**").permitAll()
                         .requestMatchers("/api/sitemap/**").permitAll()
                         .requestMatchers("/api/sitemap.xml").permitAll()
                         // Webhook endpoints

@@ -20,9 +20,9 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m.id ORDER BY COUNT(l) DESC")
     List<Movie> findTop10ByLikes(Pageable pageable);
 
-    // Busca com filtros
+    // Busca com filtros - ATUALIZADA para case-insensitive
     @Query("SELECT m FROM Movie m WHERE " +
-            "(:title IS NULL OR UPPER(m.title) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
+            "(:title IS NULL OR :title = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
             "(:avaliacao IS NULL OR m.avaliacao >= :avaliacao) AND " +
             "(:categoria IS NULL OR :categoria MEMBER OF m.categoria)")
     Page<Movie> buscarPorFiltros(
@@ -60,17 +60,13 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
-    // Busca uma única mídia por título e ano exatos
-    @Query("SELECT m FROM Movie m WHERE UPPER(m.title) = UPPER(:title) AND EXTRACT(YEAR FROM m.anoLancamento) = :year")
+    // Busca uma única mídia por título e ano exatos - ATUALIZADA para case-insensitive
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.title) = LOWER(:title) AND EXTRACT(YEAR FROM m.anoLancamento) = :year")
     Optional<Movie> findByTitleAndYear(@Param("title") String title, @Param("year") Integer year);
 
     // Para sitemap
     @Query("SELECT m FROM Movie m WHERE m.title IS NOT NULL AND m.title != ''")
     List<Movie> findAllForSitemap();
-
-
-
-    // Métodos adicionais para MovieRepository.java
 
     // Estatísticas de contagem por categoria
     @Query("SELECT cat, COUNT(m) FROM Movie m JOIN m.categoria cat GROUP BY cat")
@@ -93,9 +89,11 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     @Query("SELECT COUNT(m) FROM Movie m WHERE m.avaliacao < :rating")
     Long countByAvaliacaoLessThan(@Param("rating") Double rating);
+
+    // Busca principal para SearchService - ATUALIZADA para case-insensitive
     @Query("SELECT DISTINCT m FROM Movie m " +
             "LEFT JOIN m.categoria c " +
-            "WHERE (:texto IS NULL OR " +
+            "WHERE (:texto IS NULL OR :texto = '' OR " +
             "       LOWER(m.title) LIKE LOWER(CONCAT('%', :texto, '%')) OR " +
             "       LOWER(m.sinopse) LIKE LOWER(CONCAT('%', :texto, '%'))) " +
             "AND (:categoria IS NULL OR c = :categoria) " +

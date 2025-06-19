@@ -3,7 +3,7 @@ package com.lucaflix.service;
 import com.lucaflix.dto.admin.CreateAnimeDTO;
 import com.lucaflix.dto.admin.UpdateAnimeDTO;
 import com.lucaflix.dto.admin.stats.*;
-import com.lucaflix.dto.media.AnimeCompleteDTO;
+import com.lucaflix.dto.media.anime.AnimeCompleteDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.Serie;
@@ -31,6 +31,7 @@ public class AdminAnimeService {
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
+
 
     // ==================== GERENCIAMENTO DE ANIMES ====================
 

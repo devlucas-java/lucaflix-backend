@@ -1,8 +1,9 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.MovieCompleteDTO;
-import com.lucaflix.dto.media.MovieFilter;
-import com.lucaflix.dto.media.MovieSimpleDTO;
+import com.lucaflix.dto.media.movie.MovieCompleteDTO;
+import com.lucaflix.dto.media.movie.MovieFilter;
+import com.lucaflix.dto.media.movie.MovieMapper;
+import com.lucaflix.dto.media.movie.MovieSimpleDTO;
 import com.lucaflix.dto.media.PaginatedResponseDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Categoria;
@@ -29,6 +30,7 @@ public class MovieService {
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
+    private final MovieMapper movieMapper;
 
     // Filtro de mídias
     public PaginatedResponseDTO<MovieSimpleDTO> filtrarMedia(MovieFilter filter, int page, int size) {
@@ -39,13 +41,15 @@ public class MovieService {
                 filter.getCategoria(),
                 pageable
         );
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Top 10 mais curtidas
     public List<MovieSimpleDTO> getTop10MostLiked() {
         List<Movie> topMovies = movieRepository.findTop10ByLikes(PageRequest.of(0, 10));
-        return topMovies.stream().map(this::convertToSimpleDTO).collect(Collectors.toList());
+        return topMovies.stream()
+                .map(movieMapper::convertToSimpleDTO)
+                .collect(Collectors.toList());
     }
 
     public MovieCompleteDTO getMediaById(Long mediaId, UUID userId) {
@@ -54,7 +58,7 @@ public class MovieService {
                         HttpStatus.NOT_FOUND,
                         "Filme não encontrado"
                 ));
-        return convertToCompleteDTO(movie, userId);
+        return movieMapper.convertToCompleteDTO(movie, userId);
     }
 
     // Toggle Like - adiciona se não existir, remove se existir
@@ -101,65 +105,39 @@ public class MovieService {
         }
     }
 
-    // Minha lista do usuário
-    public PaginatedResponseDTO<MovieSimpleDTO> getMyList(UUID userId, int page, int size) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
-
-        List<MovieSimpleDTO> mediaList = myListPage.getContent().stream()
-                .filter(item -> item.getMovie() != null)
-                .map(item -> convertToSimpleDTO(item.getMovie()))
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                mediaList,
-                myListPage.getNumber(),
-                myListPage.getTotalPages(),
-                myListPage.getTotalElements(),
-                myListPage.getSize(),
-                myListPage.isFirst(),
-                myListPage.isLast(),
-                myListPage.hasNext(),
-                myListPage.hasPrevious()
-        );
-    }
-
     // Mídias populares (mais curtidas)
     public PaginatedResponseDTO<MovieSimpleDTO> getPopularMovies(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Movie> mediaPage = movieRepository.findPopularMovies(pageable);
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Novos lançamentos
     public PaginatedResponseDTO<MovieSimpleDTO> getNewReleases(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
         Page<Movie> mediaPage = movieRepository.findAll(pageable);
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Mídias por categoria
     public PaginatedResponseDTO<MovieSimpleDTO> getMediaByCategory(Categoria categoria, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
         Page<Movie> mediaPage = movieRepository.findByCategoria(categoria, pageable);
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Mídias com avaliação alta
     public PaginatedResponseDTO<MovieSimpleDTO> getHighRatedMedia(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
         Page<Movie> mediaPage = movieRepository.findByAvaliacaoGreaterThanEqual(7.0, pageable);
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Recomendações
     public PaginatedResponseDTO<MovieSimpleDTO> getRecommendations(UUID userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
         Page<Movie> mediaPage = movieRepository.findRecommendations(userId, pageable);
-        return createPaginatedResponse(mediaPage);
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 
     // Similar
@@ -169,78 +147,6 @@ public class MovieService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
         Page<Movie> mediaPage = movieRepository.findSimilarMedia(movie.getCategoria(), movie.getId(), pageable);
-        return createPaginatedResponse(mediaPage);
-    }
-
-    // Conversores
-    private MovieSimpleDTO convertToSimpleDTO(Movie movie) {
-        MovieSimpleDTO dto = new MovieSimpleDTO();
-        dto.setId(movie.getId());
-        dto.setTitle(movie.getTitle());
-        dto.setAnoLancamento(movie.getAnoLancamento());
-        dto.setDuracaoMinutos(movie.getDuracaoMinutos());
-        dto.setTmdbId(movie.getTmdbId());
-        dto.setImdbId(movie.getImdbId());
-        dto.setPaisOrigen(movie.getPaisOrigen());
-        dto.setCategoria(movie.getCategoria());
-        dto.setMinAge(movie.getMinAge());
-        dto.setAvaliacao(movie.getAvaliacao());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
-        dto.setTotalLikes((long) (movie.getLikes() != null ? movie.getLikes().size() : 0));
-        return dto;
-    }
-
-    private MovieCompleteDTO convertToCompleteDTO(Movie movie, UUID userId) {
-        MovieCompleteDTO dto = new MovieCompleteDTO();
-        dto.setId(movie.getId());
-        dto.setTitle(movie.getTitle());
-        dto.setAnoLancamento(movie.getAnoLancamento());
-        dto.setDuracaoMinutos(movie.getDuracaoMinutos());
-        dto.setTmdbId(movie.getTmdbId());
-        dto.setImdbId(movie.getImdbId());
-        dto.setPaisOrigen(movie.getPaisOrigen());
-        dto.setSinopse(movie.getSinopse());
-        dto.setDataCadastro(movie.getDataCadastro());
-        dto.setCategoria(movie.getCategoria());
-        dto.setMinAge(movie.getMinAge());
-        dto.setAvaliacao(movie.getAvaliacao());
-        dto.setEmbed1(movie.getEmbed1());
-        dto.setEmbed2(movie.getEmbed2());
-        dto.setTrailer(movie.getTrailer());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
-        dto.setTotalLikes((long) (movie.getLikes() != null ? movie.getLikes().size() : 0));
-
-        if (userId != null) {
-            User user = userRepository.findById(userId).orElse(null);
-            if (user != null) {
-                dto.setUserLiked(likeRepository.existsByUserAndMovie(user, movie));
-                dto.setInUserList(minhaListaRepository.existsByUserAndMovie(user, movie));
-            }
-        } else if (userId == null) {
-            dto.setInUserList(null);
-            dto.setUserLiked(null);
-
-        }
-        return dto;
-    }
-
-    private PaginatedResponseDTO<MovieSimpleDTO> createPaginatedResponse(Page<Movie> mediaPage) {
-        List<MovieSimpleDTO> mediaDTOs = mediaPage.getContent().stream()
-                .map(this::convertToSimpleDTO)
-                .collect(Collectors.toList());
-
-        return new PaginatedResponseDTO<>(
-                mediaDTOs,
-                mediaPage.getNumber(),
-                mediaPage.getTotalPages(),
-                mediaPage.getTotalElements(),
-                mediaPage.getSize(),
-                mediaPage.isFirst(),
-                mediaPage.isLast(),
-                mediaPage.hasNext(),
-                mediaPage.hasPrevious()
-        );
+        return movieMapper.createPaginatedResponse(mediaPage);
     }
 }

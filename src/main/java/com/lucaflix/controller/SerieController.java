@@ -1,8 +1,8 @@
 package com.lucaflix.controller;
 
 import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.SerieCompleteDTO;
-import com.lucaflix.dto.media.SerieSimpleDTO;
+import com.lucaflix.dto.media.serie.SerieCompleteDTO;
+import com.lucaflix.dto.media.serie.SerieSimpleDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.security.CurrentUser;
@@ -86,19 +86,6 @@ public class SerieController {
         return ResponseEntity.ok(added);
     }
 
-    /**
-     * Obter lista pessoal do usuário (requer autenticação)
-     */
-    @GetMapping("/my-list")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getMyList(
-            @CurrentUser User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getMyList(currentUser.getId(), page, size);
-        return ResponseEntity.ok(response);
-    }
 
     /**
      * Séries por categoria

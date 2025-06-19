@@ -1,9 +1,11 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.SitemapUrlDto;
+import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.Serie;
 import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.repository.AnimeRepository;
 import com.lucaflix.repository.MovieRepository;
 import com.lucaflix.repository.SerieRepository;
 import com.lucaflix.service.utils.UrlFormatter;
@@ -26,6 +28,7 @@ public class SitemapService {
 
     private final MovieRepository movieRepository;
     private final SerieRepository serieRepository;
+    private final AnimeRepository animeRepository;
     private final UrlFormatter urlFormatter;
 
     @Value("${app.base-url:https://lucaflix.com}")
@@ -55,6 +58,11 @@ public class SitemapService {
             urls.addAll(serieUrls);
             log.debug("Adicionadas {} URLs de séries", serieUrls.size());
 
+            // URLs dinâmicas dos animes
+            List<SitemapUrlDto> animeUrls = getAnimeUrls();
+            urls.addAll(animeUrls);
+            log.debug("Adicionadas {} URLs de animes", animeUrls.size());
+
             log.info("Sitemap gerado com sucesso: {} URLs totais", urls.size());
 
         } catch (Exception e) {
@@ -77,24 +85,36 @@ public class SitemapService {
         // Páginas principais
         staticUrls.add(createSitemapUrl("/filmes", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/series", now, "daily", "0.9"));
-        staticUrls.add(createSitemapUrl("/categorias", now, "weekly", "0.8"));
+        staticUrls.add(createSitemapUrl("/animes", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/minha-lista", now, "daily", "0.7"));
-        staticUrls.add(createSitemapUrl("/populares", now, "daily", "0.8"));
-        staticUrls.add(createSitemapUrl("/mais-curtidos", now, "daily", "0.8"));
+        staticUrls.add(createSitemapUrl("/search", now, "weekly", "0.8"));
 
-        // Páginas por categoria usando enum
+        // Páginas de busca por categoria e tipo
+        String[] tipos = {"movie", "serie", "anime"};
         for (Categoria categoria : Categoria.values()) {
             if (categoria != Categoria.DESCONHECIDA) {
                 String categoriaUrl = formatCategoriaForUrl(categoria);
-                staticUrls.add(createSitemapUrl("/categoria/" + categoriaUrl, now, "weekly", "0.6"));
+
+                // Páginas de categoria geral (sem tipo específico)
+                staticUrls.add(createSitemapUrl("/search/" + categoriaUrl, now, "weekly", "0.6"));
+
+                // Páginas de categoria por tipo
+                for (String tipo : tipos) {
+                    staticUrls.add(createSitemapUrl("/search/" + categoriaUrl + "/" + tipo, now, "weekly", "0.6"));
+                }
             }
         }
 
-        // Páginas de anos (últimos 10 anos)
+        // Páginas de anos (últimos 15 anos)
         int currentYear = LocalDateTime.now().getYear();
-        for (int year = currentYear; year >= currentYear - 10; year--) {
-            staticUrls.add(createSitemapUrl("/ano/" + year, now, "monthly", "0.5"));
+        for (int year = currentYear; year >= currentYear - 15; year--) {
+            staticUrls.add(createSitemapUrl("/search?year=" + year, now, "monthly", "0.5"));
         }
+
+        // Páginas de busca por tipo
+        staticUrls.add(createSitemapUrl("/search/movie", now, "weekly", "0.7"));
+        staticUrls.add(createSitemapUrl("/search/serie", now, "weekly", "0.7"));
+        staticUrls.add(createSitemapUrl("/search/anime", now, "weekly", "0.7"));
 
         return staticUrls;
     }
@@ -142,6 +162,27 @@ public class SitemapService {
     }
 
     /**
+     * URLs dos animes
+     */
+    private List<SitemapUrlDto> getAnimeUrls() {
+        List<SitemapUrlDto> animeUrls = new ArrayList<>();
+
+        try {
+            List<Anime> animes = animeRepository.findAllForSitemap();
+
+            animeUrls = animes.stream()
+                    .filter(anime -> anime.getTitle() != null && !anime.getTitle().trim().isEmpty())
+                    .map(this::createAnimeUrl)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.error("Erro ao buscar animes para sitemap: ", e);
+        }
+
+        return animeUrls;
+    }
+
+    /**
      * Cria URL para filme individual
      */
     private SitemapUrlDto createMovieUrl(Movie movie) {
@@ -153,7 +194,8 @@ public class SitemapService {
 
         String lastmod = formatLastModified(movie.getDataCadastro());
 
-        return createSitemapUrl("/filme" + urlPath, lastmod, "monthly", "0.8");
+        // Usando o padrão do frontend: /movie/:id/:titleSlug
+        return createSitemapUrl("/movie" + urlPath, lastmod, "monthly", "0.8");
     }
 
     /**
@@ -168,7 +210,24 @@ public class SitemapService {
 
         String lastmod = formatLastModified(serie.getDataCadastro());
 
+        // Usando o padrão do frontend: /serie/:id/:titleSlug
         return createSitemapUrl("/serie" + urlPath, lastmod, "monthly", "0.8");
+    }
+
+    /**
+     * Cria URL para anime individual
+     */
+    private SitemapUrlDto createAnimeUrl(Anime anime) {
+        String urlPath = urlFormatter.formatTitleForUrl(
+                anime.getId(),
+                anime.getTitle(),
+                anime.getAnoLancamento()
+        );
+
+        String lastmod = formatLastModified(anime.getDataCadastro());
+
+        // Usando o padrão do frontend: /anime/:id/:titleSlug
+        return createSitemapUrl("/anime" + urlPath, lastmod, "monthly", "0.8");
     }
 
     /**
@@ -259,7 +318,82 @@ public class SitemapService {
         xml.append("    <lastmod>").append(now).append("</lastmod>\n");
         xml.append("  </sitemap>\n");
 
+        // Sitemaps separados por tipo (caso você queira implementar no futuro)
+        xml.append("  <sitemap>\n");
+        xml.append("    <loc>").append(baseUrl).append("/api/sitemap-movies.xml</loc>\n");
+        xml.append("    <lastmod>").append(now).append("</lastmod>\n");
+        xml.append("  </sitemap>\n");
+
+        xml.append("  <sitemap>\n");
+        xml.append("    <loc>").append(baseUrl).append("/api/sitemap-series.xml</loc>\n");
+        xml.append("    <lastmod>").append(now).append("</lastmod>\n");
+        xml.append("  </sitemap>\n");
+
+        xml.append("  <sitemap>\n");
+        xml.append("    <loc>").append(baseUrl).append("/api/sitemap-animes.xml</loc>\n");
+        xml.append("    <lastmod>").append(now).append("</lastmod>\n");
+        xml.append("  </sitemap>\n");
+
         xml.append("</sitemapindex>");
+
+        return xml.toString();
+    }
+
+    /**
+     * Gera sitemap específico para filmes
+     */
+    public String generateMoviesSitemapXml() {
+        List<SitemapUrlDto> movieUrls = getMovieUrls();
+        return generateXmlFromUrls(movieUrls);
+    }
+
+    /**
+     * Gera sitemap específico para séries
+     */
+    public String generateSeriesSitemapXml() {
+        List<SitemapUrlDto> serieUrls = getSerieUrls();
+        return generateXmlFromUrls(serieUrls);
+    }
+
+    /**
+     * Gera sitemap específico para animes
+     */
+    public String generateAnimesSitemapXml() {
+        List<SitemapUrlDto> animeUrls = getAnimeUrls();
+        return generateXmlFromUrls(animeUrls);
+    }
+
+    /**
+     * Helper para gerar XML a partir de uma lista de URLs
+     */
+    private String generateXmlFromUrls(List<SitemapUrlDto> urls) {
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"");
+        xml.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+        xml.append(" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9");
+        xml.append(" http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">\n");
+
+        for (SitemapUrlDto url : urls) {
+            xml.append("  <url>\n");
+            xml.append("    <loc>").append(escapeXml(url.getLoc())).append("</loc>\n");
+
+            if (url.getLastmod() != null) {
+                xml.append("    <lastmod>").append(url.getLastmod()).append("</lastmod>\n");
+            }
+
+            if (url.getChangefreq() != null) {
+                xml.append("    <changefreq>").append(url.getChangefreq()).append("</changefreq>\n");
+            }
+
+            if (url.getPriority() != null) {
+                xml.append("    <priority>").append(url.getPriority()).append("</priority>\n");
+            }
+
+            xml.append("  </url>\n");
+        }
+
+        xml.append("</urlset>");
 
         return xml.toString();
     }
@@ -324,5 +458,60 @@ public class SitemapService {
     @org.springframework.cache.annotation.CacheEvict(value = "sitemap", allEntries = true)
     public void clearSitemapCache() {
         log.info("Cache do sitemap limpo");
+    }
+
+    /**
+     * Estatísticas do sitemap
+     */
+    public SitemapStats getSitemapStats() {
+        try {
+            List<SitemapUrlDto> urls = generateSitemapUrls();
+
+            long movieCount = urls.stream()
+                    .filter(url -> url.getLoc().contains("/movie/"))
+                    .count();
+
+            long serieCount = urls.stream()
+                    .filter(url -> url.getLoc().contains("/serie/"))
+                    .count();
+
+            long animeCount = urls.stream()
+                    .filter(url -> url.getLoc().contains("/anime/"))
+                    .count();
+
+            long staticCount = urls.size() - movieCount - serieCount - animeCount;
+
+            return new SitemapStats(urls.size(), movieCount, serieCount, animeCount, staticCount);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar estatísticas do sitemap: ", e);
+            return new SitemapStats(0, 0, 0, 0, 0);
+        }
+    }
+
+    /**
+     * Classe para estatísticas do sitemap
+     */
+    public static class SitemapStats {
+        private final long totalUrls;
+        private final long movieUrls;
+        private final long serieUrls;
+        private final long animeUrls;
+        private final long staticUrls;
+
+        public SitemapStats(long totalUrls, long movieUrls, long serieUrls, long animeUrls, long staticUrls) {
+            this.totalUrls = totalUrls;
+            this.movieUrls = movieUrls;
+            this.serieUrls = serieUrls;
+            this.animeUrls = animeUrls;
+            this.staticUrls = staticUrls;
+        }
+
+        // Getters
+        public long getTotalUrls() { return totalUrls; }
+        public long getMovieUrls() { return movieUrls; }
+        public long getSerieUrls() { return serieUrls; }
+        public long getAnimeUrls() { return animeUrls; }
+        public long getStaticUrls() { return staticUrls; }
     }
 }
