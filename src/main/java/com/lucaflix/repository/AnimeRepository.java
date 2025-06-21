@@ -16,6 +16,10 @@ import java.util.UUID;
 @Repository
 public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
+    // Busca paginada de todos os animes
+    @Query("SELECT a FROM Anime a ORDER BY a.dataCadastro DESC")
+    Page<Anime> findAllPaginated(Pageable pageable);
+
     // Top 10 mais curtidos
     @Query("SELECT a FROM Anime a LEFT JOIN a.likes l GROUP BY a.id ORDER BY COUNT(l) DESC")
     List<Anime> findTop10ByLikes(Pageable pageable);
@@ -42,14 +46,14 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     @Query("SELECT a FROM Anime a LEFT JOIN a.likes l GROUP BY a ORDER BY COUNT(l) DESC")
     Page<Anime> findPopularAnimes(Pageable pageable);
 
-    // Por ano
-    @Query("SELECT a FROM Anime a WHERE EXTRACT(YEAR FROM a.anoLancamento) = :year")
+    // Por ano - CORRIGIDO para usar Integer
+    @Query("SELECT a FROM Anime a WHERE a.anoLancamento = :year ORDER BY a.avaliacao DESC")
     Page<Anime> findByYear(@Param("year") Integer year, Pageable pageable);
 
     // Recomendações baseadas nas categorias que o usuário mais curte
     @Query("SELECT DISTINCT a FROM Anime a JOIN a.categoria cat WHERE cat IN " +
             "(SELECT DISTINCT c FROM Anime anime JOIN anime.categoria c JOIN anime.likes l WHERE l.user.id = :userId) " +
-            "AND a.id NOT IN (SELECT l2.movie.id FROM Like l2 WHERE l2.user.id = :userId AND l2.movie IS NOT NULL) " +
+            "AND a.id NOT IN (SELECT l2.anime.id FROM Like l2 WHERE l2.user.id = :userId AND l2.anime IS NOT NULL) " +
             "ORDER BY a.avaliacao DESC")
     Page<Anime> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
 
@@ -60,8 +64,8 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
-    // Busca uma única mídia por título e ano exatos
-    @Query("SELECT a FROM Anime a WHERE UPPER(a.title) = UPPER(:title) AND EXTRACT(YEAR FROM a.anoLancamento) = :year")
+    // Busca uma única mídia por título e ano exatos - CORRIGIDO para Integer
+    @Query("SELECT a FROM Anime a WHERE UPPER(a.title) = UPPER(:title) AND a.anoLancamento = :year")
     Optional<Anime> findByTitleAndYear(@Param("title") String title, @Param("year") Integer year);
 
     // Para sitemap
@@ -72,8 +76,10 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     @Query("SELECT cat, COUNT(a) FROM Anime a JOIN a.categoria cat GROUP BY cat")
     List<Object[]> countByCategoria();
 
-    // Contagem por ano
-    @Query("SELECT EXTRACT(YEAR FROM a.anoLancamento) as year, COUNT(a) FROM Anime a GROUP BY EXTRACT(YEAR FROM a.anoLancamento) ORDER BY year DESC")
+    // Contagem por ano - CORRIGIDO para usar Integer
+    @Query("SELECT a.anoLancamento as year, COUNT(a) FROM Anime a " +
+            "WHERE a.anoLancamento IS NOT NULL " +
+            "GROUP BY a.anoLancamento ORDER BY year DESC")
     List<Object[]> countByYear();
 
     // Avaliação média
@@ -101,4 +107,5 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     Page<Anime> searchAnimes(@Param("texto") String texto,
                              @Param("categoria") Categoria categoria,
                              Pageable pageable);
+
 }

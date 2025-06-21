@@ -35,8 +35,8 @@ public class MovieMapper {
         dto.setCategoria(movie.getCategoria());
         dto.setMinAge(movie.getMinAge());
         dto.setAvaliacao(movie.getAvaliacao());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
+        dto.setPosterURL1(movie.getPosterURL1());
+        dto.setPosterURL2(movie.getPosterURL2());
         dto.setTotalLikes((long) (movie.getLikes() != null ? movie.getLikes().size() : 0));
         return dto;
     }
@@ -58,8 +58,14 @@ public class MovieMapper {
         dto.setEmbed1(movie.getEmbed1());
         dto.setEmbed2(movie.getEmbed2());
         dto.setTrailer(movie.getTrailer());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
+        dto.setPosterURL1(movie.getPosterURL1());
+        dto.setPosterURL2(movie.getPosterURL2());
+        dto.setBackdropURL1(movie.getBackdropURL1());
+        dto.setBackdropURL2(movie.getBackdropURL2());
+        dto.setBackdropURL3(movie.getBackdropURL3());
+        dto.setBackdropURL4(movie.getBackdropURL4());
+        dto.setLogoURL1(movie.getLogoURL1());
+        dto.setLogoURL2(movie.getLogoURL2());
         dto.setTotalLikes((long) (movie.getLikes() != null ? movie.getLikes().size() : 0));
 
         if (userId != null) {

@@ -16,11 +16,15 @@ import java.util.UUID;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
-    // Top 10 mais curtidas
+    // Busca paginada de todos os filmes
+    @Query("SELECT m FROM Movie m ORDER BY m.dataCadastro DESC")
+    Page<Movie> findAllPaginated(Pageable pageable);
+
+    // Top 10 mais curtidos
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m.id ORDER BY COUNT(l) DESC")
     List<Movie> findTop10ByLikes(Pageable pageable);
 
-    // Busca com filtros - ATUALIZADA para case-insensitive
+    // Busca com filtros - Case-insensitive
     @Query("SELECT m FROM Movie m WHERE " +
             "(:title IS NULL OR :title = '' OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
             "(:avaliacao IS NULL OR m.avaliacao >= :avaliacao) AND " +
@@ -31,37 +35,37 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             @Param("categoria") Categoria categoria,
             Pageable pageable);
 
-    // Mídias com avaliação alta
+    // Filmes com avaliação alta
     Page<Movie> findByAvaliacaoGreaterThanEqual(Double avaliacao, Pageable pageable);
 
     // Por categoria
     @Query("SELECT m FROM Movie m WHERE :categoria MEMBER OF m.categoria")
     Page<Movie> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
 
-    // Mídias populares (mais curtidas)
+    // Por ano - CORRIGIDO para usar Integer
+    @Query("SELECT m FROM Movie m WHERE m.anoLancamento = :year ORDER BY m.avaliacao DESC")
+    Page<Movie> findByYear(@Param("year") Integer year, Pageable pageable);
+
+    // Filmes populares (mais curtidos)
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m ORDER BY COUNT(l) DESC")
     Page<Movie> findPopularMovies(Pageable pageable);
 
-    // Por ano
-    @Query("SELECT m FROM Movie m WHERE EXTRACT(YEAR FROM m.anoLancamento) = :year")
-    Page<Movie> findByYear(@Param("year") Integer year, Pageable pageable);
-
     // Recomendações baseadas nas categorias que o usuário mais curte
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.categoria cat WHERE cat IN " +
-            "(SELECT DISTINCT c FROM Movie media JOIN media.categoria c JOIN media.likes l WHERE l.user.id = :userId) " +
+            "(SELECT DISTINCT c FROM Movie movie JOIN movie.categoria c JOIN movie.likes l WHERE l.user.id = :userId) " +
             "AND m.id NOT IN (SELECT l2.movie.id FROM Like l2 WHERE l2.user.id = :userId AND l2.movie IS NOT NULL) " +
             "ORDER BY m.avaliacao DESC")
     Page<Movie> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
 
-    // Mídias similares (categorias em comum, excluindo a atual)
+    // Filmes similares (categorias em comum, excluindo o atual)
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.categoria cat WHERE cat IN :categorias AND m.id != :excludeId")
-    Page<Movie> findSimilarMedia(
+    Page<Movie> findSimilarMovies(
             @Param("categorias") List<Categoria> categorias,
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
-    // Busca uma única mídia por título e ano exatos - ATUALIZADA para case-insensitive
-    @Query("SELECT m FROM Movie m WHERE LOWER(m.title) = LOWER(:title) AND EXTRACT(YEAR FROM m.anoLancamento) = :year")
+    // Busca uma única mídia por título e ano exatos - Case-insensitive
+    @Query("SELECT m FROM Movie m WHERE LOWER(m.title) = LOWER(:title) AND m.anoLancamento = :year")
     Optional<Movie> findByTitleAndYear(@Param("title") String title, @Param("year") Integer year);
 
     // Para sitemap
@@ -72,8 +76,10 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT cat, COUNT(m) FROM Movie m JOIN m.categoria cat GROUP BY cat")
     List<Object[]> countByCategoria();
 
-    // Contagem por ano
-    @Query("SELECT EXTRACT(YEAR FROM m.anoLancamento) as year, COUNT(m) FROM Movie m GROUP BY EXTRACT(YEAR FROM m.anoLancamento) ORDER BY year DESC")
+    // Contagem por ano - CORRIGIDO para usar Integer
+    @Query("SELECT m.anoLancamento as year, COUNT(m) FROM Movie m " +
+            "WHERE m.anoLancamento IS NOT NULL " +
+            "GROUP BY m.anoLancamento ORDER BY year DESC")
     List<Object[]> countByYear();
 
     // Avaliação média
@@ -90,7 +96,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT COUNT(m) FROM Movie m WHERE m.avaliacao < :rating")
     Long countByAvaliacaoLessThan(@Param("rating") Double rating);
 
-    // Busca principal para SearchService - ATUALIZADA para case-insensitive
+    // Busca principal para SearchService - Case-insensitive
     @Query("SELECT DISTINCT m FROM Movie m " +
             "LEFT JOIN m.categoria c " +
             "WHERE (:texto IS NULL OR :texto = '' OR " +
@@ -102,5 +108,4 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
                              @Param("categoria") Categoria categoria,
                              Pageable pageable);
 
-// ====================================================================
 }

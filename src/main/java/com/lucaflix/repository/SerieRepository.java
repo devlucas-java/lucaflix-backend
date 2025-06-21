@@ -1,6 +1,7 @@
 package com.lucaflix.repository;
 
 import com.lucaflix.model.Serie;
+import com.lucaflix.model.Temporada;
 import com.lucaflix.model.enums.Categoria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface SerieRepository extends JpaRepository<Serie, Long> {
 
-    // QUERY CORRIGIDA - Fazendo fetch em etapas para evitar MultipleBagFetchException
+    // Fetch série com temporadas para evitar MultipleBagFetchException
     @Query("SELECT DISTINCT s FROM Serie s " +
             "LEFT JOIN FETCH s.temporadas " +
             "WHERE s.id = :id")
@@ -27,43 +28,45 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "LEFT JOIN FETCH t.episodios " +
             "WHERE t.serie.id = :serieId " +
             "ORDER BY t.numeroTemporada ASC")
-    List<com.lucaflix.model.Temporada> findTemporadasWithEpisodiosBySerieId(@Param("serieId") Long serieId);
+    List<Temporada> findTemporadasWithEpisodiosBySerieId(@Param("serieId") Long serieId);
 
-    // Top 10 mais curtidas - CORRIGIDA
+    // Top 10 mais curtidas
     @Query("SELECT s FROM Serie s " +
             "LEFT JOIN s.likes l " +
             "GROUP BY s.id, s.title, s.anoLancamento, s.tmdbId, s.imdbId, s.paisOrigem, " +
-            "s.sinopse, s.dataCadastro, s.minAge, s.avaliacao, s.trailer, s.imageURL1, " +
-            "s.imageURL2, s.totalTemporadas, s.totalEpisodios " +
+            "s.sinopse, s.dataCadastro, s.minAge, s.avaliacao, s.trailer, " +
+            "s.posterURL1, s.posterURL2, s.backdropURL1, s.backdropURL2, s.backdropURL3, s.backdropURL4, " +
+            "s.logoURL1, s.logoURL2, s.totalTemporadas, s.totalEpisodios " +
             "ORDER BY COUNT(l) DESC")
     List<Serie> findTop10ByLikes(Pageable pageable);
 
-    // Por categoria - CORRIGIDA
+    // Por categoria
     @Query("SELECT DISTINCT s FROM Serie s " +
             "JOIN s.categoria c " +
             "WHERE c = :categoria " +
             "ORDER BY s.dataCadastro DESC")
     Page<Serie> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
 
-    // Séries populares (mais curtidas) - CORRIGIDA
+    // Séries populares (mais curtidas)
     @Query("SELECT s FROM Serie s " +
             "LEFT JOIN s.likes l " +
             "GROUP BY s.id, s.title, s.anoLancamento, s.tmdbId, s.imdbId, s.paisOrigem, " +
-            "s.sinopse, s.dataCadastro, s.minAge, s.avaliacao, s.trailer, s.imageURL1, " +
-            "s.imageURL2, s.totalTemporadas, s.totalEpisodios " +
+            "s.sinopse, s.dataCadastro, s.minAge, s.avaliacao, s.trailer, " +
+            "s.posterURL1, s.posterURL2, s.backdropURL1, s.backdropURL2, s.backdropURL3, s.backdropURL4, " +
+            "s.logoURL1, s.logoURL2, s.totalTemporadas, s.totalEpisodios " +
             "ORDER BY COUNT(l) DESC")
     Page<Serie> findPopularSeries(Pageable pageable);
 
-    // Séries com avaliação alta - MANTIDA (estava correta)
+    // Séries com avaliação alta
     Page<Serie> findByAvaliacaoGreaterThanEqual(Double avaliacao, Pageable pageable);
 
-    // Por ano - CORRIGIDA
+    // Por ano - CORRIGIDO para usar Integer
     @Query("SELECT s FROM Serie s " +
-            "WHERE YEAR(s.anoLancamento) = :year " +
+            "WHERE s.anoLancamento = :year " +
             "ORDER BY s.avaliacao DESC")
     Page<Serie> findByYear(@Param("year") Integer year, Pageable pageable);
 
-    // Recomendações baseadas nas categorias - CORRIGIDA para tratar userId null
+    // Recomendações baseadas nas categorias - Corrigida para tratar userId null
     @Query("SELECT DISTINCT s FROM Serie s " +
             "JOIN s.categoria cat " +
             "WHERE (:userId IS NULL OR cat IN (" +
@@ -79,7 +82,7 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "ORDER BY s.avaliacao DESC")
     Page<Serie> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
 
-    // Séries similares (categorias em comum, excluindo a atual) - CORRIGIDA
+    // Séries similares (categorias em comum, excluindo a atual)
     @Query("SELECT DISTINCT s FROM Serie s " +
             "JOIN s.categoria cat " +
             "WHERE cat IN :categorias " +
@@ -90,29 +93,29 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
-    // Para sitemap - MANTIDA
+    // Para sitemap
     @Query("SELECT s FROM Serie s WHERE s.title IS NOT NULL AND s.title != ''")
     List<Serie> findAllForSitemap();
 
-    // Contagem de séries por categoria - CORRIGIDA
+    // Contagem de séries por categoria
     @Query("SELECT cat, COUNT(s) FROM Serie s " +
             "JOIN s.categoria cat " +
             "GROUP BY cat")
     List<Object[]> countByCategoria();
 
-    // Avaliação média - MANTIDA
+    // Avaliação média
     @Query("SELECT AVG(s.avaliacao) FROM Serie s WHERE s.avaliacao IS NOT NULL")
     Double getAverageRating();
 
-    // Contagem por ano - CORRIGIDA
-    @Query("SELECT YEAR(s.anoLancamento) as year, COUNT(s) " +
+    // Contagem por ano - CORRIGIDO para usar Integer
+    @Query("SELECT s.anoLancamento as year, COUNT(s) " +
             "FROM Serie s " +
             "WHERE s.anoLancamento IS NOT NULL " +
-            "GROUP BY YEAR(s.anoLancamento) " +
+            "GROUP BY s.anoLancamento " +
             "ORDER BY year DESC")
     List<Object[]> countByYear();
 
-    // Busca de séries - CORRIGIDA
+    // Busca de séries
     @Query("SELECT DISTINCT s FROM Serie s " +
             "LEFT JOIN s.categoria c " +
             "WHERE (:texto IS NULL OR :texto = '' OR " +
@@ -124,35 +127,20 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
                              @Param("categoria") Categoria categoria,
                              Pageable pageable);
 
-    // Verificar se usuário curtiu uma série - NOVO MÉTODO
+    // Verificar se usuário curtiu uma série
     @Query("SELECT COUNT(l) > 0 FROM Like l " +
             "WHERE (:userId IS NULL OR l.user.id = :userId) " +
             "AND l.serie.id = :serieId")
     boolean existsLikeByUserAndSerie(@Param("userId") UUID userId, @Param("serieId") Long serieId);
 
-    // Verificar se série está na lista do usuário - NOVO MÉTODO
+    // Verificar se série está na lista do usuário
     @Query("SELECT COUNT(ml) > 0 FROM MinhaLista ml " +
             "WHERE (:userId IS NULL OR ml.user.id = :userId) " +
             "AND ml.serie.id = :serieId")
     boolean existsInMyListByUserAndSerie(@Param("userId") UUID userId, @Param("serieId") Long serieId);
 
-    // MÉTODOS ADICIONAIS PARA DEBUGGING E FUNCIONALIDADES EXTRAS
-
     // Verificar se existem séries
     @Query("SELECT COUNT(s) FROM Serie s")
     long countAllSeries();
 
-    // Buscar todas as séries (para debugging)
-    @Query("SELECT s FROM Serie s ORDER BY s.dataCadastro DESC")
-    Page<Serie> findAllSeries(Pageable pageable);
-
-    // Buscar séries por título (busca simples)
-    @Query("SELECT s FROM Serie s " +
-            "WHERE LOWER(s.title) LIKE LOWER(CONCAT('%', :title, '%')) " +
-            "ORDER BY s.title ASC")
-    Page<Serie> findByTitleContainingIgnoreCase(@Param("title") String title, Pageable pageable);
-
-    // Buscar séries sem filtros para testar se há dados
-    @Query("SELECT s FROM Serie s")
-    List<Serie> findAllSeriesSimple();
 }

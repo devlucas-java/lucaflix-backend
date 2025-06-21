@@ -41,15 +41,6 @@ public class MinhaLista {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataAdicao = new Date();
 
-    // Para filmes: true = assistido, false = não assistido
-    // Para séries: sempre false (controle é por episódio)
-    @Column(name = "assistido")
-    private Boolean assistido = false;
-
-    // Apenas para séries: quantos episódios já assistiu
-    @Column(name = "episodios_assistidos")
-    private Integer episodiosAssistidos = 0;
-
     @Column(name = "data_ultima_visualizacao")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataUltimaVisualizacao;

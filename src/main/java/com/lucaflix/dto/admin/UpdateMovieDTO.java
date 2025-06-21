@@ -11,7 +11,7 @@ import java.util.List;
 public class UpdateMovieDTO {
 
     private String title;
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     @Min(value = 1, message = "Duração deve ser maior que 0")
     private Integer duracaoMinutos;
@@ -29,7 +29,18 @@ public class UpdateMovieDTO {
     private String tmdbId;
     private String imdbId;
     private String paisOrigen;
+
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
 }

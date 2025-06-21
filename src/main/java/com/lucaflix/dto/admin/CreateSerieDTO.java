@@ -19,13 +19,13 @@ public class CreateSerieDTO {
     private String title;
 
     @NotNull(message = "Ano de lançamento é obrigatório")
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     private String tmdbId;
 
     private String imdbId;
 
-    private String paisOrigem;
+    private String paisOrigen;
 
     @Size(max = 5000, message = "Sinopse deve ter no máximo 5000 caracteres")
     private String sinopse;
@@ -41,7 +41,15 @@ public class CreateSerieDTO {
 
     private String trailer;
 
-    private String imageURL1;
+    private String posterURL1;
+    private String posterURL2;
 
-    private String imageURL2;
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
 }

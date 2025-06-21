@@ -1,6 +1,7 @@
 package com.lucaflix.dto.media.serie;
 
 import com.lucaflix.model.enums.Categoria;
+import jakarta.persistence.Column;
 import lombok.Data;
 import java.util.Date;
 import java.util.List;
@@ -10,18 +11,29 @@ public class SerieCompleteDTO {
     private Long id;
     private String title;
     private String type = "SERIE";
-    private Date anoLancamento;
+    private Integer anoLancamento;
     private String tmdbId;
     private String imdbId;
-    private String paisOrigem;
+    private String paisOrigen;
     private String sinopse;
     private Date dataCadastro;
     private List<Categoria> categoria;
     private String minAge;
     private Double avaliacao;
+
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
     private Integer totalTemporadas;
     private Integer totalEpisodios;
     private Long totalLikes;
@@ -35,7 +47,7 @@ public class SerieCompleteDTO {
     public static class TemporadaDTO {
         private Long id;
         private Integer numeroTemporada;
-        private Date anoLancamento;
+        private Integer anoLancamento;
         private Date dataCadastro;
         private Integer totalEpisodios;
         private List<EpisodioDTO> episodios;

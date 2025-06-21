@@ -32,14 +32,20 @@ public class AdminSerieService {
         serie.setAnoLancamento(createDTO.getAnoLancamento());
         serie.setTmdbId(createDTO.getTmdbId());
         serie.setImdbId(createDTO.getImdbId());
-        serie.setPaisOrigem(createDTO.getPaisOrigem());
+        serie.setPaisOrigem(createDTO.getPaisOrigen());
         serie.setSinopse(createDTO.getSinopse());
         serie.setCategoria(createDTO.getCategoria());
         serie.setMinAge(createDTO.getMinAge());
         serie.setAvaliacao(createDTO.getAvaliacao());
         serie.setTrailer(createDTO.getTrailer());
-        serie.setImageURL1(createDTO.getImageURL1());
-        serie.setImageURL2(createDTO.getImageURL2());
+        serie.setPosterURL1(createDTO.getPosterURL1());
+        serie.setPosterURL2(createDTO.getPosterURL2());
+        serie.setLogoURL1(createDTO.getLogoURL1());
+        serie.setLogoURL2(createDTO.getLogoURL2());
+        serie.setBackdropURL1(createDTO.getBackdropURL1());
+        serie.setBackdropURL2(createDTO.getBackdropURL2());
+        serie.setBackdropURL3(createDTO.getBackdropURL3());
+        serie.setBackdropURL4(createDTO.getBackdropURL4());
         serie.setDataCadastro(new Date());
 
         Serie savedSerie = serieRepository.save(serie);
@@ -63,8 +69,8 @@ public class AdminSerieService {
         if (updateDTO.getImdbId() != null) {
             serie.setImdbId(updateDTO.getImdbId());
         }
-        if (updateDTO.getPaisOrigem() != null) {
-            serie.setPaisOrigem(updateDTO.getPaisOrigem());
+        if (updateDTO.getPaisOrigen() != null) {
+            serie.setPaisOrigem(updateDTO.getPaisOrigen());
         }
         if (updateDTO.getSinopse() != null) {
             serie.setSinopse(updateDTO.getSinopse());
@@ -81,11 +87,29 @@ public class AdminSerieService {
         if (updateDTO.getTrailer() != null) {
             serie.setTrailer(updateDTO.getTrailer());
         }
-        if (updateDTO.getImageURL1() != null) {
-            serie.setImageURL1(updateDTO.getImageURL1());
+        if (updateDTO.getLogoURL1() != null) {
+            serie.setLogoURL1(updateDTO.getLogoURL1());
         }
-        if (updateDTO.getImageURL2() != null) {
-            serie.setImageURL2(updateDTO.getImageURL2());
+        if (updateDTO.getLogoURL2() != null) {
+            serie.setLogoURL1(updateDTO.getLogoURL2());
+        }
+        if (updateDTO.getBackdropURL1() != null) {
+            serie.setBackdropURL1(updateDTO.getBackdropURL1());
+        }
+        if (updateDTO.getBackdropURL2() != null) {
+            serie.setBackdropURL2(updateDTO.getBackdropURL2());
+        }
+        if (updateDTO.getBackdropURL3() != null) {
+            serie.setBackdropURL3(updateDTO.getBackdropURL3());
+        }
+        if (updateDTO.getBackdropURL4() != null) {
+            serie.setBackdropURL4(updateDTO.getBackdropURL4());
+        }
+        if (updateDTO.getPosterURL1() != null) {
+            serie.setPosterURL1(updateDTO.getPosterURL1());
+        }
+        if (updateDTO.getPosterURL2() != null) {
+            serie.setPosterURL2(updateDTO.getPosterURL2());
         }
 
         Serie updatedSerie = serieRepository.save(serie);
@@ -290,28 +314,31 @@ public class AdminSerieService {
             serie.setTitle(createDTO.getTitle());
             serie.setSinopse(createDTO.getSinopse());
             serie.setCategoria(createDTO.getCategoria());
-            serie.setPaisOrigem(createDTO.getPaisOrigem());
+            serie.setAnoLancamento(createDTO.getAnoLancamento()); // MOVER PARA ANTES DO SAVE
+            serie.setPaisOrigem(createDTO.getPaisOrigen());
             serie.setTmdbId(createDTO.getTmdbId());
             serie.setImdbId(createDTO.getImdbId());
             serie.setTrailer(createDTO.getTrailer());
             serie.setAvaliacao(createDTO.getAvaliacao());
             serie.setMinAge(createDTO.getMinAge());
-            serie.setImageURL1(createDTO.getImageURL1());
-            serie.setImageURL2(createDTO.getImageURL2());
-            serie.setDataCadastro(new Date());
 
-            // Definir ano de lançamento
-            if (createDTO.getAno() != null) {
-                java.util.Calendar cal = java.util.Calendar.getInstance();
-                cal.set(createDTO.getAno(), 0, 1);
-                serie.setAnoLancamento(cal.getTime());
-            }
+            // DEFINIR TODAS AS URLs DAS IMAGENS ANTES DO SAVE
+            serie.setPosterURL1(createDTO.getPosterURL1());
+            serie.setPosterURL2(createDTO.getPosterURL2());
+            serie.setLogoURL1(createDTO.getLogoURL1());
+            serie.setLogoURL2(createDTO.getLogoURL2());
+            serie.setBackdropURL1(createDTO.getBackdropURL1());
+            serie.setBackdropURL2(createDTO.getBackdropURL2());
+            serie.setBackdropURL3(createDTO.getBackdropURL3());
+            serie.setBackdropURL4(createDTO.getBackdropURL4());
+
+            serie.setDataCadastro(new Date());
 
             // Salvar série primeiro para obter o ID
             Serie savedSerie = serieRepository.save(serie);
 
             // 2. Criar temporadas e episódios
-            int totalTemporadas = 0;
+            int totalTemporadas = createDTO.getTemporadas().size();
             int totalEpisodios = 0;
 
             for (CreateSerieCompleteDTO.CreateTemporadaCompleteDTO temporadaDTO : createDTO.getTemporadas()) {
@@ -319,14 +346,8 @@ public class AdminSerieService {
                 Temporada temporada = new Temporada();
                 temporada.setSerie(savedSerie);
                 temporada.setNumeroTemporada(temporadaDTO.getNumeroTemporada());
+                temporada.setAnoLancamento(temporadaDTO.getAnoLancamento());
                 temporada.setDataCadastro(new Date());
-
-                // Definir ano da temporada
-                if (temporadaDTO.getAnoLancamento() != null) {
-                    java.util.Calendar cal = java.util.Calendar.getInstance();
-                    cal.set(temporadaDTO.getAnoLancamento(), 0, 1);
-                    temporada.setAnoLancamento(cal.getTime());
-                }
 
                 // Salvar temporada
                 Temporada savedTemporada = temporadaRepository.save(temporada);

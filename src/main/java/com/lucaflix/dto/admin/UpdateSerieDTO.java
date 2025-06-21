@@ -15,13 +15,13 @@ public class UpdateSerieDTO {
     @Size(max = 255, message = "Título deve ter no máximo 255 caracteres")
     private String title;
 
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     private String tmdbId;
 
     private String imdbId;
 
-    private String paisOrigem;
+    private String paisOrigen;
 
     @Size(max = 5000, message = "Sinopse deve ter no máximo 5000 caracteres")
     private String sinopse;
@@ -36,7 +36,15 @@ public class UpdateSerieDTO {
 
     private String trailer;
 
-    private String imageURL1;
+    private String posterURL1;
+    private String posterURL2;
 
-    private String imageURL2;
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
 }

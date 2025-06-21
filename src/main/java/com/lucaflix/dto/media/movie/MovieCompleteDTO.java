@@ -10,7 +10,7 @@ public class MovieCompleteDTO {
     private Long id;
     private String title;
     private String type = "MOVIE";
-    private Date anoLancamento;
+    private Integer anoLancamento;
     private Integer duracaoMinutos;
     private String tmdbId;
     private String imdbId;
@@ -23,8 +23,17 @@ public class MovieCompleteDTO {
     private String embed1;
     private String embed2;
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
     private Long totalLikes;
     private Boolean userLiked;
     private Boolean inUserList;

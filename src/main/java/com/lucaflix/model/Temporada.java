@@ -23,7 +23,7 @@ public class Temporada {
 
     @Column(name = "ano_lancamento")
     @Temporal(TemporalType.DATE)
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     @Column(name = "data_cadastro")
     @Temporal(TemporalType.TIMESTAMP)

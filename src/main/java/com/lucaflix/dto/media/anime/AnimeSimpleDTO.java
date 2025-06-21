@@ -10,7 +10,7 @@ public class AnimeSimpleDTO {
     private Long id;
     private String title;
     private String type = "ANIME";
-    private Date anoLancamento;
+    private Integer anoLancamento;
     private String tmdbId;
     private String imdbId;
     private String paisOrigen;
@@ -20,8 +20,10 @@ public class AnimeSimpleDTO {
     private String embed1;
     private String embed2;
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
     private Integer totalTemporadas;
     private Integer totalEpisodios;
     private Long totalLikes;

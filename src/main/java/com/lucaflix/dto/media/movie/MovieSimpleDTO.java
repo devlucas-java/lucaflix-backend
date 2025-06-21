@@ -10,7 +10,7 @@ public class MovieSimpleDTO {
     private Long id;
     private String title;
     private String type = "MOVIE";
-    private Date anoLancamento;
+    private Integer anoLancamento;
     private Integer duracaoMinutos;
     private String tmdbId;
     private String imdbId;
@@ -18,7 +18,9 @@ public class MovieSimpleDTO {
     private List<Categoria> categoria;
     private String minAge;
     private Double avaliacao;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
     private Long totalLikes;
 }

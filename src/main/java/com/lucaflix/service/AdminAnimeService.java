@@ -38,7 +38,7 @@ public class AdminAnimeService {
     @Transactional
     public AnimeCompleteDTO createAnime(CreateAnimeDTO createDTO) {
         // Verificar se já existe anime com mesmo título e ano
-        int year = createDTO.getAnoLancamento().getYear() + 1900;
+        int year = createDTO.getAnoLancamento() + 1900;
         Optional<Anime> existingAnime = animeRepository.findByTitleAndYear(createDTO.getTitle(), year);
         if (existingAnime.isPresent()) {
             throw new RuntimeException("Já existe um anime com o título '" + createDTO.getTitle() + "' no ano " + year);
@@ -57,8 +57,14 @@ public class AdminAnimeService {
         anime.setEmbed1(createDTO.getEmbed1());
         anime.setEmbed2(createDTO.getEmbed2());
         anime.setTrailer(createDTO.getTrailer());
-        anime.setImageURL1(createDTO.getImageURL1());
-        anime.setImageURL2(createDTO.getImageURL2());
+        anime.setLogoURL1(createDTO.getLogoURL1());
+        anime.setLogoURL2(createDTO.getLogoURL2());
+        anime.setBackdropURL1(createDTO.getBackdropURL1());
+        anime.setBackdropURL2(createDTO.getBackdropURL2());
+        anime.setBackdropURL3(createDTO.getBackdropURL3());
+        anime.setBackdropURL4(createDTO.getBackdropURL4());
+        anime.setPosterURL1(createDTO.getPosterURL1());
+        anime.setPosterURL2(createDTO.getPosterURL2());
         anime.setTotalTemporadas(createDTO.getTotalTemporadas());
         anime.setTotalEpisodios(createDTO.getTotalEpisodios());
         anime.setDataCadastro(new Date());
@@ -75,7 +81,7 @@ public class AdminAnimeService {
         if (updateDTO.getTitle() != null) {
             // Verificar se não há conflito com título/ano se ambos estão sendo alterados
             if (updateDTO.getAnoLancamento() != null) {
-                int year = updateDTO.getAnoLancamento().getYear() + 1900;
+                int year = updateDTO.getAnoLancamento() + 1900;
                 Optional<Anime> existingAnime = animeRepository.findByTitleAndYear(updateDTO.getTitle(), year);
                 if (existingAnime.isPresent() && !existingAnime.get().getId().equals(animeId)) {
                     throw new RuntimeException("Já existe um anime com o título '" + updateDTO.getTitle() + "' no ano " + year);
@@ -116,11 +122,29 @@ public class AdminAnimeService {
         if (updateDTO.getTrailer() != null) {
             anime.setTrailer(updateDTO.getTrailer());
         }
-        if (updateDTO.getImageURL1() != null) {
-            anime.setImageURL1(updateDTO.getImageURL1());
+        if (updateDTO.getLogoURL1() != null) {
+            anime.setLogoURL1(updateDTO.getLogoURL1());
         }
-        if (updateDTO.getImageURL2() != null) {
-            anime.setImageURL2(updateDTO.getImageURL2());
+        if (updateDTO.getLogoURL2() != null) {
+            anime.setLogoURL2(updateDTO.getLogoURL2());
+        }
+        if (updateDTO.getBackdropURL1() != null) {
+            anime.setBackdropURL1(updateDTO.getBackdropURL1());
+        }
+        if (updateDTO.getBackdropURL2() != null) {
+            anime.setBackdropURL2(updateDTO.getBackdropURL2());
+        }
+        if (updateDTO.getBackdropURL3() != null) {
+            anime.setBackdropURL3(updateDTO.getBackdropURL3());
+        }
+        if (updateDTO.getBackdropURL4() != null) {
+            anime.setBackdropURL4(updateDTO.getBackdropURL4());
+        }
+        if (updateDTO.getPosterURL1() != null) {
+            anime.setPosterURL1(updateDTO.getPosterURL1());
+        }
+        if (updateDTO.getPosterURL2() != null) {
+            anime.setPosterURL2(updateDTO.getPosterURL2());
         }
         if (updateDTO.getTotalTemporadas() != null) {
             anime.setTotalTemporadas(updateDTO.getTotalTemporadas());
@@ -486,8 +510,14 @@ public class AdminAnimeService {
         dto.setEmbed1(anime.getEmbed1());
         dto.setEmbed2(anime.getEmbed2());
         dto.setTrailer(anime.getTrailer());
-        dto.setImageURL1(anime.getImageURL1());
-        dto.setImageURL2(anime.getImageURL2());
+        dto.setLogoURL1(anime.getLogoURL1());
+        dto.setLogoURL2(anime.getLogoURL2());
+        dto.setBackdropURL1(anime.getBackdropURL1());
+        dto.setBackdropURL2(anime.getBackdropURL2());
+        dto.setBackdropURL3(anime.getBackdropURL3());
+        dto.setBackdropURL4(anime.getBackdropURL4());
+        dto.setPosterURL1(anime.getPosterURL1());
+        dto.setPosterURL2(anime.getPosterURL2());
         dto.setTotalTemporadas(anime.getTotalTemporadas());
         dto.setTotalEpisodios(anime.getTotalEpisodios());
         dto.setTotalLikes((long) (anime.getLikes() != null ? anime.getLikes().size() : 0));

@@ -37,8 +37,8 @@ public class AnimeMapper {
         dto.setEmbed1(anime.getEmbed1());
         dto.setEmbed2(anime.getEmbed2());
         dto.setTrailer(anime.getTrailer());
-        dto.setImageURL1(anime.getImageURL1());
-        dto.setImageURL2(anime.getImageURL2());
+        dto.setPosterURL1(anime.getPosterURL1());
+        dto.setPosterURL2(anime.getPosterURL2());
         dto.setTotalTemporadas(anime.getTotalTemporadas());
         dto.setTotalEpisodios(anime.getTotalEpisodios());
         dto.setTotalLikes((long) (anime.getLikes() != null ? anime.getLikes().size() : 0));
@@ -61,8 +61,14 @@ public class AnimeMapper {
         dto.setEmbed1(anime.getEmbed1());
         dto.setEmbed2(anime.getEmbed2());
         dto.setTrailer(anime.getTrailer());
-        dto.setImageURL1(anime.getImageURL1());
-        dto.setImageURL2(anime.getImageURL2());
+        dto.setPosterURL1(anime.getPosterURL1());
+        dto.setPosterURL2(anime.getPosterURL2());
+        dto.setLogoURL1(anime.getLogoURL1());
+        dto.setLogoURL2(anime.getLogoURL2());
+        dto.setBackdropURL1(anime.getBackdropURL1());
+        dto.setBackdropURL2(anime.getBackdropURL2());
+        dto.setBackdropURL3(anime.getBackdropURL3());
+        dto.setBackdropURL4(anime.getBackdropURL4());
         dto.setTotalTemporadas(anime.getTotalTemporadas());
         dto.setTotalEpisodios(anime.getTotalEpisodios());
         dto.setTotalLikes((long) (anime.getLikes() != null ? anime.getLikes().size() : 0));

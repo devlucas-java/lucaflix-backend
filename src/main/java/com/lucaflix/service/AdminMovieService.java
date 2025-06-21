@@ -34,7 +34,7 @@ public class AdminMovieService {
     @Transactional
     public MovieCompleteDTO createMovie(CreateMovieDTO createDTO) {
         // Verificar se já existe filme com mesmo título e ano
-        int year = createDTO.getAnoLancamento().getYear() + 1900; // Date.getYear() retorna anos desde 1900
+        int year = createDTO.getAnoLancamento() + 1900; // retorna anos desde 1900
         Optional<Movie> existingMovie = movieRepository.findByTitleAndYear(createDTO.getTitle(), year);
         if (existingMovie.isPresent()) {
             throw new RuntimeException("Já existe um filme com o título '" + createDTO.getTitle() + "' no ano " + year);
@@ -51,8 +51,14 @@ public class AdminMovieService {
         movie.setEmbed1(createDTO.getEmbed1());
         movie.setEmbed2(createDTO.getEmbed2());
         movie.setTrailer(createDTO.getTrailer());
-        movie.setImageURL1(createDTO.getImageURL1());
-        movie.setImageURL2(createDTO.getImageURL2());
+        movie.setPosterURL1(createDTO.getPosterURL1());
+        movie.setPosterURL2(createDTO.getPosterURL2());
+        movie.setLogoURL1(createDTO.getLogoURL1());
+        movie.setLogoURL2(createDTO.getLogoURL2());
+        movie.setBackdropURL1(createDTO.getBackdropURL1());
+        movie.setBackdropURL2(createDTO.getBackdropURL2());
+        movie.setBackdropURL3(createDTO.getBackdropURL3());
+        movie.setBackdropURL4(createDTO.getBackdropURL4());
         movie.setDataCadastro(new Date());
         movie.setTmdbId(createDTO.getTmdbId());
         movie.setImdbId(createDTO.getImdbId()); // Corrigido: adicionado imdbId
@@ -71,7 +77,7 @@ public class AdminMovieService {
         if (updateDTO.getTitle() != null) {
             // Verificar se não há conflito com título/ano se ambos estão sendo alterados
             if (updateDTO.getAnoLancamento() != null) {
-                int year = updateDTO.getAnoLancamento().getYear() + 1900;
+                int year = updateDTO.getAnoLancamento() + 1900;
                 Optional<Movie> existingMovie = movieRepository.findByTitleAndYear(updateDTO.getTitle(), year);
                 if (existingMovie.isPresent() && !existingMovie.get().getId().equals(movieId)) {
                     throw new RuntimeException("Já existe um filme com o título '" + updateDTO.getTitle() + "' no ano " + year);
@@ -106,11 +112,29 @@ public class AdminMovieService {
         if (updateDTO.getTrailer() != null) {
             movie.setTrailer(updateDTO.getTrailer());
         }
-        if (updateDTO.getImageURL1() != null) {
-            movie.setImageURL1(updateDTO.getImageURL1());
+        if (updateDTO.getLogoURL1() != null) {
+            movie.setLogoURL1(updateDTO.getLogoURL1());
         }
-        if (updateDTO.getImageURL2() != null) {
-            movie.setImageURL2(updateDTO.getImageURL2());
+        if (updateDTO.getLogoURL2() != null) {
+            movie.setLogoURL1(updateDTO.getLogoURL2());
+        }
+        if (updateDTO.getBackdropURL1() != null) {
+            movie.setBackdropURL1(updateDTO.getBackdropURL1());
+        }
+        if (updateDTO.getBackdropURL2() != null) {
+            movie.setBackdropURL2(updateDTO.getBackdropURL2());
+        }
+        if (updateDTO.getBackdropURL3() != null) {
+            movie.setBackdropURL3(updateDTO.getBackdropURL3());
+        }
+        if (updateDTO.getBackdropURL4() != null) {
+            movie.setBackdropURL4(updateDTO.getBackdropURL4());
+        }
+        if (updateDTO.getPosterURL1() != null) {
+            movie.setPosterURL1(updateDTO.getPosterURL1());
+        }
+        if (updateDTO.getPosterURL2() != null) {
+            movie.setPosterURL2(updateDTO.getPosterURL2());
         }
         if (updateDTO.getImdbId() != null) {
             movie.setImdbId(updateDTO.getImdbId());
@@ -418,8 +442,14 @@ public class AdminMovieService {
         dto.setEmbed1(movie.getEmbed1());
         dto.setEmbed2(movie.getEmbed2());
         dto.setTrailer(movie.getTrailer());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
+        dto.setPosterURL1(movie.getPosterURL1());
+        dto.setPosterURL2(movie.getPosterURL2());
+        dto.setLogoURL1(movie.getLogoURL1());
+        dto.setLogoURL2(movie.getLogoURL2());
+        dto.setBackdropURL1(movie.getBackdropURL1());
+        dto.setBackdropURL2(movie.getBackdropURL2());
+        dto.setBackdropURL3(movie.getBackdropURL3());
+        dto.setBackdropURL4(movie.getBackdropURL4());
         dto.setTotalLikes((long) (movie.getLikes() != null ? movie.getLikes().size() : 0));
         dto.setUserLiked(false); // Admin não precisa dessa info
         dto.setInUserList(false); // Admin não precisa dessa info

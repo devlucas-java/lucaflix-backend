@@ -19,8 +19,7 @@ public class Serie {
     private String title;
 
     @Column(name = "ano_lancamento")
-    @Temporal(TemporalType.DATE)
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     @Column(name = "tmdb_id")
     private String tmdbId;
@@ -56,11 +55,25 @@ public class Serie {
     @Column(name = "trailer_url")
     private String trailer;
 
-    @Column(name = "image_url_1")
-    private String imageURL1;
+    @Column(name = "poster_url1")
+    private String posterURL1;
+    @Column(name = "poster_url2")
+    private String posterURL2;
 
-    @Column(name = "image_url_2")
-    private String imageURL2;
+    @Column(name = "backdrop_url1")
+    private String backdropURL1;
+    @Column(name = "backdrop_url2")
+    private String backdropURL2;
+    @Column(name = "backdrop_url3")
+    private String backdropURL3;
+    @Column(name = "backdrop_url4")
+    private String backdropURL4;
+
+    @Column(name = "logo_url1")
+    private String logoURL1;
+    @Column(name = "logo_url2")
+    private String logoURL2;
+
 
     @Column(name = "total_temporadas")
     private Integer totalTemporadas = 0;

@@ -10,7 +10,7 @@ public class AnimeCompleteDTO {
     private Long id;
     private String title;
     private String type = "ANIME";
-    private Date anoLancamento;
+    private Integer anoLancamento;
     private String tmdbId;
     private String imdbId;
     private String paisOrigen;
@@ -21,9 +21,20 @@ public class AnimeCompleteDTO {
     private Double avaliacao;
     private String embed1;
     private String embed2;
+
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
     private Integer totalTemporadas;
     private Integer totalEpisodios;
     private Long totalLikes;

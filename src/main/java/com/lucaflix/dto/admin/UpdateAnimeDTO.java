@@ -12,7 +12,7 @@ public class UpdateAnimeDTO {
     @Size(max = 255, message = "Título deve ter no máximo 255 caracteres")
     private String title;
 
-    private Date anoLancamento;
+    private Integer anoLancamento;
 
     private String tmdbId;
     private String imdbId;
@@ -31,9 +31,20 @@ public class UpdateAnimeDTO {
 
     private String embed1;
     private String embed2;
+
     private String trailer;
-    private String imageURL1;
-    private String imageURL2;
+
+    private String posterURL1;
+    private String posterURL2;
+
+    private String backdropURL1;
+    private String backdropURL2;
+    private String backdropURL3;
+    private String backdropURL4;
+
+    private String logoURL1;
+    private String logoURL2;
+
 
     @Min(value = 0, message = "Total de temporadas deve ser maior ou igual a 0")
     private Integer totalTemporadas;

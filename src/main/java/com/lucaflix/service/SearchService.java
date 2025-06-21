@@ -134,8 +134,8 @@ public class SearchService {
         dto.setCategoria(movie.getCategoria());
         dto.setMinAge(movie.getMinAge());
         dto.setAvaliacao(movie.getAvaliacao());
-        dto.setImageURL1(movie.getImageURL1());
-        dto.setImageURL2(movie.getImageURL2());
+        dto.setPosterURL2(movie.getPosterURL2());
+        dto.setPosterURL1(movie.getPosterURL1());
 
         // Calcular total de likes
         dto.setTotalLikes(movie.getLikes() != null ? (long) movie.getLikes().size() : 0L);
@@ -150,12 +150,12 @@ public class SearchService {
         dto.setAnoLancamento(serie.getAnoLancamento());
         dto.setTmdbId(serie.getTmdbId());
         dto.setImdbId(serie.getImdbId());
-        dto.setPaisOrigem(serie.getPaisOrigem());
+        dto.setPaisOrigen(serie.getPaisOrigem());
         dto.setCategoria(serie.getCategoria());
         dto.setMinAge(serie.getMinAge());
         dto.setAvaliacao(serie.getAvaliacao());
-        dto.setImageURL1(serie.getImageURL1());
-        dto.setImageURL2(serie.getImageURL2());
+        dto.setPosterURL1(serie.getPosterURL1());
+        dto.setPosterURL2(serie.getPosterURL2());
         dto.setTotalTemporadas(serie.getTotalTemporadas());
         dto.setTotalEpisodios(serie.getTotalEpisodios());
 
@@ -179,8 +179,8 @@ public class SearchService {
         dto.setEmbed1(anime.getEmbed1());
         dto.setEmbed2(anime.getEmbed2());
         dto.setTrailer(anime.getTrailer());
-        dto.setImageURL1(anime.getImageURL1());
-        dto.setImageURL2(anime.getImageURL2());
+        dto.setPosterURL1(anime.getPosterURL1());
+        dto.setPosterURL2(anime.getPosterURL2());
         dto.setTotalTemporadas(anime.getTotalTemporadas());
         dto.setTotalEpisodios(anime.getTotalEpisodios());
 

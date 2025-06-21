@@ -14,5 +14,5 @@ public class CreateTemporadaDTO {
     private Integer numeroTemporada;
 
     @NotNull(message = "Ano de lançamento é obrigatório")
-    private Date anoLancamento;
+    private Integer anoLancamento;
 }

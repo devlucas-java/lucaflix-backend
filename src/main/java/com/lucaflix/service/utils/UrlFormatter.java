@@ -12,12 +12,8 @@ public class UrlFormatter {
      * Formata título para URL seguindo o padrão: /id/tipo-titulo-formatado-ano
      * Exemplo: /108/serie-o-jogo-da-viuva-1970
      */
-    public String formatTitleForUrl(Long id, String title, Date anoLancamento) {
+    public String formatTitleForUrl(Long id, String title, Integer anoLancamento) {
 
-        // Extrai o ano da data
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(anoLancamento != null ? anoLancamento : new Date());
-        int year = cal.get(Calendar.YEAR);
 
         // Formata o título
         String formattedTitle = title
@@ -40,7 +36,7 @@ public class UrlFormatter {
                 // Remove hífens do início e fim
                 .replaceAll("^-+|-+$", "");
 
-        return String.format("/%d/%s-%s-%d", id, formattedTitle, year);
+        return String.format("/%d/%s-%s-%d", id, formattedTitle, anoLancamento);
     }
 
     /**

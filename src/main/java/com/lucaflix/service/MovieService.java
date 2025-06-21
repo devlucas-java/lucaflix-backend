@@ -146,7 +146,7 @@ public class MovieService {
                 .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Movie> mediaPage = movieRepository.findSimilarMedia(movie.getCategoria(), movie.getId(), pageable);
+        Page<Movie> mediaPage = movieRepository.findSimilarMovies(movie.getCategoria(), movie.getId(), pageable);
         return movieMapper.createPaginatedResponse(mediaPage);
     }
 }
