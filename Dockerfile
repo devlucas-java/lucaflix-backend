@@ -11,6 +11,7 @@ COPY .mvn ./.mvn
 
 # Baixar as dependências (esta etapa será armazenada em cache se o pom.xml não mudar)
 RUN mvn dependency:go-offline -B
+RUN mvn clean package -DskipTests
 
 # Copiar o código-fonte
 COPY src ./src
