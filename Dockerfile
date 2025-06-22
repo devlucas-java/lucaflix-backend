@@ -26,7 +26,7 @@ ENV SPRING_PROFILES_ACTIVE=prod
 WORKDIR $APP_HOME
 
 # Copiar o JAR do estágio de build
-COPY --from=build /app/target/chica-hot-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/lucaflix-0.0.1-SNAPSHOT.jar app.jar
 
 # Criar diretório para uploads e definir permissões
 RUN mkdir -p $APP_HOME/uploads && chmod 777 $APP_HOME/uploads
