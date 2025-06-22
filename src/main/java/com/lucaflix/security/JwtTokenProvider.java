@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    @Value("${app.jwt-secret}")
-    private String jwtSecret;
+//    @Value("${app.jwt-secret}")
+String jwtKey = System.getenv("JWT_KEY");
+    private String jwtSecret = jwtKey;
 
-    @Value("${app.jwt-expiration-milliseconds}")
-    private long jwtExpirationInMs;
+//    @Value("${app.jwt-expiration-milliseconds}")
+    String jwtExpiration = System.getenv("JWT_EXPIRATION");
+    private long jwtExpirationInMs = Long.parseLong(jwtExpiration);
 
     // Generate token
     public String generateToken(Authentication authentication) {
