@@ -7,11 +7,23 @@ primary_region = 'gru'
 internal_port = 8080
 force_https = true
 auto_stop_machines = true    # Pausar automaticamente
-auto_start_machines = true    # Acordar com requisição
-min_machines_running = 0      # Nenhuma ativa o tempo todo
+auto_start_machines = true   # Acordar com requisição
+min_machines_running = 0     # Nenhuma ativa o tempo todo
 processes = ["app"]
 
 [[vm]]
 memory = "1gb"
 cpu_kind = "shared"
 cpus = 1
+
+[[services]]
+internal_port = 8080
+protocol = "tcp"
+
+[[services.ports]]
+port = 80
+handlers = ["http"]
+
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]

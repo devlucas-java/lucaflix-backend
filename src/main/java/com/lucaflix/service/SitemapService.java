@@ -31,8 +31,10 @@ public class SitemapService {
     private final AnimeRepository animeRepository;
     private final UrlFormatter urlFormatter;
 
-    @Value("${app.base-url:https://lucaflix.com}")
-    private String baseUrl;
+//    @Value("${app.base-url:https://lucaflix.com}")
+String url = System.getenv("URL_SITEMAP");
+
+    private String baseUrl = url;
 
     /**
      * Gera todas as URLs para o sitemap com cache
