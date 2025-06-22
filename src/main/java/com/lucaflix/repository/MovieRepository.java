@@ -9,16 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
-
-    // Busca paginada de todos os filmes
-    @Query("SELECT m FROM Movie m ORDER BY m.dataCadastro DESC")
-    Page<Movie> findAllPaginated(Pageable pageable);
 
     // Top 10 mais curtidos
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m.id ORDER BY COUNT(l) DESC")
@@ -41,10 +38,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     // Por categoria
     @Query("SELECT m FROM Movie m WHERE :categoria MEMBER OF m.categoria")
     Page<Movie> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
-
-    // Por ano - CORRIGIDO para usar Integer
-    @Query("SELECT m FROM Movie m WHERE m.anoLancamento = :year ORDER BY m.avaliacao DESC")
-    Page<Movie> findByYear(@Param("year") Integer year, Pageable pageable);
 
     // Filmes populares (mais curtidos)
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m ORDER BY COUNT(l) DESC")
@@ -72,16 +65,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT m FROM Movie m WHERE m.title IS NOT NULL AND m.title != ''")
     List<Movie> findAllForSitemap();
 
-    // Estatísticas de contagem por categoria
-    @Query("SELECT cat, COUNT(m) FROM Movie m JOIN m.categoria cat GROUP BY cat")
-    List<Object[]> countByCategoria();
-
-    // Contagem por ano - CORRIGIDO para usar Integer
-    @Query("SELECT m.anoLancamento as year, COUNT(m) FROM Movie m " +
-            "WHERE m.anoLancamento IS NOT NULL " +
-            "GROUP BY m.anoLancamento ORDER BY year DESC")
-    List<Object[]> countByYear();
-
     // Avaliação média
     @Query("SELECT AVG(m.avaliacao) FROM Movie m WHERE m.avaliacao IS NOT NULL")
     Double getAverageRating();
@@ -108,4 +91,5 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
                              @Param("categoria") Categoria categoria,
                              Pageable pageable);
 
+    Long countByDataCadastroAfter(Date weekAgoDate);
 }

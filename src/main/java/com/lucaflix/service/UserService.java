@@ -30,7 +30,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-
     /// OBTEM USUARIO POR ID OU LANCA EXCECAO
     public User getUserById(UUID id) {
         return userRepository.findById(id)
@@ -55,12 +54,17 @@ public class UserService {
 
     /// REMOVE ACENTOS E CARACTERES ESPECIAIS DE UMA STRING
     private String removeAccents(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return "user";
+        }
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }
 
     /// GERA USERNAME UNICO BASEADO NO NOME COMPLETO
-    private String generateUniqueUsername(String nomeCompleto) {
+    private String generateUniqueUsername(String firstName, String lastName) {
+        String nomeCompleto = (firstName + " " + (lastName != null ? lastName : "")).trim();
+
         /// REMOVE ACENTOS E CONVERTE PARA MINUSCULO
         String cleanName = removeAccents(nomeCompleto.toLowerCase());
 
@@ -74,13 +78,13 @@ public class UserService {
             baseUsername = nameParts[0].replaceAll("[^a-z0-9]", "");
         } else if (nameParts.length >= 2) {
             /// PRIMEIRO NOME + PRIMEIRA LETRA DO ULTIMO NOME
-            String firstName = nameParts[0].replaceAll("[^a-z0-9]", "");
-            String lastName = nameParts[nameParts.length - 1].replaceAll("[^a-z0-9]", "");
+            String firstNameClean = nameParts[0].replaceAll("[^a-z0-9]", "");
+            String lastNameClean = nameParts[nameParts.length - 1].replaceAll("[^a-z0-9]", "");
 
-            if (firstName.length() > 0 && lastName.length() > 0) {
-                baseUsername = firstName + lastName.charAt(0);
-            } else if (firstName.length() > 0) {
-                baseUsername = firstName;
+            if (firstNameClean.length() > 0 && lastNameClean.length() > 0) {
+                baseUsername = firstNameClean + lastNameClean.charAt(0);
+            } else if (firstNameClean.length() > 0) {
+                baseUsername = firstNameClean;
             } else {
                 baseUsername = "user";
             }
@@ -98,16 +102,24 @@ public class UserService {
 
         String username = baseUsername;
         Random random = new Random();
+        int attempts = 0;
+        final int MAX_ATTEMPTS = 100;
 
         /// ADICIONA NUMEROS ALEATORIOS ATE ENCONTRAR UM USERNAME UNICO
-        while (existsByUsername(username)) {
+        while (existsByUsername(username) && attempts < MAX_ATTEMPTS) {
             int randomNum = random.nextInt(9999) + 1;
             username = baseUsername + randomNum;
 
-            /// EVITA LOOP INFINITO
+            /// EVITA USERNAME MUITO LONGO
             if (username.length() > 20) {
                 username = baseUsername.substring(0, Math.min(baseUsername.length(), 10)) + randomNum;
             }
+            attempts++;
+        }
+
+        // Fallback caso não encontre username único
+        if (attempts >= MAX_ATTEMPTS) {
+            username = "user" + System.currentTimeMillis();
         }
 
         return username;
@@ -122,12 +134,12 @@ public class UserService {
         }
 
         /// GERA USERNAME UNICO BASEADO NO NOME
-        String username = generateUniqueUsername(signUpRequest.getFirstName());
+        String username = generateUniqueUsername(signUpRequest.getFirstName(), signUpRequest.getLastName());
 
         User user = new User();
         user.setUsername(username);
-        user.setLastName(signUpRequest.getLastName());
         user.setFirstName(signUpRequest.getFirstName());
+        user.setLastName(signUpRequest.getLastName());
         user.setEmail(signUpRequest.getEmail());
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         user.setRole(Role.USER);
@@ -146,22 +158,33 @@ public class UserService {
     /// ATUALIZA DADOS DO USUARIO
     @Transactional
     public User updateUser(User user, UserDTO.UpdateUserRequest request) {
+        // Atualiza campos se fornecidos
+        if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
+            user.setFirstName(request.getFirstName().trim());
+        }
+
+        if (request.getLastName() != null && !request.getLastName().trim().isEmpty()) {
+            user.setLastName(request.getLastName().trim());
+        }
+
         if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
-            if (!user.getUsername().equals(request.getUsername()) && existsByUsername(request.getUsername())) {
-                throw new IllegalArgumentException("Username já existe: " + request.getUsername());
+            String newUsername = request.getUsername().trim();
+            if (!user.getUsername().equals(newUsername) && existsByUsername(newUsername)) {
+                throw new IllegalArgumentException("Username já existe: " + newUsername);
             }
-            user.setUsername(request.getUsername());
+            user.setUsername(newUsername);
         }
 
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
-            if (!user.getEmail().equals(request.getEmail()) && existsByEmail(request.getEmail())) {
-                throw new IllegalArgumentException("Email já existe: " + request.getEmail());
+            String newEmail = request.getEmail().trim().toLowerCase();
+            if (!user.getEmail().equalsIgnoreCase(newEmail) && existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("Email já existe: " + newEmail);
             }
-            user.setEmail(request.getEmail());
+            user.setEmail(newEmail);
         }
 
         User savedUser = userRepository.save(user);
-        log.info("Usuário atualizado com sucesso com id: {}", savedUser.getId());
+        log.info("Usuário atualizado com sucesso - ID: {}, Username: {}", savedUser.getId(), savedUser.getUsername());
         return savedUser;
     }
 
@@ -171,6 +194,11 @@ public class UserService {
         /// VERIFICA SENHA ATUAL
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new IllegalArgumentException("Senha atual está incorreta");
+        }
+
+        /// VALIDA NOVA SENHA
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("Nova senha deve ter pelo menos 6 caracteres");
         }
 
         /// ATUALIZA SENHA
@@ -187,13 +215,16 @@ public class UserService {
             throw new IllegalArgumentException("Senha atual está incorreta");
         }
 
+        /// NORMALIZA EMAIL
+        String normalizedEmail = newEmail.trim().toLowerCase();
+
         /// VERIFICA SE NOVO EMAIL JA EXISTE
-        if (existsByEmail(newEmail) && !user.getEmail().equals(newEmail)) {
-            throw new IllegalArgumentException("Email já existe: " + newEmail);
+        if (existsByEmail(normalizedEmail) && !user.getEmail().equalsIgnoreCase(normalizedEmail)) {
+            throw new IllegalArgumentException("Email já existe: " + normalizedEmail);
         }
 
         /// ATUALIZA EMAIL
-        user.setEmail(newEmail);
+        user.setEmail(normalizedEmail);
         userRepository.save(user);
         log.info("Email atualizado com sucesso para usuário: {}", user.getId());
     }
@@ -220,8 +251,10 @@ public class UserService {
     @Transactional
     public AdminPanel createAdminPanel(User user, Integer adminLevel) {
         /// VERIFICA SE PAINEL ADMIN JA EXISTE
-        if (adminPanelRepository.existsByUser(user)) {
-            throw new IllegalArgumentException("Painel admin já existe para usuário: " + user.getId());
+        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
+        if (existingPanel.isPresent()) {
+            log.warn("Painel admin já existe para usuário: {}", user.getId());
+            return existingPanel.get();
         }
 
         AdminPanel adminPanel = new AdminPanel();
@@ -254,7 +287,8 @@ public class UserService {
         userRepository.save(user);
 
         /// CRIA PAINEL ADMIN SE NAO EXISTIR
-        if (!adminPanelRepository.existsByUser(user)) {
+        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
+        if (existingPanel.isEmpty()) {
             createAdminPanel(user, adminLevel);
         } else {
             updateAdminLevel(userId, adminLevel);
@@ -271,7 +305,8 @@ public class UserService {
         userRepository.save(user);
 
         /// CRIA OU ATUALIZA PAINEL ADMIN COM NIVEL MAXIMO
-        if (!adminPanelRepository.existsByUser(user)) {
+        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
+        if (existingPanel.isEmpty()) {
             createAdminPanel(user, 99);
         } else {
             updateAdminLevel(userId, 99);
@@ -288,7 +323,10 @@ public class UserService {
         userRepository.save(user);
 
         /// REMOVE PAINEL ADMIN
-        adminPanelRepository.findByUser(user).ifPresent(adminPanelRepository::delete);
+        adminPanelRepository.findByUser(user).ifPresent(adminPanel -> {
+            adminPanelRepository.delete(adminPanel);
+            log.info("Painel admin removido para usuário: {}", userId);
+        });
 
         log.info("Usuário rebaixado para usuário comum: {}", userId);
     }
@@ -314,12 +352,14 @@ public class UserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
-
+    /// DELETA USUARIO E TODOS OS DADOS RELACIONADOS DE FORMA SEGURA
     @Transactional
     public void deleteUserAndRelatedData(UUID userId) {
         try {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+                    .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com ID: " + userId));
+
+            log.info("Iniciando exclusão do usuário {} e dados relacionados", user.getUsername());
 
             // 1. Deletar todos os likes do usuário
             // Isso remove os likes mas mantém as mídias
@@ -332,17 +372,20 @@ public class UserService {
             log.info("Itens da lista do usuário {} deletados", user.getUsername());
 
             // 3. Deletar o painel admin se existir
-            // O cascade já cuida disso, mas podemos ser explícitos
-            if (user.getAdminPanel() != null) {
-                adminPanelRepository.deleteByUserId(userId);
+            Optional<AdminPanel> adminPanel = adminPanelRepository.findByUser(user);
+            if (adminPanel.isPresent()) {
+                adminPanelRepository.delete(adminPanel.get());
                 log.info("Painel admin do usuário {} deletado", user.getUsername());
             }
 
             // 4. Finalmente deletar o usuário
             // Agora não há mais referências que possam causar problemas
-            userRepository.deleteById(userId);
+            userRepository.delete(user);
             log.info("Usuário {} deletado com sucesso", user.getUsername());
 
+        } catch (EntityNotFoundException e) {
+            log.error("Usuário não encontrado: {}", e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("Erro ao deletar usuário e dados relacionados: {}", e.getMessage(), e);
             throw new RuntimeException("Falha ao deletar usuário e dados relacionados", e);

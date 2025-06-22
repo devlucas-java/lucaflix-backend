@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +57,11 @@ public class User implements UserDetails {
     @Column(name = "account_expired")
     private Boolean isAccountExpired = false;
 
+    // Add the missing dataCadastro field
+    @Column(name = "data_cadastro")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dataCadastro;
+
     // Relacionamentos - os likes e lista do usuário são removidos quando ele é deletado
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Like> likes;
@@ -65,6 +71,14 @@ public class User implements UserDetails {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private AdminPanel adminPanel;
+
+    // Automatically set the registration date when persisting
+    @PrePersist
+    protected void onCreate() {
+        if (dataCadastro == null) {
+            dataCadastro = new Date();
+        }
+    }
 
     // UserDetails implementation
     @Override

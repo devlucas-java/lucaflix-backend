@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -143,4 +144,11 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     @Query("SELECT COUNT(s) FROM Serie s")
     long countAllSeries();
 
+    long countByAvaliacaoGreaterThanEqual(double v);
+
+    long countByAvaliacaoBetween(double v, double v1);
+
+    long countByAvaliacaoLessThan(double v);
+
+    Long countByDataCadastroAfter(Date weekAgoDate);
 }

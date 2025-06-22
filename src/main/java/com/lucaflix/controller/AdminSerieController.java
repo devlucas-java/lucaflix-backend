@@ -59,15 +59,6 @@ public class AdminSerieController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SerieCompleteDTO> getSerieById(@PathVariable Long id) {
-        try {
-            SerieCompleteDTO serie = adminSerieService.getSerieById(id);
-            return ResponseEntity.ok(serie);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     // ==================== GERENCIAMENTO DE TEMPORADAS ====================
 

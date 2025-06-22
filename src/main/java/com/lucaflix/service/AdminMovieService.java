@@ -30,11 +30,12 @@ public class AdminMovieService {
     private final UserRepository userRepository;
 
     // ==================== GERENCIAMENTO DE FILMES ====================
-
     @Transactional
     public MovieCompleteDTO createMovie(CreateMovieDTO createDTO) {
         // Verificar se já existe filme com mesmo título e ano
-        int year = createDTO.getAnoLancamento() + 1900; // retorna anos desde 1900
+        // CORREÇÃO: Remover a soma desnecessária de 1900
+        Integer year = createDTO.getAnoLancamento(); // Usar diretamente o valor do DTO
+
         Optional<Movie> existingMovie = movieRepository.findByTitleAndYear(createDTO.getTitle(), year);
         if (existingMovie.isPresent()) {
             throw new RuntimeException("Já existe um filme com o título '" + createDTO.getTitle() + "' no ano " + year);
@@ -42,7 +43,7 @@ public class AdminMovieService {
 
         Movie movie = new Movie();
         movie.setTitle(createDTO.getTitle());
-        movie.setAnoLancamento(createDTO.getAnoLancamento());
+        movie.setAnoLancamento(createDTO.getAnoLancamento()); // Usar diretamente
         movie.setDuracaoMinutos(createDTO.getDuracaoMinutos());
         movie.setSinopse(createDTO.getSinopse());
         movie.setCategoria(createDTO.getCategoria());
@@ -61,8 +62,8 @@ public class AdminMovieService {
         movie.setBackdropURL4(createDTO.getBackdropURL4());
         movie.setDataCadastro(new Date());
         movie.setTmdbId(createDTO.getTmdbId());
-        movie.setImdbId(createDTO.getImdbId()); // Corrigido: adicionado imdbId
-        movie.setPaisOrigen(createDTO.getPaisOrigen()); // Corrigido: era getPaisOrigen(), não getPaisOrigin()
+        movie.setImdbId(createDTO.getImdbId());
+        movie.setPaisOrigen(createDTO.getPaisOrigen());
 
         Movie savedMovie = movieRepository.save(movie);
         return convertToCompleteDTO(savedMovie);
@@ -77,7 +78,8 @@ public class AdminMovieService {
         if (updateDTO.getTitle() != null) {
             // Verificar se não há conflito com título/ano se ambos estão sendo alterados
             if (updateDTO.getAnoLancamento() != null) {
-                int year = updateDTO.getAnoLancamento() + 1900;
+                // CORREÇÃO: Usar diretamente o valor do DTO, sem somar 1900
+                Integer year = updateDTO.getAnoLancamento();
                 Optional<Movie> existingMovie = movieRepository.findByTitleAndYear(updateDTO.getTitle(), year);
                 if (existingMovie.isPresent() && !existingMovie.get().getId().equals(movieId)) {
                     throw new RuntimeException("Já existe um filme com o título '" + updateDTO.getTitle() + "' no ano " + year);
@@ -116,7 +118,7 @@ public class AdminMovieService {
             movie.setLogoURL1(updateDTO.getLogoURL1());
         }
         if (updateDTO.getLogoURL2() != null) {
-            movie.setLogoURL1(updateDTO.getLogoURL2());
+            movie.setLogoURL2(updateDTO.getLogoURL2()); // CORRIGIDO: era setLogoURL1
         }
         if (updateDTO.getBackdropURL1() != null) {
             movie.setBackdropURL1(updateDTO.getBackdropURL1());
@@ -180,247 +182,6 @@ public class AdminMovieService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
         Page<Movie> moviesPage = movieRepository.buscarPorFiltros(searchTerm, null, null, pageable);
         return moviesPage.map(this::convertToCompleteDTO);
-    }
-
-    // ==================== ESTATÍSTICAS COMPLETAS ====================
-
-    public MediaStatsDTO getCompleteStats() {
-        MediaStatsDTO stats = new MediaStatsDTO();
-
-        // Contagens básicas
-        long totalMovies = movieRepository.count();
-        long totalSeries = serieRepository.count();
-        long totalMedias = totalMovies + totalSeries;
-
-        stats.setTotalMedias(totalMedias);
-        stats.setTotalFilmes(totalMovies);
-        stats.setTotalSeries(totalSeries);
-
-        // Total de likes
-        long totalLikes = likeRepository.count();
-        stats.setTotalLikes(totalLikes);
-
-        // Usuários com listas
-        long totalUsersWithLists = minhaListaRepository.countDistinctUsers();
-        stats.setTotalUsersWithLists(totalUsersWithLists);
-
-        // Avaliação média
-        Double averageMovieRating = movieRepository.getAverageRating();
-        Double averageSerieRating = serieRepository.getAverageRating();
-
-        double overallAverage = 0.0;
-        if (averageMovieRating != null && averageSerieRating != null) {
-            overallAverage = (averageMovieRating + averageSerieRating) / 2.0;
-        } else if (averageMovieRating != null) {
-            overallAverage = averageMovieRating;
-        } else if (averageSerieRating != null) {
-            overallAverage = averageSerieRating;
-        }
-        stats.setAverageRating(Math.round(overallAverage * 100.0) / 100.0);
-
-        // Mídia mais curtida
-        String mostLikedTitle = getMostLikedMediaTitle();
-        stats.setMostLikedMediaTitle(mostLikedTitle);
-
-        // Categoria mais popular
-        String mostPopularCategory = getMostPopularCategory();
-        stats.setMostPopularCategory(mostPopularCategory);
-
-        return stats;
-    }
-
-    public DetailedStatsDTO getDetailedStats() {
-        DetailedStatsDTO stats = new DetailedStatsDTO();
-
-        // Estatísticas básicas
-        MediaStatsDTO basicStats = getCompleteStats();
-        stats.setBasicStats(basicStats);
-
-        // Estatísticas por categoria
-        stats.setCategoryStats(getCategoryStats());
-
-        // Estatísticas por ano
-        stats.setYearStats(getYearStats());
-
-        // Estatísticas de usuários
-        stats.setUserStats(getUserStats());
-
-        // Estatísticas de qualidade (por avaliação)
-        stats.setQualityStats(getQualityStats());
-
-        return stats;
-    }
-
-    // ==================== MÉTODOS AUXILIARES PARA ESTATÍSTICAS ====================
-
-    private String getMostLikedMediaTitle() {
-        // Buscar filme mais curtido
-        List<Movie> topMovies = movieRepository.findTop10ByLikes(PageRequest.of(0, 1));
-        String topMovieTitle = null;
-        long topMovieLikes = 0;
-
-        if (!topMovies.isEmpty()) {
-            Movie topMovie = topMovies.get(0);
-            topMovieTitle = topMovie.getTitle();
-            topMovieLikes = topMovie.getLikes() != null ? topMovie.getLikes().size() : 0;
-        }
-
-        // Buscar série mais curtida
-        List<Serie> topSeries = serieRepository.findTop10ByLikes(PageRequest.of(0, 1));
-        String topSerieTitle = null;
-        long topSerieLikes = 0;
-
-        if (!topSeries.isEmpty()) {
-            Serie topSerie = topSeries.get(0);
-            topSerieTitle = topSerie.getTitle();
-            topSerieLikes = topSerie.getLikes() != null ? topSerie.getLikes().size() : 0;
-        }
-
-        // Retornar o mais curtido entre filmes e séries
-        if (topMovieLikes >= topSerieLikes) {
-            return topMovieTitle != null ? topMovieTitle + " (" + topMovieLikes + " likes)" : "N/A";
-        } else {
-            return topSerieTitle != null ? topSerieTitle + " (" + topSerieLikes + " likes)" : "N/A";
-        }
-    }
-
-    private String getMostPopularCategory() {
-        List<Object[]> movieCategoryStats = movieRepository.countByCategoria();
-        List<Object[]> serieCategoryStats = serieRepository.countByCategoria();
-
-        java.util.Map<Categoria, Long> categoryCount = new java.util.HashMap<>();
-
-        // Contar categorias de filmes
-        for (Object[] stat : movieCategoryStats) {
-            Categoria categoria = (Categoria) stat[0];
-            Long count = (Long) stat[1];
-            categoryCount.put(categoria, categoryCount.getOrDefault(categoria, 0L) + count);
-        }
-
-        // Contar categorias de séries
-        for (Object[] stat : serieCategoryStats) {
-            Categoria categoria = (Categoria) stat[0];
-            Long count = (Long) stat[1];
-            categoryCount.put(categoria, categoryCount.getOrDefault(categoria, 0L) + count);
-        }
-
-        // Encontrar a categoria mais popular
-        return categoryCount.entrySet().stream()
-                .max(java.util.Map.Entry.comparingByValue())
-                .map(entry -> entry.getKey().name() + " (" + entry.getValue() + " itens)")
-                .orElse("N/A");
-    }
-
-    private List<CategoryStatsDTO> getCategoryStats() {
-        List<Object[]> movieStats = movieRepository.countByCategoria();
-        List<Object[]> serieStats = serieRepository.countByCategoria();
-
-        java.util.Map<Categoria, CategoryStatsDTO> categoryMap = new java.util.HashMap<>();
-
-        // Processar estatísticas de filmes
-        for (Object[] stat : movieStats) {
-            Categoria categoria = (Categoria) stat[0];
-            Long count = (Long) stat[1];
-
-            CategoryStatsDTO dto = categoryMap.getOrDefault(categoria, new CategoryStatsDTO());
-            dto.setCategoria(categoria.name());
-            dto.setTotalMovies(count);
-            categoryMap.put(categoria, dto);
-        }
-
-        // Processar estatísticas de séries
-        for (Object[] stat : serieStats) {
-            Categoria categoria = (Categoria) stat[0];
-            Long count = (Long) stat[1];
-
-            CategoryStatsDTO dto = categoryMap.getOrDefault(categoria, new CategoryStatsDTO());
-            dto.setCategoria(categoria.name());
-            dto.setTotalSeries(count);
-            categoryMap.put(categoria, dto);
-        }
-
-        // Calcular totais
-        categoryMap.values().forEach(dto -> {
-            dto.setTotalItems(dto.getTotalMovies() + dto.getTotalSeries());
-        });
-
-        return categoryMap.values().stream()
-                .sorted((a, b) -> Long.compare(b.getTotalItems(), a.getTotalItems()))
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    private List<YearStatsDTO> getYearStats() {
-        List<Object[]> movieYearStats = movieRepository.countByYear();
-        List<Object[]> serieYearStats = serieRepository.countByYear();
-
-        java.util.Map<Integer, YearStatsDTO> yearMap = new java.util.HashMap<>();
-
-        // Processar anos de filmes
-        for (Object[] stat : movieYearStats) {
-            Integer year = (Integer) stat[0];
-            Long count = (Long) stat[1];
-
-            YearStatsDTO dto = yearMap.getOrDefault(year, new YearStatsDTO());
-            dto.setYear(year);
-            dto.setTotalMovies(count);
-            yearMap.put(year, dto);
-        }
-
-        // Processar anos de séries
-        for (Object[] stat : serieYearStats) {
-            Integer year = (Integer) stat[0];
-            Long count = (Long) stat[1];
-
-            YearStatsDTO dto = yearMap.getOrDefault(year, new YearStatsDTO());
-            dto.setYear(year);
-            dto.setTotalSeries(count);
-            yearMap.put(year, dto);
-        }
-
-        // Calcular totais
-        yearMap.values().forEach(dto -> {
-            dto.setTotalItems(dto.getTotalMovies() + dto.getTotalSeries());
-        });
-
-        return yearMap.values().stream()
-                .sorted((a, b) -> Integer.compare(b.getYear(), a.getYear()))
-                .limit(10) // Top 10 anos mais recentes
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    private UserStatsDTO getUserStats() {
-        UserStatsDTO stats = new UserStatsDTO();
-
-        stats.setTotalUsers(userRepository.count());
-        stats.setUsersWithLists(minhaListaRepository.countDistinctUsers());
-        stats.setAverageLikesPerUser(calculateAverageLikesPerUser());
-        stats.setAverageListItemsPerUser(calculateAverageListItemsPerUser());
-
-        return stats;
-    }
-
-
-
-    private QualityStatsDTO getQualityStats() {
-        QualityStatsDTO stats = new QualityStatsDTO();
-
-        stats.setHighRatedMovies(movieRepository.countByAvaliacaoGreaterThanEqual(8.0));
-        stats.setMediumRatedMovies(movieRepository.countByAvaliacaoBetween(6.0, 7.9));
-        stats.setLowRatedMovies(movieRepository.countByAvaliacaoLessThan(6.0));
-
-        return stats;
-    }
-
-    private double calculateAverageLikesPerUser() {
-        long totalUsers = userRepository.count();
-        long totalLikes = likeRepository.count();
-        return totalUsers > 0 ? (double) totalLikes / totalUsers : 0.0;
-    }
-
-    private double calculateAverageListItemsPerUser() {
-        long totalUsers = userRepository.count();
-        long totalListItems = minhaListaRepository.count();
-        return totalUsers > 0 ? (double) totalListItems / totalUsers : 0.0;
     }
 
     // ==================== CONVERSOR ====================

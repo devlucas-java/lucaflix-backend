@@ -22,17 +22,17 @@ public class MinhaLista {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Para filmes - pode ser null se for série
+    // Para filmes - pode ser null se for série ou anime
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    // Para séries - pode ser null se for movie
+    // Para séries - pode ser null se for movie ou anime
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "serie_id")
     private Serie serie;
 
-
+    // Para animes - pode ser null se for movie ou serie
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anime_id")
     private Anime anime;
@@ -45,12 +45,17 @@ public class MinhaLista {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataUltimaVisualizacao;
 
-    // Constraint: deve ter OU movie OU serie, não ambos nem nenhum
+    // Constraint: deve ter APENAS UM tipo de conteúdo (movie OU serie OU anime)
     @PrePersist
     @PreUpdate
     private void validateContent() {
-        if ((movie == null && serie == null) || (movie != null && serie != null)) {
-            throw new IllegalStateException("MinhaLista deve ter OU movie OU serie, não ambos nem nenhum");
+        int nonNullCount = 0;
+        if (movie != null) nonNullCount++;
+        if (serie != null) nonNullCount++;
+        if (anime != null) nonNullCount++;
+
+        if (nonNullCount != 1) {
+            throw new IllegalStateException("MinhaLista deve ter exatamente UM tipo de conteúdo: movie, serie ou anime");
         }
     }
 }

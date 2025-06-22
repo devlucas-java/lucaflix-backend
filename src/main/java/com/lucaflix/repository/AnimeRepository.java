@@ -108,4 +108,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
                              @Param("categoria") Categoria categoria,
                              Pageable pageable);
 
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.anime IS NOT NULL")
+    long countByAnimeIsNotNull();
+
 }

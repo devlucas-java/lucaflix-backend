@@ -26,8 +26,6 @@ public class SuperAdminController {
     private final SuperAdminService superAdminService;
     private final UserService userService;
 
-
-
     @GetMapping("/search")
     public ResponseEntity<PaginatedResponseDTO<UserDTO.UserListResponse>> searchUsers(
             @RequestParam(required = false) String searchTerm,
@@ -36,101 +34,56 @@ public class SuperAdminController {
         return ResponseEntity.ok(superAdminService.searchUsers(searchTerm, pageable));
     }
 
-
-    /**
-     * FUNCAO DE FAZER UPGRADE
-     * SE FOR USER VAI PARA ADMIN
-     * SE FOR ADMIN VAI PARA SUPERADMIN
-     * SE FOR SUPER ADMIN VAI DAR EXECAO FALANDO QUE JA E O ROLE MAXIMO
-     */
-    @PutMapping("/users/{userId}/upgrade")
-    public ResponseEntity<?> upgradeUserRole(
+    @PutMapping("/users/{userId}/promote")
+    public ResponseEntity<ApiResponse> promoteUser(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
+            User promotedUser = superAdminService.promoteUser(userId, currentUser);
+            UserDTO.UserResponse response = userService.convertToUserResponse(promotedUser);
 
-            // Executa o upgrade
-            User upgradedUser = superAdminService.upgradeUserRole(userId);
-            UserDTO.UserResponse response = userService.convertToUserResponse(upgradedUser);
-
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Usuário promovido com sucesso", response));
+            return ResponseEntity.ok(new ApiResponse("Usuário promovido com sucesso", response));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("Erro: " + e.getMessage(), null));
         } catch (Exception e) {
-            log.error("Erro ao fazer upgrade do usuário {}", userId, e);
+            log.error("Erro ao promover usuário {}", userId, e);
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse("Erro interno do servidor", null));
         }
     }
 
-    /**
-     * FUNCOA DE FAZER DOWGRADE
-     * SE FOR SUPER ADMIN VAI PARA ADMIN
-     * SE FOR ADMIN VAI PARA USER
-     * SE FOR USER VAI DAR EXECAO FALANDO QUE JA E O ROLE MINIMO
-     */
-    @PutMapping("/users/{userId}/downgrade")
-    public ResponseEntity<?> downgradeUserRole(
+    @PutMapping("/users/{userId}/demote")
+    public ResponseEntity<ApiResponse> demoteUser(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
+            User demotedUser = superAdminService.demoteUser(userId, currentUser);
+            UserDTO.UserResponse response = userService.convertToUserResponse(demotedUser);
 
-            // Não permite que super admin faça downgrade de si mesmo
-            if (userId.equals(currentUser.getId())) {
-                return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Não é possível fazer downgrade de si mesmo", null));
-            }
-
-            // Executa o downgrade
-            User downgradedUser = superAdminService.downgradeUserRole(userId);
-            UserDTO.UserResponse response = userService.convertToUserResponse(downgradedUser);
-
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Usuário rebaixado com sucesso", response));
+            return ResponseEntity.ok(new ApiResponse("Usuário rebaixado com sucesso", response));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("Erro: " + e.getMessage(), null));
         } catch (Exception e) {
-            log.error("Erro ao fazer downgrade do usuário {}", userId, e);
+            log.error("Erro ao rebaixar usuário {}", userId, e);
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse("Erro interno do servidor", null));
         }
     }
 
-    /**
-     * FUNCAO PARA EXCLUIR/DELETAR USUARIO
-     * Remove completamente o usuário do sistema
-     */
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(
+    public ResponseEntity<ApiResponse> deleteUser(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
-
-            // Não permite que super admin delete a si mesmo
-            if (userId.equals(currentUser.getId())) {
-                return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Não é possível deletar a si mesmo", null));
-            }
-
-            // Executa a exclusão
-            superAdminService.deleteUser(userId);
-
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Usuário deletado com sucesso", null));
+            superAdminService.deleteUser(userId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Usuário deletado com sucesso", null));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
@@ -142,25 +95,16 @@ public class SuperAdminController {
         }
     }
 
-    /**
-     * FUNCOA PARA ATUALIZAR O PLANO DO USUSARIO POR 30 DIAS
-     * Ativa/renova o plano do usuário
-     */
-    @PutMapping("/users/{userId}/plan/update")
-    public ResponseEntity<?> updateUserPlan(
+    @PutMapping("/users/{userId}/plan/upgrade")
+    public ResponseEntity<ApiResponse> upgradeUserPlan(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
-
-            // Atualiza o plano
-            User updatedUser = superAdminService.updateUserPlan(userId);
+            User updatedUser = superAdminService.updateUserPlan(userId, currentUser);
             UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
 
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Plano do usuário atualizado por 30 dias", response));
+            return ResponseEntity.ok(new ApiResponse("Plano do usuário atualizado para PREMIUM", response));
 
         } catch (Exception e) {
             log.error("Erro ao atualizar plano do usuário {}", userId, e);
@@ -169,124 +113,256 @@ public class SuperAdminController {
         }
     }
 
-    /**
-     * FUNCAO PARA CORTAR O PLANO DO USER
-     * Suspende/desativa o plano do usuário
-     */
     @PutMapping("/users/{userId}/plan/cut")
-    public ResponseEntity<?> cutUserPlan(
+    public ResponseEntity<ApiResponse> cutUserPlan(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
-
-            // Não permite cortar próprio plano
-            if (userId.equals(currentUser.getId())) {
-                return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Não é possível cortar o próprio plano", null));
-            }
-
-            // Corta o plano
-            User updatedUser = superAdminService.cutUserPlan(userId);
+            User updatedUser = superAdminService.cutUserPlan(userId, currentUser);
             UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
 
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Plano do usuário foi cortado/suspenso", response));
+            return ResponseEntity.ok(new ApiResponse("Plano do usuário foi cortado para FREE", response));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("Erro: " + e.getMessage(), null));
         } catch (Exception e) {
             log.error("Erro ao cortar plano do usuário {}", userId, e);
-            return ResponseEntity.internalServerError()
-                    .body(new ApiResponse("Erro interno do servidor", null));
-        }
-    }
-
-
-
-    /**
-     * FUNCOA PARA ATUALIZAR O PLANO DO USUSARIO POR 30 DIAS
-     * Ativa/renova o plano do usuário
-     */
-    @PutMapping("/users/{userId}/not-blocked")
-    public ResponseEntity<?> notBlocked(
-            @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
-
-        try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
-
-            // Atualiza o plano
-            User updatedUser = superAdminService.notBlock(userId);
-            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
-
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Plano do usuário atualizado por 30 dias", response));
-
-        } catch (Exception e) {
-            log.error("Erro ao atualizar plano do usuário {}", userId, e);
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse("Erro interno do servidor", null));
         }
     }
 
     @PutMapping("/users/{userId}/block")
-    public ResponseEntity<?> block(
+    public ResponseEntity<ApiResponse> blockUser(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
+            User blockedUser = superAdminService.blockUser(userId, currentUser);
+            UserDTO.UserResponse response = userService.convertToUserResponse(blockedUser);
 
-            // Não permite cortar próprio plano
-            if (userId.equals(currentUser.getId())) {
-                return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Não é possível cortar o próprio plano", null));
-            }
-
-            // Corta o plano
-            User updatedUser = superAdminService.block(userId);
-            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
-
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Plano do usuário foi cortado/suspenso", response));
+            return ResponseEntity.ok(new ApiResponse("Usuário bloqueado com sucesso", response));
 
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("Erro: " + e.getMessage(), null));
         } catch (Exception e) {
-            log.error("Erro ao cortar plano do usuário {}", userId, e);
+            log.error("Erro ao bloquear usuário {}", userId, e);
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse("Erro interno do servidor", null));
         }
     }
 
-
-    /**
-     * Endpoint para obter informações de um usuário específico
-     */
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<?> getUserInfo(
+    @PutMapping("/users/{userId}/unblock")
+    public ResponseEntity<ApiResponse> unblockUser(
             @PathVariable UUID userId,
             @CurrentUser User currentUser) {
 
         try {
-            // Valida permissão de super admin
-            superAdminService.validateSuperAdminPermission(currentUser);
+            User unblockedUser = superAdminService.unblockUser(userId, currentUser);
+            UserDTO.UserResponse response = userService.convertToUserResponse(unblockedUser);
 
-            User user = superAdminService.getUserInfo(userId);
+            return ResponseEntity.ok(new ApiResponse("Usuário desbloqueado com sucesso", response));
+
+        } catch (Exception e) {
+            log.error("Erro ao desbloquear usuário {}", userId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse> getUserInfo(
+            @PathVariable UUID userId,
+            @CurrentUser User currentUser) {
+
+        try {
+            User user = superAdminService.getUserInfo(userId, currentUser);
             UserDTO.UserResponse response = userService.convertToUserResponse(user);
 
-            return ResponseEntity.ok()
-                    .body(new ApiResponse("Informações do usuário obtidas com sucesso", response));
+            return ResponseEntity.ok(new ApiResponse("Informações do usuário obtidas com sucesso", response));
 
         } catch (Exception e) {
             log.error("Erro ao obter informações do usuário {}", userId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    // ==================== ENDPOINTS PARA GERENCIAR LIKES DE CONTEÚDO ====================
+
+    @DeleteMapping("/content/movies/{movieId}/likes")
+    public ResponseEntity<ApiResponse> removeAllMovieLikes(
+            @PathVariable Long movieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllMovieLikes(movieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todos os likes do filme foram removidos", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover likes do filme {}", movieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/series/{serieId}/likes")
+    public ResponseEntity<ApiResponse> removeAllSerieLikes(
+            @PathVariable Long serieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllSerieLikes(serieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todos os likes da série foram removidos", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover likes da série {}", serieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/animes/{animeId}/likes")
+    public ResponseEntity<ApiResponse> removeAllAnimeLikes(
+            @PathVariable Long animeId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllAnimeLikes(animeId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todos os likes do anime foram removidos", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover likes do anime {}", animeId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    // ==================== ENDPOINTS PARA GERENCIAR LISTAS DE CONTEÚDO ====================
+
+    @DeleteMapping("/content/movies/{movieId}/lists")
+    public ResponseEntity<ApiResponse> removeMovieFromAllLists(
+            @PathVariable Long movieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllMovieFromLists(movieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Filme removido de todas as listas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover filme {} das listas", movieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/series/{serieId}/lists")
+    public ResponseEntity<ApiResponse> removeSerieFromAllLists(
+            @PathVariable Long serieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllSerieFromLists(serieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Série removida de todas as listas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover série {} das listas", serieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/animes/{animeId}/lists")
+    public ResponseEntity<ApiResponse> removeAnimeFromAllLists(
+            @PathVariable Long animeId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.removeAllAnimeFromLists(animeId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Anime removido de todas as listas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao remover anime {} das listas", animeId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    // ==================== ENDPOINTS PARA LIMPEZA COMPLETA DE CONTEÚDO ====================
+
+    @DeleteMapping("/content/movies/{movieId}/interactions")
+    public ResponseEntity<ApiResponse> cleanAllMovieInteractions(
+            @PathVariable Long movieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.cleanAllMovieInteractions(movieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todas as interações do filme foram limpas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao limpar interações do filme {}", movieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/series/{serieId}/interactions")
+    public ResponseEntity<ApiResponse> cleanAllSerieInteractions(
+            @PathVariable Long serieId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.cleanAllSerieInteractions(serieId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todas as interações da série foram limpas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao limpar interações da série {}", serieId, e);
+            return ResponseEntity.internalServerError()
+                    .body(new ApiResponse("Erro interno do servidor", null));
+        }
+    }
+
+    @DeleteMapping("/content/animes/{animeId}/interactions")
+    public ResponseEntity<ApiResponse> cleanAllAnimeInteractions(
+            @PathVariable Long animeId,
+            @CurrentUser User currentUser) {
+
+        try {
+            superAdminService.cleanAllAnimeInteractions(animeId, currentUser);
+            return ResponseEntity.ok(new ApiResponse("Todas as interações do anime foram limpas", null));
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Erro: " + e.getMessage(), null));
+        } catch (Exception e) {
+            log.error("Erro ao limpar interações do anime {}", animeId, e);
             return ResponseEntity.internalServerError()
                     .body(new ApiResponse("Erro interno do servidor", null));
         }

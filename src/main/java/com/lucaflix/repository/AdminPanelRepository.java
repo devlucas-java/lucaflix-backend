@@ -15,10 +15,4 @@ import java.util.UUID;
 public interface AdminPanelRepository extends JpaRepository<AdminPanel, UUID> {
 
     Optional<AdminPanel> findByUser(User user);
-
-    boolean existsByUser(User user);
-
-    @Modifying
-    @Query("DELETE FROM AdminPanel ap WHERE ap.user.id = :userId")
-    void deleteByUserId(@Param("userId") UUID userId);
 }

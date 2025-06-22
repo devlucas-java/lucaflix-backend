@@ -33,14 +33,6 @@ public interface MinhaListaRepository extends JpaRepository<MinhaLista, Long> {
     // Busca toda a lista do usuário com paginação
     Page<MinhaLista> findByUser(User user, Pageable pageable);
 
-    // Busca apenas filmes na lista do usuário
-    @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.movie IS NOT NULL")
-    Page<MinhaLista> findMoviesByUser(@Param("user") User user, Pageable pageable);
-
-    // Busca apenas séries na lista do usuário
-    @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.serie IS NOT NULL")
-    Page<MinhaLista> findSeriesByUser(@Param("user") User user, Pageable pageable);
-
     // Busca apenas animes na lista do usuário
     @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.anime IS NOT NULL")
     Page<MinhaLista> findAnimesByUser(@Param("user") User user, Pageable pageable);
@@ -61,4 +53,12 @@ public interface MinhaListaRepository extends JpaRepository<MinhaLista, Long> {
     @Modifying
     @Query("DELETE FROM MinhaLista ml WHERE ml.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
+
+    long countDistinctUsersBySerieIsNotNull();
+
+    long countBySerie(Serie serie);
+
+    long countByMovie(Movie movie);
+
+    long countByAnime(Anime anime);
 }

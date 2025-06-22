@@ -3,6 +3,8 @@ package com.lucaflix.dto.user;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 public class UserDTO {
 
@@ -36,6 +38,8 @@ public class UserDTO {
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class UserListResponse {
         private String id;
         private String username;
@@ -46,15 +50,17 @@ public class UserDTO {
         private Boolean isAccountEnabled;
         private Boolean isAccountLocked;
 
-        public UserListResponse(String string, String username, String firstName, String lastName, String email, String name, boolean accountNonExpired, boolean accountNonLocked) {
-            this.id = string;
+        // Construtor customizado para manter compatibilidade com SuperAdminService
+        public UserListResponse(String id, String username, String firstName, String lastName,
+                                String email, String role, boolean isAccountEnabled, boolean isAccountLocked) {
+            this.id = id;
             this.username = username;
             this.firstName = firstName;
             this.lastName = lastName;
             this.email = email;
-            this.role = name;
-            this.isAccountEnabled = accountNonExpired;
-            this.isAccountLocked = accountNonLocked;
+            this.role = role;
+            this.isAccountEnabled = isAccountEnabled;
+            this.isAccountLocked = !isAccountLocked; // Inverte porque User.isAccountNonLocked() retorna o oposto de isAccountLocked
         }
     }
 

@@ -36,6 +36,7 @@ public class CreateSerieCompleteDTO {
 
     private String trailer;
 
+    @NotNull(message = "Data de criação é obrigatória")
     private String posterURL1;
     private String posterURL2;
 

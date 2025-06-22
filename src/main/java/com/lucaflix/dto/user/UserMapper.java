@@ -51,4 +51,19 @@ public class UserMapper {
 
         return userResponse;
     }
+
+    // Método corrigido para convertToUserListResponse no SuperAdminService
+
+    private UserDTO.UserListResponse convertToUserListResponse(User user) {
+        return new UserDTO.UserListResponse(
+                user.getId().toString(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getIsAccountEnabled(),     // Mapeia corretamente isAccountEnabled
+                user.getIsAccountLocked()       // Mapeia corretamente isAccountLocked
+        );
+    }
 }

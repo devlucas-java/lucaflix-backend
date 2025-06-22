@@ -19,7 +19,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     void deleteByMovie(Movie movie);
 
     // Para séries
-    boolean existsByUserAndSerie(User user, Serie serie);
     Optional<Like> findByUserAndSerie(User user, Serie serie);
     void deleteBySerie(Serie serie);
 
@@ -31,4 +30,19 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Modifying
     @Query("DELETE FROM Like l WHERE l.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.movie IS NOT NULL")
+    long countByMovieIsNotNull();
+
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.serie IS NOT NULL")
+    long countBySerieIsNotNull();
+
+    @Query("SELECT COUNT(l) FROM Like l WHERE l.anime IS NOT NULL")
+    long countByAnimeIsNotNull();
+
+    long countBySerie(Serie serie);
+
+    long countByMovie(Movie movie);
+
+    long countByAnime(Anime anime);
 }
