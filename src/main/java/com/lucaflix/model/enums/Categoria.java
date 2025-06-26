@@ -13,5 +13,6 @@ public enum Categoria {
     DOCUMENTARIO,
     ANIMACAO,
     INFANTIL,
+    ADULTO,
     DESCONHECIDA;
 }
