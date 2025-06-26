@@ -8,10 +8,8 @@ import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.AnimeRepository;
 import com.lucaflix.repository.MovieRepository;
 import com.lucaflix.repository.SerieRepository;
-import com.lucaflix.service.utils.UrlFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +17,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +26,6 @@ public class SitemapService {
     private final MovieRepository movieRepository;
     private final SerieRepository serieRepository;
     private final AnimeRepository animeRepository;
-    private final UrlFormatter urlFormatter;
 
     // Usando o domínio correto
     private final String baseUrl = "https://lucaflix.com";
@@ -73,7 +69,7 @@ public class SitemapService {
     }
 
     /**
-     * URLs estáticas do site - usando padrões do frontend
+     * URLs estáticas do site - exatamente como no Router do frontend
      */
     private List<SitemapUrlDto> getStaticUrls() {
         List<SitemapUrlDto> staticUrls = new ArrayList<>();
@@ -82,7 +78,7 @@ public class SitemapService {
         // Página inicial
         staticUrls.add(createSitemapUrl("/", now, "daily", "1.0"));
 
-        // Páginas principais (URLs em português)
+        // Páginas principais (URLs em português - exatamente como no frontend)
         staticUrls.add(createSitemapUrl("/filmes", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/series", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/animes", now, "daily", "0.9"));
@@ -91,8 +87,7 @@ public class SitemapService {
         staticUrls.add(createSitemapUrl("/minha-lista", now, "daily", "0.7"));
         staticUrls.add(createSitemapUrl("/busca", now, "weekly", "0.8"));
 
-        // Páginas de busca por categoria e tipo
-        String[] tipos = {"filme", "serie", "anime"};
+        // Páginas de busca por categoria
         for (Categoria categoria : Categoria.values()) {
             if (categoria != Categoria.DESCONHECIDA) {
                 String categoriaUrl = formatCategoriaForUrl(categoria);
@@ -100,17 +95,12 @@ public class SitemapService {
                 // Páginas de categoria geral (sem tipo específico)
                 staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl, now, "weekly", "0.6"));
 
-                // Páginas de categoria por tipo
-                for (String tipo : tipos) {
-                    staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl + "/" + tipo, now, "weekly", "0.6"));
-                }
+                // Páginas de categoria por tipo - como no frontend
+                staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl + "/filme", now, "weekly", "0.6"));
+                staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl + "/serie", now, "weekly", "0.6"));
+                staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl + "/anime", now, "weekly", "0.6"));
             }
         }
-
-        // Páginas de busca por tipo
-        staticUrls.add(createSitemapUrl("/busca/filme", now, "weekly", "0.7"));
-        staticUrls.add(createSitemapUrl("/busca/serie", now, "weekly", "0.7"));
-        staticUrls.add(createSitemapUrl("/busca/anime", now, "weekly", "0.7"));
 
         // Páginas institucionais
         staticUrls.add(createSitemapUrl("/termos-de-uso", now, "yearly", "0.3"));
@@ -120,7 +110,7 @@ public class SitemapService {
     }
 
     /**
-     * URLs dos filmes - seguindo padrão do frontend
+     * URLs dos filmes - seguindo exatamente o padrão do frontend Router
      */
     private List<SitemapUrlDto> getMovieUrls() {
         List<SitemapUrlDto> movieUrls = new ArrayList<>();
@@ -130,7 +120,6 @@ public class SitemapService {
 
             for (Movie movie : movies) {
                 if (movie.getTitle() != null && !movie.getTitle().trim().isEmpty()) {
-                    // Gerar múltiplas URLs conforme o frontend
                     movieUrls.addAll(createMovieUrls(movie));
                 }
             }
@@ -143,7 +132,7 @@ public class SitemapService {
     }
 
     /**
-     * URLs das séries - seguindo padrão do frontend
+     * URLs das séries - seguindo exatamente o padrão do frontend Router
      */
     private List<SitemapUrlDto> getSerieUrls() {
         List<SitemapUrlDto> serieUrls = new ArrayList<>();
@@ -153,7 +142,6 @@ public class SitemapService {
 
             for (Serie serie : series) {
                 if (serie.getTitle() != null && !serie.getTitle().trim().isEmpty()) {
-                    // Gerar múltiplas URLs conforme o frontend
                     serieUrls.addAll(createSerieUrls(serie));
                 }
             }
@@ -166,7 +154,7 @@ public class SitemapService {
     }
 
     /**
-     * URLs dos animes - seguindo padrão do frontend
+     * URLs dos animes - seguindo exatamente o padrão do frontend Router
      */
     private List<SitemapUrlDto> getAnimeUrls() {
         List<SitemapUrlDto> animeUrls = new ArrayList<>();
@@ -176,7 +164,6 @@ public class SitemapService {
 
             for (Anime anime : animes) {
                 if (anime.getTitle() != null && !anime.getTitle().trim().isEmpty()) {
-                    // Gerar múltiplas URLs conforme o frontend
                     animeUrls.addAll(createAnimeUrls(anime));
                 }
             }
@@ -189,22 +176,18 @@ public class SitemapService {
     }
 
     /**
-     * Cria todas as URLs possíveis para um filme conforme o frontend
+     * Cria todas as URLs possíveis para um filme - EXATAMENTE como no Router
      */
     private List<SitemapUrlDto> createMovieUrls(Movie movie) {
         List<SitemapUrlDto> urls = new ArrayList<>();
-        String titleSlug = urlFormatter.formatTitleForUrl(
-                movie.getId(),
-                movie.getTitle(),
-                movie.getAnoLancamento()
-        );
+        String titleSlug = formatTitleSlug(movie.getTitle(), movie.getAnoLancamento());
         String lastmod = formatLastModified(movie.getDataCadastro());
 
-        // URLs principais do filme (as mais importantes para SEO)
-        urls.add(createSitemapUrl("/filme/" + movie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
-        urls.add(createSitemapUrl("/filmes/filme/" + movie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+        // URLs principais do filme (prioridade máxima para SEO)
+        urls.add(createSitemapUrl("/filme/" + movie.getId() + "/" + titleSlug, lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/filmes/filme/" + movie.getId() + "/" + titleSlug, lastmod, "monthly", "0.8"));
 
-        // URLs sem slug (para compatibilidade)
+        // URLs sem slug (para compatibilidade - como no Router)
         urls.add(createSitemapUrl("/filme/" + movie.getId(), lastmod, "monthly", "0.7"));
         urls.add(createSitemapUrl("/filmes/filme/" + movie.getId(), lastmod, "monthly", "0.6"));
 
@@ -212,22 +195,18 @@ public class SitemapService {
     }
 
     /**
-     * Cria todas as URLs possíveis para uma série conforme o frontend
+     * Cria todas as URLs possíveis para uma série - EXATAMENTE como no Router
      */
     private List<SitemapUrlDto> createSerieUrls(Serie serie) {
         List<SitemapUrlDto> urls = new ArrayList<>();
-        String titleSlug = urlFormatter.formatTitleForUrl(
-                serie.getId(),
-                serie.getTitle(),
-                serie.getAnoLancamento()
-        );
+        String titleSlug = formatTitleSlug(serie.getTitle(), serie.getAnoLancamento());
         String lastmod = formatLastModified(serie.getDataCadastro());
 
-        // URLs principais da série (as mais importantes para SEO)
-        urls.add(createSitemapUrl("/serie/" + serie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
-        urls.add(createSitemapUrl("/series/serie/" + serie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+        // URLs principais da série (prioridade máxima para SEO)
+        urls.add(createSitemapUrl("/serie/" + serie.getId() + "/" + titleSlug, lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/series/serie/" + serie.getId() + "/" + titleSlug, lastmod, "monthly", "0.8"));
 
-        // URLs sem slug (para compatibilidade)
+        // URLs sem slug (para compatibilidade - como no Router)
         urls.add(createSitemapUrl("/serie/" + serie.getId(), lastmod, "monthly", "0.7"));
         urls.add(createSitemapUrl("/series/serie/" + serie.getId(), lastmod, "monthly", "0.6"));
 
@@ -235,22 +214,18 @@ public class SitemapService {
     }
 
     /**
-     * Cria todas as URLs possíveis para um anime conforme o frontend
+     * Cria todas as URLs possíveis para um anime - EXATAMENTE como no Router
      */
     private List<SitemapUrlDto> createAnimeUrls(Anime anime) {
         List<SitemapUrlDto> urls = new ArrayList<>();
-        String titleSlug = urlFormatter.formatTitleForUrl(
-                anime.getId(),
-                anime.getTitle(),
-                anime.getAnoLancamento()
-        );
+        String titleSlug = formatTitleSlug(anime.getTitle(), anime.getAnoLancamento());
         String lastmod = formatLastModified(anime.getDataCadastro());
 
-        // URLs principais do anime (as mais importantes para SEO)
-        urls.add(createSitemapUrl("/anime/" + anime.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
-        urls.add(createSitemapUrl("/animes/anime/" + anime.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+        // URLs principais do anime (prioridade máxima para SEO)
+        urls.add(createSitemapUrl("/anime/" + anime.getId() + "/" + titleSlug, lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/animes/anime/" + anime.getId() + "/" + titleSlug, lastmod, "monthly", "0.8"));
 
-        // URLs sem slug (para compatibilidade)
+        // URLs sem slug (para compatibilidade - como no Router)
         urls.add(createSitemapUrl("/anime/" + anime.getId(), lastmod, "monthly", "0.7"));
         urls.add(createSitemapUrl("/animes/anime/" + anime.getId(), lastmod, "monthly", "0.6"));
 
@@ -258,17 +233,47 @@ public class SitemapService {
     }
 
     /**
-     * Extrai o slug do path retornado pelo UrlFormatter
+     * Formata o título para slug - formato: titulo-do-filme-2025
+     * Remove espaços, caracteres especiais e adiciona ano no final
      */
-    private String extractSlugFromPath(String fullPath) {
-        // Se o UrlFormatter retorna "/123/titulo-do-filme-2023", extrair apenas "titulo-do-filme-2023"
-        if (fullPath != null && fullPath.contains("/")) {
-            String[] parts = fullPath.split("/");
-            if (parts.length >= 3) {
-                return parts[2]; // Retorna a parte do slug
-            }
+    private String formatTitleSlug(String title, Integer anoLancamento) {
+        if (title == null || title.trim().isEmpty()) {
+            return "sem-titulo";
         }
-        return fullPath != null ? fullPath.replaceFirst("^/\\d+/", "") : "";
+
+        String slug = title.toLowerCase()
+                .trim()
+                // Remove acentos e caracteres especiais
+                .replaceAll("[áàâãäå]", "a")
+                .replaceAll("[éèêë]", "e")
+                .replaceAll("[íìîï]", "i")
+                .replaceAll("[óòôõö]", "o")
+                .replaceAll("[úùûü]", "u")
+                .replaceAll("[ç]", "c")
+                .replaceAll("[ñ]", "n")
+                // Remove caracteres especiais, mantém apenas letras, números e espaços
+                .replaceAll("[^a-z0-9\\s]", "")
+                // Substitui múltiplos espaços por um só
+                .replaceAll("\\s+", " ")
+                .trim()
+                // Substitui espaços por hífens
+                .replace(" ", "-")
+                // Remove hífens múltiplos
+                .replaceAll("-+", "-")
+                // Remove hífen no início e fim
+                .replaceAll("^-|-$", "");
+
+        // Adiciona o ano no final se disponível
+        if (anoLancamento != null && anoLancamento > 0) {
+            slug += "-" + anoLancamento;
+        }
+
+        // Se o slug ficou vazio, retorna um padrão
+        if (slug.isEmpty()) {
+            return "sem-titulo";
+        }
+
+        return slug;
     }
 
     /**

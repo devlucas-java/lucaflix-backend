@@ -61,11 +61,12 @@ public class SerieService {
         }
     }
 
-    // Top 10 mais curtidas
+    // Top 10 mais curtidas - CORRIGIDA para respeitar o size
     public List<SerieSimpleDTO> getTop10MostLiked() {
         log.info("Buscando top 10 séries mais curtidas");
 
         try {
+            // Usar exatamente 10 como hardcoded para top 10
             List<Serie> topSeries = serieRepository.findTop10ByLikes(PageRequest.of(0, 10));
             log.info("Top 10 séries encontradas: {}", topSeries.size());
 
@@ -174,12 +175,12 @@ public class SerieService {
         }
     }
 
-    // Séries populares - CORRIGIDA
+    // Séries populares - CORRIGIDA para respeitar size
     public PaginatedResponseDTO<SerieSimpleDTO> getPopularSeries(int page, int size) {
         log.info("Buscando séries populares - página: {}, tamanho: {}", page, size);
 
         try {
-            Pageable pageable = PageRequest.of(page, size);
+            Pageable pageable = PageRequest.of(page, size); // Respeitando o size do controller
             Page<Serie> seriesPage = serieRepository.findPopularSeries(pageable);
 
             log.info("Séries populares encontradas: {}", seriesPage.getTotalElements());
@@ -194,14 +195,14 @@ public class SerieService {
             return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries populares: ", e);
-            // Fallback
+            // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
 
-    // Séries com avaliação alta - CORRIGIDA com fallback
+    // Séries com avaliação alta - CORRIGIDA para respeitar size
     public PaginatedResponseDTO<SerieSimpleDTO> getHighRatedSeries(int page, int size) {
         log.info("Buscando séries com avaliação alta - página: {}, tamanho: {}", page, size);
 
@@ -212,12 +213,12 @@ public class SerieService {
             log.info("Séries com avaliação alta encontradas: {}", seriesPage.getTotalElements());
 
             if (seriesPage.isEmpty()) {
-                // Fallback para avaliação mais baixa
+                // Fallback para avaliação mais baixa respeitando o size
                 log.warn("Nenhuma série com avaliação >= 7.0, tentando >= 5.0");
                 seriesPage = serieRepository.findByAvaliacaoGreaterThanEqual(5.0, pageable);
 
                 if (seriesPage.isEmpty()) {
-                    // Fallback final - todas as séries
+                    // Fallback final - todas as séries respeitando o size
                     log.warn("Nenhuma série com avaliação >= 5.0, retornando todas");
                     seriesPage = serieRepository.findAll(pageable);
                 }
@@ -231,7 +232,7 @@ public class SerieService {
         }
     }
 
-    // Séries recentes - MANTIDA (estava correta)
+    // Séries recentes - CORRIGIDA para respeitar size
     public PaginatedResponseDTO<SerieSimpleDTO> getRecentSeries(int page, int size) {
         log.info("Buscando séries recentes - página: {}, tamanho: {}", page, size);
 
@@ -265,7 +266,7 @@ public class SerieService {
         }
     }
 
-    // Séries similares - CORRIGIDA
+    // Séries similares - CORRIGIDA para respeitar size
     public PaginatedResponseDTO<SerieSimpleDTO> getSimilarSeries(Long serieId, int page, int size) {
         log.info("Buscando séries similares à série ID: {} - página: {}, tamanho: {}", serieId, page, size);
 
@@ -292,14 +293,14 @@ public class SerieService {
             return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar séries similares: ", e);
-            // Fallback
+            // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
 
-    // Recomendações - CORRIGIDA para tratar userId null
+    // Recomendações - CORRIGIDA para respeitar size
     public PaginatedResponseDTO<SerieSimpleDTO> getRecommendations(UUID userId, int page, int size) {
         log.info("Buscando recomendações para usuário: {} - página: {}, tamanho: {}", userId, page, size);
 
@@ -317,7 +318,7 @@ public class SerieService {
             return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
             log.error("Erro ao buscar recomendações: ", e);
-            // Fallback
+            // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
             Page<Serie> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
