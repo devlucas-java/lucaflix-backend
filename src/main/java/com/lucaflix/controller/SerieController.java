@@ -108,7 +108,7 @@ public class SerieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getPopularSeries(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getPopularSeries(page, size);
         return ResponseEntity.ok(response);
@@ -121,7 +121,7 @@ public class SerieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getHighRatedSeries(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getHighRatedSeries(page, size);
         return ResponseEntity.ok(response);
@@ -134,7 +134,7 @@ public class SerieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getRecentSeries(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getRecentSeries(page, size);
         return ResponseEntity.ok(response);
@@ -148,7 +148,7 @@ public class SerieController {
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSeriesByYear(
             @PathVariable Integer year,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getSeriesByYear(year, page, size);
         return ResponseEntity.ok(response);
@@ -176,7 +176,7 @@ public class SerieController {
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getRecommendations(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getRecommendations(currentUser.getId(), page, size);
         return ResponseEntity.ok(response);

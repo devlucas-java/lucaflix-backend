@@ -3,7 +3,6 @@ package com.lucaflix.dto.admin;
 import com.lucaflix.model.enums.Categoria;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import java.util.Date;
 import java.util.List;
 
 @Data

@@ -108,7 +108,7 @@ public class MovieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getPopularMovies(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getPopularMovies(page, size);
         return ResponseEntity.ok(response);
@@ -121,7 +121,7 @@ public class MovieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getNewReleases(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getNewReleases(page, size);
         return ResponseEntity.ok(response);
@@ -148,7 +148,7 @@ public class MovieController {
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getHighRatedMovies(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getHighRatedMedia(page, size);
         return ResponseEntity.ok(response);
@@ -162,7 +162,7 @@ public class MovieController {
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getRecommendations(
             @CurrentUser User currentUser,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getRecommendations(currentUser.getId(), page, size);
         return ResponseEntity.ok(response);

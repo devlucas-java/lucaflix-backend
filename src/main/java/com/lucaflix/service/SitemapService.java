@@ -31,10 +31,8 @@ public class SitemapService {
     private final AnimeRepository animeRepository;
     private final UrlFormatter urlFormatter;
 
-//    @Value("${app.base-url:https://lucaflix.com}")
-String url = System.getenv("URL_SITEMAP");
-
-    private String baseUrl = url;
+    // Usando o domínio correto
+    private final String baseUrl = "https://lucaflix.com";
 
     /**
      * Gera todas as URLs para o sitemap com cache
@@ -75,7 +73,7 @@ String url = System.getenv("URL_SITEMAP");
     }
 
     /**
-     * URLs estáticas do site
+     * URLs estáticas do site - usando padrões do frontend
      */
     private List<SitemapUrlDto> getStaticUrls() {
         List<SitemapUrlDto> staticUrls = new ArrayList<>();
@@ -84,45 +82,45 @@ String url = System.getenv("URL_SITEMAP");
         // Página inicial
         staticUrls.add(createSitemapUrl("/", now, "daily", "1.0"));
 
-        // Páginas principais
+        // Páginas principais (URLs em português)
         staticUrls.add(createSitemapUrl("/filmes", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/series", now, "daily", "0.9"));
         staticUrls.add(createSitemapUrl("/animes", now, "daily", "0.9"));
+
+        // Páginas protegidas
         staticUrls.add(createSitemapUrl("/minha-lista", now, "daily", "0.7"));
-        staticUrls.add(createSitemapUrl("/search", now, "weekly", "0.8"));
+        staticUrls.add(createSitemapUrl("/busca", now, "weekly", "0.8"));
 
         // Páginas de busca por categoria e tipo
-        String[] tipos = {"movie", "serie", "anime"};
+        String[] tipos = {"filme", "serie", "anime"};
         for (Categoria categoria : Categoria.values()) {
             if (categoria != Categoria.DESCONHECIDA) {
                 String categoriaUrl = formatCategoriaForUrl(categoria);
 
                 // Páginas de categoria geral (sem tipo específico)
-                staticUrls.add(createSitemapUrl("/search/" + categoriaUrl, now, "weekly", "0.6"));
+                staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl, now, "weekly", "0.6"));
 
                 // Páginas de categoria por tipo
                 for (String tipo : tipos) {
-                    staticUrls.add(createSitemapUrl("/search/" + categoriaUrl + "/" + tipo, now, "weekly", "0.6"));
+                    staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl + "/" + tipo, now, "weekly", "0.6"));
                 }
             }
         }
 
-        // Páginas de anos (últimos 15 anos)
-        int currentYear = LocalDateTime.now().getYear();
-        for (int year = currentYear; year >= currentYear - 15; year--) {
-            staticUrls.add(createSitemapUrl("/search?year=" + year, now, "monthly", "0.5"));
-        }
-
         // Páginas de busca por tipo
-        staticUrls.add(createSitemapUrl("/search/movie", now, "weekly", "0.7"));
-        staticUrls.add(createSitemapUrl("/search/serie", now, "weekly", "0.7"));
-        staticUrls.add(createSitemapUrl("/search/anime", now, "weekly", "0.7"));
+        staticUrls.add(createSitemapUrl("/busca/filme", now, "weekly", "0.7"));
+        staticUrls.add(createSitemapUrl("/busca/serie", now, "weekly", "0.7"));
+        staticUrls.add(createSitemapUrl("/busca/anime", now, "weekly", "0.7"));
+
+        // Páginas institucionais
+        staticUrls.add(createSitemapUrl("/termos-de-uso", now, "yearly", "0.3"));
+        staticUrls.add(createSitemapUrl("/politica-de-privacidade", now, "yearly", "0.3"));
 
         return staticUrls;
     }
 
     /**
-     * URLs dos filmes
+     * URLs dos filmes - seguindo padrão do frontend
      */
     private List<SitemapUrlDto> getMovieUrls() {
         List<SitemapUrlDto> movieUrls = new ArrayList<>();
@@ -130,10 +128,12 @@ String url = System.getenv("URL_SITEMAP");
         try {
             List<Movie> movies = movieRepository.findAllForSitemap();
 
-            movieUrls = movies.stream()
-                    .filter(movie -> movie.getTitle() != null && !movie.getTitle().trim().isEmpty())
-                    .map(this::createMovieUrl)
-                    .collect(Collectors.toList());
+            for (Movie movie : movies) {
+                if (movie.getTitle() != null && !movie.getTitle().trim().isEmpty()) {
+                    // Gerar múltiplas URLs conforme o frontend
+                    movieUrls.addAll(createMovieUrls(movie));
+                }
+            }
 
         } catch (Exception e) {
             log.error("Erro ao buscar filmes para sitemap: ", e);
@@ -143,7 +143,7 @@ String url = System.getenv("URL_SITEMAP");
     }
 
     /**
-     * URLs das séries
+     * URLs das séries - seguindo padrão do frontend
      */
     private List<SitemapUrlDto> getSerieUrls() {
         List<SitemapUrlDto> serieUrls = new ArrayList<>();
@@ -151,10 +151,12 @@ String url = System.getenv("URL_SITEMAP");
         try {
             List<Serie> series = serieRepository.findAllForSitemap();
 
-            serieUrls = series.stream()
-                    .filter(serie -> serie.getTitle() != null && !serie.getTitle().trim().isEmpty())
-                    .map(this::createSerieUrl)
-                    .collect(Collectors.toList());
+            for (Serie serie : series) {
+                if (serie.getTitle() != null && !serie.getTitle().trim().isEmpty()) {
+                    // Gerar múltiplas URLs conforme o frontend
+                    serieUrls.addAll(createSerieUrls(serie));
+                }
+            }
 
         } catch (Exception e) {
             log.error("Erro ao buscar séries para sitemap: ", e);
@@ -164,7 +166,7 @@ String url = System.getenv("URL_SITEMAP");
     }
 
     /**
-     * URLs dos animes
+     * URLs dos animes - seguindo padrão do frontend
      */
     private List<SitemapUrlDto> getAnimeUrls() {
         List<SitemapUrlDto> animeUrls = new ArrayList<>();
@@ -172,10 +174,12 @@ String url = System.getenv("URL_SITEMAP");
         try {
             List<Anime> animes = animeRepository.findAllForSitemap();
 
-            animeUrls = animes.stream()
-                    .filter(anime -> anime.getTitle() != null && !anime.getTitle().trim().isEmpty())
-                    .map(this::createAnimeUrl)
-                    .collect(Collectors.toList());
+            for (Anime anime : animes) {
+                if (anime.getTitle() != null && !anime.getTitle().trim().isEmpty()) {
+                    // Gerar múltiplas URLs conforme o frontend
+                    animeUrls.addAll(createAnimeUrls(anime));
+                }
+            }
 
         } catch (Exception e) {
             log.error("Erro ao buscar animes para sitemap: ", e);
@@ -185,51 +189,86 @@ String url = System.getenv("URL_SITEMAP");
     }
 
     /**
-     * Cria URL para filme individual
+     * Cria todas as URLs possíveis para um filme conforme o frontend
      */
-    private SitemapUrlDto createMovieUrl(Movie movie) {
-        String urlPath = urlFormatter.formatTitleForUrl(
+    private List<SitemapUrlDto> createMovieUrls(Movie movie) {
+        List<SitemapUrlDto> urls = new ArrayList<>();
+        String titleSlug = urlFormatter.formatTitleForUrl(
                 movie.getId(),
                 movie.getTitle(),
                 movie.getAnoLancamento()
         );
-
         String lastmod = formatLastModified(movie.getDataCadastro());
 
-        // Usando o padrão do frontend: /movie/:id/:titleSlug
-        return createSitemapUrl("/movie" + urlPath, lastmod, "monthly", "0.8");
+        // URLs principais do filme (as mais importantes para SEO)
+        urls.add(createSitemapUrl("/filme/" + movie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/filmes/filme/" + movie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+
+        // URLs sem slug (para compatibilidade)
+        urls.add(createSitemapUrl("/filme/" + movie.getId(), lastmod, "monthly", "0.7"));
+        urls.add(createSitemapUrl("/filmes/filme/" + movie.getId(), lastmod, "monthly", "0.6"));
+
+        return urls;
     }
 
     /**
-     * Cria URL para série individual
+     * Cria todas as URLs possíveis para uma série conforme o frontend
      */
-    private SitemapUrlDto createSerieUrl(Serie serie) {
-        String urlPath = urlFormatter.formatTitleForUrl(
+    private List<SitemapUrlDto> createSerieUrls(Serie serie) {
+        List<SitemapUrlDto> urls = new ArrayList<>();
+        String titleSlug = urlFormatter.formatTitleForUrl(
                 serie.getId(),
                 serie.getTitle(),
                 serie.getAnoLancamento()
         );
-
         String lastmod = formatLastModified(serie.getDataCadastro());
 
-        // Usando o padrão do frontend: /serie/:id/:titleSlug
-        return createSitemapUrl("/serie" + urlPath, lastmod, "monthly", "0.8");
+        // URLs principais da série (as mais importantes para SEO)
+        urls.add(createSitemapUrl("/serie/" + serie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/series/serie/" + serie.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+
+        // URLs sem slug (para compatibilidade)
+        urls.add(createSitemapUrl("/serie/" + serie.getId(), lastmod, "monthly", "0.7"));
+        urls.add(createSitemapUrl("/series/serie/" + serie.getId(), lastmod, "monthly", "0.6"));
+
+        return urls;
     }
 
     /**
-     * Cria URL para anime individual
+     * Cria todas as URLs possíveis para um anime conforme o frontend
      */
-    private SitemapUrlDto createAnimeUrl(Anime anime) {
-        String urlPath = urlFormatter.formatTitleForUrl(
+    private List<SitemapUrlDto> createAnimeUrls(Anime anime) {
+        List<SitemapUrlDto> urls = new ArrayList<>();
+        String titleSlug = urlFormatter.formatTitleForUrl(
                 anime.getId(),
                 anime.getTitle(),
                 anime.getAnoLancamento()
         );
-
         String lastmod = formatLastModified(anime.getDataCadastro());
 
-        // Usando o padrão do frontend: /anime/:id/:titleSlug
-        return createSitemapUrl("/anime" + urlPath, lastmod, "monthly", "0.8");
+        // URLs principais do anime (as mais importantes para SEO)
+        urls.add(createSitemapUrl("/anime/" + anime.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/animes/anime/" + anime.getId() + "/" + extractSlugFromPath(titleSlug), lastmod, "monthly", "0.8"));
+
+        // URLs sem slug (para compatibilidade)
+        urls.add(createSitemapUrl("/anime/" + anime.getId(), lastmod, "monthly", "0.7"));
+        urls.add(createSitemapUrl("/animes/anime/" + anime.getId(), lastmod, "monthly", "0.6"));
+
+        return urls;
+    }
+
+    /**
+     * Extrai o slug do path retornado pelo UrlFormatter
+     */
+    private String extractSlugFromPath(String fullPath) {
+        // Se o UrlFormatter retorna "/123/titulo-do-filme-2023", extrair apenas "titulo-do-filme-2023"
+        if (fullPath != null && fullPath.contains("/")) {
+            String[] parts = fullPath.split("/");
+            if (parts.length >= 3) {
+                return parts[2]; // Retorna a parte do slug
+            }
+        }
+        return fullPath != null ? fullPath.replaceFirst("^/\\d+/", "") : "";
     }
 
     /**
@@ -305,7 +344,7 @@ String url = System.getenv("URL_SITEMAP");
     }
 
     /**
-     * Gera sitemap index para múltiplos sitemaps (caso necessário)
+     * Gera sitemap index para múltiplos sitemaps
      */
     public String generateSitemapIndex() {
         StringBuilder xml = new StringBuilder();
@@ -320,9 +359,9 @@ String url = System.getenv("URL_SITEMAP");
         xml.append("    <lastmod>").append(now).append("</lastmod>\n");
         xml.append("  </sitemap>\n");
 
-        // Sitemaps separados por tipo (caso você queira implementar no futuro)
+        // Sitemaps separados por tipo
         xml.append("  <sitemap>\n");
-        xml.append("    <loc>").append(baseUrl).append("/api/sitemap-movies.xml</loc>\n");
+        xml.append("    <loc>").append(baseUrl).append("/api/sitemap-filmes.xml</loc>\n");
         xml.append("    <lastmod>").append(now).append("</lastmod>\n");
         xml.append("  </sitemap>\n");
 
@@ -470,7 +509,7 @@ String url = System.getenv("URL_SITEMAP");
             List<SitemapUrlDto> urls = generateSitemapUrls();
 
             long movieCount = urls.stream()
-                    .filter(url -> url.getLoc().contains("/movie/"))
+                    .filter(url -> url.getLoc().contains("/filme/"))
                     .count();
 
             long serieCount = urls.stream()
