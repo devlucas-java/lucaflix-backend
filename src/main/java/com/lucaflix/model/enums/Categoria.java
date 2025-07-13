@@ -12,7 +12,13 @@ public enum Categoria {
     FANTASIA,
     DOCUMENTARIO,
     ANIMACAO,
-    INFANTIL,
+    DESCONHECIDA,
+
+    SPORT,
     ADULTO,
-    DESCONHECIDA;
+    INFANTIL,
+    FILMES_SERIES,
+    NEWS,
+    DIVERSOS,
+
 }
