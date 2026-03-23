@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+      pool-name: LucaflixHikariCP
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+app:
+  jwt-secret: ${JWT_SECRET}
+  jwt-expiration-milliseconds: 86400000
+  base-url: ${URL_SITEMAP}
+
+cors:
+  allowed-origins: >
+    https://lucaflix.com,
+    https://lucasflix.netlify.app,
+    https://js.stripe.com,
+    https://hooks.stripe.com
+
+admin:
+  email: ${INIT_EMAIL}
+  password: ${INIT_PASSWORD}
+  firstname: ${INIT_FIRST_NAME}
+  lastname: ${INIT_LAST_NAME}
+  username: ${INIT_USERNAME}
