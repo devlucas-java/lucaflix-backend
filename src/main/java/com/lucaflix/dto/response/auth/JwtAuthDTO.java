@@ -1,7 +1,7 @@
 package com.lucaflix.dto.response.auth;
 
 
-import com.lucaflix.dto.request.user.UpdateUserDTO;
+import com.lucaflix.dto.response.user.UserDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,5 +10,5 @@ import lombok.Data;
 public class JwtAuthDTO {
     private String accessToken;
     private String tokenType = "Bearer";
-    private UpdateUserDTO user;
+    private UserDTO user;
 }

@@ -1,8 +1,11 @@
 package com.lucaflix.dto.mapper;
 
-import org.springframework.stereotype.Component;
+import com.lucaflix.dto.response.user.UserDTO;
+import com.lucaflix.model.User;
+import org.mapstruct.Mapper;
 
+@Mapper(componentModel = "spring")
+public interface UserMapper {
 
-@Component
-public class UserMapper {
+    UserDTO toUserDTO (User user);
 }
