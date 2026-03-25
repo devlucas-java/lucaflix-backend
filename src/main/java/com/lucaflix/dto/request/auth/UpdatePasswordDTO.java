@@ -2,8 +2,10 @@ package com.lucaflix.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
-public class UpdatePassword {
+@Data
+public class UpdatePasswordDTO {
 
     @NotBlank(message = "Current password is required")
     private String currentPassword;

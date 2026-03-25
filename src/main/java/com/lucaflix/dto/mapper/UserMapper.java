@@ -1,5 +1,6 @@
 package com.lucaflix.dto.mapper;
 
+import com.lucaflix.dto.request.auth.RegisterDTO;
 import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
 import org.mapstruct.Mapper;
@@ -8,4 +9,6 @@ import org.mapstruct.Mapper;
 public interface UserMapper {
 
     UserDTO toUserDTO (User user);
+
+    User toUser(RegisterDTO register);
 }
