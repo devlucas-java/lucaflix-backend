@@ -1,9 +1,9 @@
 package com.lucaflix.controller;
 
 import com.lucaflix.dto.request.user.UpdateUserDTO;
+import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,59 +24,29 @@ public class UserController {
 
     private final UserService userService;
 
-    /// OBTEM INFORMACOES DO USUARIO ATUAL
     @GetMapping("/me")
-    @Operation(summary = "Obter perfil do usuário", description = "Retorna as informações do usuário autenticado")
-    public ResponseEntity<UpdateUserDTO.UserResponse> getCurrentUser(@AuthenticationPrincipal User user) {
-        try {
-            UpdateUserDTO.UserResponse userResponse = userService.convertToUserResponse(user);
-            return ResponseEntity.ok(userResponse);
-        } catch (Exception e) {
-            log.error("Erro ao obter informações do usuário: {}", user.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<UserDTO> getMe(@AuthenticationPrincipal User user) {
+
+        UserDTO response = userService.getMe(user);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    /// ATUALIZA DADOS DO USUARIO ATUAL
-    @PutMapping("/me")
-    @Operation(summary = "Atualizar perfil", description = "Atualiza as informações do usuário autenticado")
-    public ResponseEntity<Map<String, Object>> updateCurrentUser(
-            @Valid @RequestBody UpdateUserDTO.UpdateUserRequest request,
+    @PatchMapping("/me")
+    public ResponseEntity<UserDTO> updateMe(
+            @Valid @RequestBody UpdateUserDTO request,
             @AuthenticationPrincipal User user) {
-        try {
-            User updatedUser = userService.updateUser(user, request);
-            UpdateUserDTO.UserResponse userResponse = userService.convertToUserResponse(updatedUser);
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "Usuário atualizado com sucesso",
-                    "user", userResponse
-            ));
-        } catch (IllegalArgumentException e) {
-            log.warn("Atualização de usuário falhou para {}: {}", user.getUsername(), e.getMessage());
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Erro inesperado durante atualização do usuário: {}", user.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao atualizar usuário"));
-        }
+        UserDTO response = userService.updateMe(user, request);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    /// DELETA CONTA DO USUARIO ATUAL - CORRIGIDO PARA EVITAR DADOS ÓRFÃOS
     @DeleteMapping("/me")
-    @Operation(summary = "Deletar conta", description = "Deleta a conta do usuário autenticado e todos os dados relacionados, mantendo as mídias")
-    public ResponseEntity<Map<String, String>> deleteCurrentUser(@AuthenticationPrincipal User user) {
-        try {
-            // Chama o serviço que fará a exclusão segura
-            userService.deleteUserAndRelatedData(user.getId());
+    public ResponseEntity<Object> deleteMe(@AuthenticationPrincipal User user) {
 
-            log.info("Usuário {} deletado com sucesso junto com todos os dados relacionados", user.getUsername());
-            return ResponseEntity.ok(Map.of("message", "Conta e todos os dados relacionados foram deletados com sucesso"));
+        userService.deleteMe(user.getId());
 
-        } catch (Exception e) {
-            log.error("Erro ao deletar usuário {}: {}", user.getUsername(), e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Falha ao deletar conta. Tente novamente mais tarde."));
-        }
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

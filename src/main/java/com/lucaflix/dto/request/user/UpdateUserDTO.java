@@ -2,7 +2,9 @@ package com.lucaflix.dto.request.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 
+@Data
 public class UpdateUserDTO {
         @Size(min = 3, max = 20, message = "The username must be between 3 and 20 characters")
         private String username;
