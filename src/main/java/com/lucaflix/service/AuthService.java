@@ -1,7 +1,10 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.mapper.UserMapper;
-import com.lucaflix.dto.request.auth.*;
+import com.lucaflix.dto.request.auth.LoginDTO;
+import com.lucaflix.dto.request.auth.RegisterDTO;
+import com.lucaflix.dto.request.auth.UpdatePasswordDTO;
+import com.lucaflix.dto.request.auth.VerifyPasswordDTO;
 import com.lucaflix.dto.response.auth.JwtAuthDTO;
 import com.lucaflix.dto.response.others.BooleanDTO;
 import com.lucaflix.dto.response.user.UserDTO;
@@ -23,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -89,29 +91,17 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    @Transactional
-    public void updateEmail(User userRequest, UpdateEmailDTO request) {
-
-        User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!user.getEmail().equals(request.getCurrentPassword())) {
-            throw new RuntimeException("Incorrect Email");
-        }
-        user.setEmail(request.getNewEmail());
-        userRepository.save(user);
-    }
-
     public BooleanDTO verifyPassword(User userRequest, VerifyPasswordDTO request) {
 
         User user = userRepository.findById(userRequest.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(user.getPassword(), request.getPassword())){
+        if (!passwordEncoder.matches(user.getPassword(), request.getPassword())) {
             return BooleanDTO.builder()
                     .bool(false)
                     .build();
-        };
+        }
+        ;
         return BooleanDTO.builder()
                 .bool(true)
                 .build();
