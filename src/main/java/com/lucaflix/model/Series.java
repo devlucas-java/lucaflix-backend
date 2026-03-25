@@ -1,0 +1,91 @@
+package com.lucaflix.model;
+
+import com.lucaflix.model.enums.Categories;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.util.Date;
+import java.util.List;
+
+@Entity
+@Table(name = "series")
+@Data
+public class Series {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(name = "ano_lancamento")
+    private Integer yearReasele;
+
+    @Column(name = "tmdb_id")
+    private String tmdbId;
+
+    @Column(name = "imdb_id")
+    private String imdbId;
+
+    @Column(name = "pais_origem")
+    private String countryOrigin;
+
+    @Column(columnDefinition = "TEXT")
+    private String sinopse;
+
+    @Column(name = "data_cadastro")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateRegistred = new Date();
+
+    @ElementCollection(targetClass = Categories.class)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(
+            name = "serie_category",
+            joinColumns = @JoinColumn(name = "serie_id")
+    )
+    @Column(name = "categories")
+    private List<Categories> categories;
+
+    @Column(name = "min_age")
+    private String minAge;
+
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "trailer_url")
+    private String trailer;
+
+    @Column(name = "poster_url1")
+    private String posterURL1;
+    @Column(name = "poster_url2")
+    private String posterURL2;
+
+    @Column(name = "backdrop_url1")
+    private String backdropURL1;
+    @Column(name = "backdrop_url2")
+    private String backdropURL2;
+    @Column(name = "backdrop_url3")
+    private String backdropURL3;
+    @Column(name = "backdrop_url4")
+    private String backdropURL4;
+
+    @Column(name = "logo_url1")
+    private String logoURL1;
+    @Column(name = "logo_url2")
+    private String logoURL2;
+
+    @Column(name = "total_season")
+    private Integer totalSeason = 0;
+
+    @Column(name = "total_epsodes")
+    private Integer totalEpisodes = 0;
+
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Season> season;
+
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<Like> likes;
+
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private List<MyList> myList;
+}
