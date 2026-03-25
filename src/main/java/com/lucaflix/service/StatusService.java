@@ -1,6 +1,6 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.admin.stats.*;
+import com.lucaflix.dto.response.others.AllStatsDTO;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

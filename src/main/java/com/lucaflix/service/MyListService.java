@@ -4,7 +4,7 @@ import com.lucaflix.dto.mapper.AnimeMapper;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.dto.mapper.MovieMapper;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.mapper.SerieMapper;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.MyList;

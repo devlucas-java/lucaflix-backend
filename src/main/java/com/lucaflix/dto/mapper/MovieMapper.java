@@ -1,6 +1,6 @@
 package com.lucaflix.dto.mapper;
 
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.model.Movie;

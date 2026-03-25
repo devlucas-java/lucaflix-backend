@@ -3,7 +3,7 @@ package com.lucaflix.controller;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.request.anime.AnimeFilter;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;

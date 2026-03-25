@@ -1,7 +1,7 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.admin.CreateAnimeDTO;
-import com.lucaflix.dto.admin.UpdateAnimeDTO;
+import com.lucaflix.dto.request.anime.CreateAnimeDTO;
+import com.lucaflix.dto.request.anime.UpdateAnimeDTO;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.repository.*;

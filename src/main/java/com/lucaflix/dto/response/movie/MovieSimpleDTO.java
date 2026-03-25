@@ -2,11 +2,11 @@ package com.lucaflix.dto.response.movie;
 
 import com.lucaflix.model.enums.Categories;
 import lombok.Data;
-
 import java.util.List;
 
 @Data
 public class MovieSimpleDTO {
+
     private Long id;
     private String title;
     private String type = "MOVIE";

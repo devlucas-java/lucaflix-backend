@@ -1,6 +1,6 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.service.MyListService;
 import lombok.RequiredArgsConstructor;

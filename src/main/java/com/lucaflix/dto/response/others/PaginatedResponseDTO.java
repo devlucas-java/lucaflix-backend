@@ -1,4 +1,4 @@
-package com.lucaflix.dto.response.page;
+package com.lucaflix.dto.response.others;
 
 import lombok.Data;
 import lombok.AllArgsConstructor;

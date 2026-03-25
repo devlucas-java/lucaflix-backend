@@ -4,7 +4,7 @@ import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.request.movie.MovieFilter;
 import com.lucaflix.dto.mapper.MovieMapper;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.*;

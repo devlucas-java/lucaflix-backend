@@ -4,9 +4,10 @@ import com.lucaflix.model.enums.Categories;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "movie")
@@ -27,20 +28,19 @@ public class Movie {
     private Integer minutesDuration = 0;
 
     @Column(name = "tmdb_id")
-    private String tmdbId = null;
+    private String tmdbId;
 
     @Column(name = "imdb_id")
-    private String imdbId = null;
+    private String imdbId;
 
     @Column(name = "country_origin")
-    private String countryOrigin = null;
+    private String countryOrigin;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 3000)
     private String synopsis;
 
     @Column(name = "date_registered")
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDate dateRegistered = LocalDate.now();
+    private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @ElementCollection(targetClass = Categories.class)
     @Enumerated(EnumType.STRING)
@@ -86,8 +86,8 @@ public class Movie {
     private String logoURL2;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<Like> likes;
+    private Set<Like> likes = new HashSet<>();
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MyList> myList;
+    @ManyToMany(mappedBy = "movies", fetch = FetchType.LAZY)
+    private Set<MyList> myLists = new HashSet<>();
 }

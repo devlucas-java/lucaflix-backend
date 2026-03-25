@@ -4,7 +4,7 @@ import com.lucaflix.dto.mapper.AnimeMapper;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.request.anime.AnimeFilter;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.*;

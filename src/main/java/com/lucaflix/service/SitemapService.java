@@ -1,6 +1,6 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.SitemapUrlDto;
+import com.lucaflix.dto.response.others.SitemapUrlDto;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.Series;

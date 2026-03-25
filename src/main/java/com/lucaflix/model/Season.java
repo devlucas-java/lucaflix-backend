@@ -3,11 +3,12 @@ package com.lucaflix.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
-@Table(name = "temporadas")
+@Table(name = "season")
 @Data
 public class Season {
 
@@ -16,23 +17,21 @@ public class Season {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "serie_id", nullable = false)
+    @JoinColumn(name = "series_id", nullable = false)
     private Series series;
 
     @Column(name = "number_season", nullable = false)
     private Integer numberSeason;
 
     @Column(name = "year_release")
-    @Temporal(TemporalType.DATE)
     private Integer yearRelease;
 
     @Column(name = "date_registered")
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDate dateRegistered = LocalDate.now();
+    private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @Column(name = "total_episodes")
     private Integer totalEpisodes = 0;
 
     @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Episode> episodes;
+    private Set<Episode> episodes = new HashSet<>();
 }

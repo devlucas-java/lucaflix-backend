@@ -1,6 +1,6 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.admin.stats.*;
+import com.lucaflix.dto.response.others.AllStatsDTO;
 import com.lucaflix.service.StatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -6,6 +6,8 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "anime")
@@ -23,19 +25,18 @@ public class Anime {
     private Integer yearRealese;
 
     @Column(name = "tmdb_id")
-    private String tmdbId = null;
+    private String tmdbId;
 
     @Column(name = "imdb_id")
-    private String imdbId = null;
+    private String imdbId;
 
     @Column(name = "country_origin")
-    private String countryOrigin = null;
+    private String countryOrigin;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", length = 3000)
     private String synopsis;
 
     @Column(name = "date_registered")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDate dateRegistered = LocalDate.now();
 
     @ElementCollection(targetClass = Categories.class)
@@ -88,8 +89,8 @@ public class Anime {
     private Integer totalEpisodes = 0;
 
     @OneToMany(mappedBy = "anime", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<Like> likes;
+    private Set<Like> likes = new HashSet<>();
 
-    @OneToMany(mappedBy = "anime", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MyList> myList;
+    @ManyToMany(mappedBy = "anime", fetch = FetchType.LAZY)
+    private Set<MyList> myLists = new HashSet<>();
 }

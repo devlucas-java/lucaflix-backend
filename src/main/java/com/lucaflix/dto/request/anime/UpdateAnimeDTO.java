@@ -1,28 +1,37 @@
-package com.lucaflix.dto.response.anime;
+package com.lucaflix.dto.request.anime;
 
 import com.lucaflix.model.enums.Categories;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Data
-public class AnimeCompleteDTO {
+public class UpdateAnimeDTO {
 
-    private Long id;
+    @Size(min = 2, max = 255, message = "Title must be between 2 and 255 characters")
     private String title;
-    private String type = "ANIME";
+
     private Integer yearRealese;
+
     private String tmdbId;
     private String imdbId;
     private String countryOrigin;
+
+    @Size(max = 3000, message = "Synopsis must be max 3000 characters")
     private String synopsis;
-    private LocalDate dateRegistered;
+
     private List<Categories> categories;
+
     private String minAge;
+
+    @DecimalMin(value = "0.0", message = "Rating must be >= 0.0")
+    @DecimalMax(value = "10.0", message = "Rating must be <= 10.0")
     private Double rating;
+
     private String embed1;
     private String embed2;
+
     private String trailer;
 
     private String posterURL1;
@@ -36,10 +45,11 @@ public class AnimeCompleteDTO {
     private String logoURL1;
     private String logoURL2;
 
+    @Min(value = 0, message = "Total season must be >= 0")
+    @Max(value = 30, message = "Total season must be <= 30")
     private Integer totalSeason;
-    private Integer totalEpisodes;
 
-    private Long totalLikes;
-    private Boolean userLiked;
-    private Boolean inUserList;
+    @Min(value = 0, message = "Total episodes must be >= 0")
+    @Max(value = 1000, message = "Total episodes must be <= 1000")
+    private Integer totalEpisodes;
 }

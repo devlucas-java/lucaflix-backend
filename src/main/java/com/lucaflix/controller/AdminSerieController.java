@@ -1,6 +1,6 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.admin.*;
+import com.lucaflix.dto.request.serie.*;
 import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.model.Season;
 import com.lucaflix.model.Episode;

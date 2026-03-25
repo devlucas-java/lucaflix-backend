@@ -3,7 +3,7 @@ package com.lucaflix.controller;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.request.movie.MovieFilter;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;

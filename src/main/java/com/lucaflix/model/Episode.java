@@ -3,10 +3,10 @@ package com.lucaflix.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "episodios")
+@Table(name = "episode")
 @Data
 public class Episode {
 
@@ -15,11 +15,7 @@ public class Episode {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "series_id", nullable = false)
-    private Series series;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "temp_id", nullable = false)
+    @JoinColumn(name = "season_id", nullable = false)
     private Season season;
 
     @Column(name = "number_episode", nullable = false)
@@ -35,8 +31,7 @@ public class Episode {
     private Integer minutesDuration = 0;
 
     @Column(name = "date_registered")
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDate dateRegistered = LocalDate.now();
+    private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @Column(name = "embed_url_1")
     private String embed1;

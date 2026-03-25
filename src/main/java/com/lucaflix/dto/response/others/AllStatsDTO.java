@@ -1,4 +1,4 @@
-package com.lucaflix.dto.admin.stats;
+package com.lucaflix.dto.response.others;
 
 import lombok.Data;
 import java.util.Date;
@@ -10,7 +10,6 @@ public class AllStatsDTO {
     private MovieStatsDTO movies;
     private SerieStatsDTO series;
     private AnimeStatsDTO animes;
-    private TvStatsDTO tvs;
     private UserStatsDTO users;
 
     // ==================== ESTATÍSTICAS GERAIS ====================
@@ -19,7 +18,6 @@ public class AllStatsDTO {
         private long totalMovies;
         private long totalSeries;
         private long totalAnimes;
-        private long totalTvs;
         private long totalUsers;
         private long totalLikes;
         private long totalListItems;
@@ -78,14 +76,6 @@ public class AllStatsDTO {
         private double averageLikesPerAnime;
         private long totalListItems;
         private double averageListItemsPerAnime;
-    }
-
-    // ==================== ESTATÍSTICAS DE TV ====================
-    @Data
-    public static class TvStatsDTO {
-        private long totalTvs;
-        private long totalLikes;
-        private double averageLikesPerTv;
     }
 
     // ==================== ESTATÍSTICAS DE USUÁRIOS ====================

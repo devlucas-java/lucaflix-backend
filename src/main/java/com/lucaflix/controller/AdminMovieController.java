@@ -1,7 +1,7 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.admin.CreateMovieDTO;
-import com.lucaflix.dto.admin.UpdateMovieDTO;
+import com.lucaflix.dto.request.movie.CreateMovieDTO;
+import com.lucaflix.dto.request.movie.UpdateMovieDTO;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.service.AdminMovieService;
 import jakarta.validation.Valid;

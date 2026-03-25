@@ -2,7 +2,7 @@ package com.lucaflix.service;
 
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;

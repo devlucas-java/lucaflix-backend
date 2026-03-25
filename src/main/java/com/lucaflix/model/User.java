@@ -58,15 +58,15 @@ public class User implements UserDetails {
     @Column(name = "account_expired")
     private Boolean isAccountExpired = false;
 
-    @Column(name = "data_cadastro")
+    @Column(name = "date_registered")
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDate dataCadastro = LocalDate.now();
+    private LocalDate dateRegistered = LocalDate.now();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Like> likes;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MyList> myList;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private MyList myList;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

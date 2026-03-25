@@ -1,29 +1,40 @@
-package com.lucaflix.dto.response.movie;
+package com.lucaflix.dto.request.movie;
 
 import com.lucaflix.model.enums.Categories;
 import lombok.Data;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Data
-public class MovieCompleteDTO {
+public class UpdateMovieDTO {
 
-    private Long id;
+    @Size(min = 2, max = 255, message = "Title must be between 2 and 255 characters")
     private String title;
-    private String type = "MOVIE";
+
     private Integer yearRelease;
+
+    @Min(value = 1, message = "Minutes duration must be greater than 0")
     private Integer minutesDuration;
+
+    @Size(max = 3000, message = "Synopsis must be max 3000 characters")
+    private String synopsis;
+
+    private List<Categories> categories;
+
+    private String minAge;
+
+    @DecimalMin(value = "0.0", message = "Rating must be >= 0")
+    @DecimalMax(value = "10.0", message = "Rating must be <= 10")
+    private Double rating;
+
+    private String embed1;
+    private String embed2;
+
+    private String trailer;
+
     private String tmdbId;
     private String imdbId;
     private String countryOrigin;
-    private String synopsis;
-    private LocalDateTime dateRegistered;
-    private List<Categories> categories;
-    private String minAge;
-    private Double rating;
-    private String embed1;
-    private String embed2;
-    private String trailer;
 
     private String posterURL1;
     private String posterURL2;
@@ -35,8 +46,4 @@ public class MovieCompleteDTO {
 
     private String logoURL1;
     private String logoURL2;
-
-    private Long totalLikes;
-    private Boolean userLiked;
-    private Boolean inMyList;
 }
