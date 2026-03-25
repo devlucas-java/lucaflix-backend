@@ -1,11 +1,10 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.user.UserDTO;
-import com.lucaflix.dto.user.UserMapper;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.request.user.UpdateUserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.Movie;
-import com.lucaflix.model.Serie;
+import com.lucaflix.model.Series;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,16 +40,16 @@ public class SuperAdminService {
 
     // ==================== BUSCA DE USUÁRIOS ====================
 
-    public PaginatedResponseDTO<UserDTO.UserListResponse> searchUsers(String searchTerm, Pageable pageable) {
+    public PaginatedResponseDTO<UpdateUserDTO.UserListResponse> searchUsers(String searchTerm, Pageable pageable) {
         Page<User> users;
 
-        if (StringUtils.isEmpty(searchTerm)) {
+        if (searchTerm.isBlank()) {
             users = userRepository.findAll(pageable);
         } else {
             users = userRepository.findBySearchTerm(searchTerm, pageable);
         }
 
-        List<UserDTO.UserListResponse> responses = users.getContent().stream()
+        List<UpdateUserDTO.UserListResponse> responses = users.getContent().stream()
                 .map(this::convertToUserListResponse)
                 .collect(Collectors.toList());
 
@@ -68,8 +66,8 @@ public class SuperAdminService {
         );
     }
 
-    private UserDTO.UserListResponse convertToUserListResponse(User user) {
-        return new UserDTO.UserListResponse(
+    private UpdateUserDTO.UserListResponse convertToUserListResponse(User user) {
+        return new UpdateUserDTO.UserListResponse(
                 user.getId().toString(),
                 user.getUsername(),
                 user.getFirstName(),
@@ -177,7 +175,6 @@ public class SuperAdminService {
         validateSuperAdminPermission(currentUser);
 
         User user = userService.getUserById(userId);
-
         user.setIsCredentialsExpired(false);
         user.setIsAccountExpired(false);
         userService.setAccountLocked(userId, false);
@@ -269,14 +266,14 @@ public class SuperAdminService {
     public void removeAllSerieLikes(Long serieId, User currentUser) {
         validateSuperAdminPermission(currentUser);
 
-        Serie serie = serieRepository.findById(serieId)
+        Series series = serieRepository.findById(serieId)
                 .orElseThrow(() -> new IllegalArgumentException("Série não encontrada com ID: " + serieId));
 
-        long likesRemoved = likeRepository.countBySerie(serie);
-        likeRepository.deleteBySerie(serie);
+        long likesRemoved = likeRepository.countBySerie(series);
+        likeRepository.deleteBySerie(series);
 
         log.info("Todos os {} likes da série '{}' (ID: {}) foram removidos por SuperAdmin {} ({})",
-                likesRemoved, serie.getTitle(), serieId, currentUser.getUsername(), currentUser.getId());
+                likesRemoved, series.getTitle(), serieId, currentUser.getUsername(), currentUser.getId());
     }
 
     @Transactional
@@ -313,14 +310,14 @@ public class SuperAdminService {
     public void removeAllSerieFromLists(Long serieId, User currentUser) {
         validateSuperAdminPermission(currentUser);
 
-        Serie serie = serieRepository.findById(serieId)
+        Series series = serieRepository.findById(serieId)
                 .orElseThrow(() -> new IllegalArgumentException("Série não encontrada com ID: " + serieId));
 
-        long itemsRemoved = minhaListaRepository.countBySerie(serie);
-        minhaListaRepository.deleteBySerie(serie);
+        long itemsRemoved = minhaListaRepository.countBySerie(series);
+        minhaListaRepository.deleteBySerie(series);
 
         log.info("Série '{}' (ID: {}) foi removida de {} listas por SuperAdmin {} ({})",
-                serie.getTitle(), serieId, itemsRemoved, currentUser.getUsername(), currentUser.getId());
+                series.getTitle(), serieId, itemsRemoved, currentUser.getUsername(), currentUser.getId());
     }
 
     @Transactional
@@ -360,17 +357,17 @@ public class SuperAdminService {
     public void cleanAllSerieInteractions(Long serieId, User currentUser) {
         validateSuperAdminPermission(currentUser);
 
-        Serie serie = serieRepository.findById(serieId)
+        Series series = serieRepository.findById(serieId)
                 .orElseThrow(() -> new IllegalArgumentException("Série não encontrada com ID: " + serieId));
 
-        long likesRemoved = likeRepository.countBySerie(serie);
-        long listsRemoved = minhaListaRepository.countBySerie(serie);
+        long likesRemoved = likeRepository.countBySerie(series);
+        long listsRemoved = minhaListaRepository.countBySerie(series);
 
-        likeRepository.deleteBySerie(serie);
-        minhaListaRepository.deleteBySerie(serie);
+        likeRepository.deleteBySerie(series);
+        minhaListaRepository.deleteBySerie(series);
 
         log.info("Todas as interações da série '{}' (ID: {}) foram limpas: {} likes e {} itens de lista removidos por SuperAdmin {} ({})",
-                serie.getTitle(), serieId, likesRemoved, listsRemoved, currentUser.getUsername(), currentUser.getId());
+                series.getTitle(), serieId, likesRemoved, listsRemoved, currentUser.getUsername(), currentUser.getId());
     }
 
     @Transactional
@@ -411,34 +408,5 @@ public class SuperAdminService {
     public User getUserInfo(UUID userId, User currentUser) {
         validateSuperAdminPermission(currentUser);
         return userService.getUserById(userId);
-    }
-
-    // ==================== DTOs ====================
-
-    @lombok.Builder
-    @lombok.Data
-    public static class ContentStatsDTO {
-        private long totalMovieLikes;
-        private long totalSerieLikes;
-        private long totalAnimeLikes;
-        private long totalMovieInLists;
-        private long totalSerieInLists;
-        private long totalAnimeInLists;
-        private long totalUsersWithLists;
-        private long totalUsers;
-        private long totalAdmins;
-        private long totalSuperAdmins;
-    }
-
-    @lombok.Builder
-    @lombok.Data
-    public static class UserStatsDTO {
-        private long totalUsers;
-        private long totalActiveUsers;
-        private long totalBlockedUsers;
-        private long totalPremiumUsers;
-        private long totalFreeUsers;
-        private long totalAdmins;
-        private long totalSuperAdmins;
     }
 }

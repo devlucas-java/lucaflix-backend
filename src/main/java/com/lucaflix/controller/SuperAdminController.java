@@ -1,15 +1,15 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.user.UserDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.request.user.UpdateUserDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.CurrentUser;
 import com.lucaflix.service.SuperAdminService;
 import com.lucaflix.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -27,7 +27,7 @@ public class SuperAdminController {
     private final UserService userService;
 
     @GetMapping("/search")
-    public ResponseEntity<PaginatedResponseDTO<UserDTO.UserListResponse>> searchUsers(
+    public ResponseEntity<PaginatedResponseDTO<UpdateUserDTO.UserListResponse>> searchUsers(
             @RequestParam(required = false) String searchTerm,
             @PageableDefault(size = 10) Pageable pageable
     ) {
@@ -37,11 +37,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/promote")
     public ResponseEntity<ApiResponse> promoteUser(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User promotedUser = superAdminService.promoteUser(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(promotedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(promotedUser);
 
             return ResponseEntity.ok(new ApiResponse("Usuário promovido com sucesso", response));
 
@@ -58,11 +58,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/demote")
     public ResponseEntity<ApiResponse> demoteUser(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User demotedUser = superAdminService.demoteUser(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(demotedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(demotedUser);
 
             return ResponseEntity.ok(new ApiResponse("Usuário rebaixado com sucesso", response));
 
@@ -79,7 +79,7 @@ public class SuperAdminController {
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<ApiResponse> deleteUser(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.deleteUser(userId, currentUser);
@@ -98,11 +98,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/plan/upgrade")
     public ResponseEntity<ApiResponse> upgradeUserPlan(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User updatedUser = superAdminService.updateUserPlan(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
 
             return ResponseEntity.ok(new ApiResponse("Plano do usuário atualizado para PREMIUM", response));
 
@@ -116,11 +116,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/plan/cut")
     public ResponseEntity<ApiResponse> cutUserPlan(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User updatedUser = superAdminService.cutUserPlan(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(updatedUser);
 
             return ResponseEntity.ok(new ApiResponse("Plano do usuário foi cortado para FREE", response));
 
@@ -137,11 +137,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/block")
     public ResponseEntity<ApiResponse> blockUser(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User blockedUser = superAdminService.blockUser(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(blockedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(blockedUser);
 
             return ResponseEntity.ok(new ApiResponse("Usuário bloqueado com sucesso", response));
 
@@ -158,11 +158,11 @@ public class SuperAdminController {
     @PutMapping("/users/{userId}/unblock")
     public ResponseEntity<ApiResponse> unblockUser(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User unblockedUser = superAdminService.unblockUser(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(unblockedUser);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(unblockedUser);
 
             return ResponseEntity.ok(new ApiResponse("Usuário desbloqueado com sucesso", response));
 
@@ -176,11 +176,11 @@ public class SuperAdminController {
     @GetMapping("/users/{userId}")
     public ResponseEntity<ApiResponse> getUserInfo(
             @PathVariable UUID userId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             User user = superAdminService.getUserInfo(userId, currentUser);
-            UserDTO.UserResponse response = userService.convertToUserResponse(user);
+            UpdateUserDTO.UserResponse response = userService.convertToUserResponse(user);
 
             return ResponseEntity.ok(new ApiResponse("Informações do usuário obtidas com sucesso", response));
 
@@ -196,7 +196,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/movies/{movieId}/likes")
     public ResponseEntity<ApiResponse> removeAllMovieLikes(
             @PathVariable Long movieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllMovieLikes(movieId, currentUser);
@@ -215,7 +215,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/series/{serieId}/likes")
     public ResponseEntity<ApiResponse> removeAllSerieLikes(
             @PathVariable Long serieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllSerieLikes(serieId, currentUser);
@@ -234,7 +234,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/animes/{animeId}/likes")
     public ResponseEntity<ApiResponse> removeAllAnimeLikes(
             @PathVariable Long animeId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllAnimeLikes(animeId, currentUser);
@@ -255,7 +255,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/movies/{movieId}/lists")
     public ResponseEntity<ApiResponse> removeMovieFromAllLists(
             @PathVariable Long movieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllMovieFromLists(movieId, currentUser);
@@ -274,7 +274,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/series/{serieId}/lists")
     public ResponseEntity<ApiResponse> removeSerieFromAllLists(
             @PathVariable Long serieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllSerieFromLists(serieId, currentUser);
@@ -293,7 +293,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/animes/{animeId}/lists")
     public ResponseEntity<ApiResponse> removeAnimeFromAllLists(
             @PathVariable Long animeId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.removeAllAnimeFromLists(animeId, currentUser);
@@ -314,7 +314,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/movies/{movieId}/interactions")
     public ResponseEntity<ApiResponse> cleanAllMovieInteractions(
             @PathVariable Long movieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.cleanAllMovieInteractions(movieId, currentUser);
@@ -333,7 +333,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/series/{serieId}/interactions")
     public ResponseEntity<ApiResponse> cleanAllSerieInteractions(
             @PathVariable Long serieId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.cleanAllSerieInteractions(serieId, currentUser);
@@ -352,7 +352,7 @@ public class SuperAdminController {
     @DeleteMapping("/content/animes/{animeId}/interactions")
     public ResponseEntity<ApiResponse> cleanAllAnimeInteractions(
             @PathVariable Long animeId,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         try {
             superAdminService.cleanAllAnimeInteractions(animeId, currentUser);

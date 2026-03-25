@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -57,30 +58,16 @@ public class User implements UserDetails {
     @Column(name = "account_expired")
     private Boolean isAccountExpired = false;
 
-    // Add the missing dataCadastro field
     @Column(name = "data_cadastro")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dataCadastro;
+    private LocalDate dataCadastro = LocalDate.now();
 
-    // Relacionamentos - os likes e lista do usuário são removidos quando ele é deletado
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Like> likes;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MinhaLista> minhaLista;
+    private List<MyList> myList;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private AdminPanel adminPanel;
-
-    // Automatically set the registration date when persisting
-    @PrePersist
-    protected void onCreate() {
-        if (dataCadastro == null) {
-            dataCadastro = new Date();
-        }
-    }
-
-    // UserDetails implementation
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

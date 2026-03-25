@@ -1,11 +1,11 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.serie.SerieCompleteDTO;
-import com.lucaflix.dto.media.serie.SerieMapper;
-import com.lucaflix.dto.media.serie.SerieSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.serie.SerieCompleteDTO;
+import com.lucaflix.dto.mapper.SerieMapper;
+import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public class SerieService {
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-            Page<Serie> seriesPage = serieRepository.findAll(pageable);
+            Page<Series> seriesPage = serieRepository.findAll(pageable);
 
             log.info("Séries encontradas: {}", seriesPage.getTotalElements());
 
@@ -67,7 +67,7 @@ public class SerieService {
 
         try {
             // Usar exatamente 10 como hardcoded para top 10
-            List<Serie> topSeries = serieRepository.findTop10ByLikes(PageRequest.of(0, 10));
+            List<Series> topSeries = serieRepository.findTop10ByLikes(PageRequest.of(0, 10));
             log.info("Top 10 séries encontradas: {}", topSeries.size());
 
             return topSeries.stream()
@@ -77,7 +77,7 @@ public class SerieService {
             log.error("Erro ao buscar top 10 séries: ", e);
             // Fallback para séries normais se der erro
             Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> fallbackSeries = serieRepository.findAll(pageable);
+            Page<Series> fallbackSeries = serieRepository.findAll(pageable);
             return fallbackSeries.getContent().stream()
                     .map(serieMapper::convertToSimpleDTO)
                     .collect(Collectors.toList());
@@ -89,24 +89,24 @@ public class SerieService {
         log.info("Buscando série por ID: {}", serieId);
 
         // Primeiro, buscar a série com temporadas
-        Serie serie = serieRepository.findByIdWithTemporadas(serieId)
+        Series series = serieRepository.findByIdWithTemporadas(serieId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Série não encontrada"
                 ));
 
         // Depois, buscar as temporadas com episódios em consulta separada
-        List<Temporada> temporadasComEpisodios = serieRepository.findTemporadasWithEpisodiosBySerieId(serieId);
+        List<Season> temporadasComEpisodios = serieRepository.findTemporadasWithEpisodiosBySerieId(serieId);
 
         // Associar as temporadas com episódios à série
         if (temporadasComEpisodios != null && !temporadasComEpisodios.isEmpty()) {
-            serie.setTemporadas(temporadasComEpisodios);
+            series.setTemps(temporadasComEpisodios);
         }
 
-        log.info("Série encontrada: {} com {} temporadas", serie.getTitle(),
-                serie.getTemporadas() != null ? serie.getTemporadas().size() : 0);
+        log.info("Série encontrada: {} com {} temporadas", series.getTitle(),
+                series.getTemps() != null ? series.getTemps().size() : 0);
 
-        return serieMapper.convertToCompleteDTO(serie, userId);
+        return serieMapper.convertToCompleteDTO(series, userId);
     }
 
     // Toggle Like - MANTIDA
@@ -114,10 +114,10 @@ public class SerieService {
     public boolean toggleLike(UUID userId, Long serieId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        Serie serie = serieRepository.findById(serieId)
+        Series series = serieRepository.findById(serieId)
                 .orElseThrow(() -> new RuntimeException("Série não encontrada"));
 
-        Like existingLike = likeRepository.findByUserAndSerie(user, serie).orElse(null);
+        Like existingLike = likeRepository.findByUserAndSerie(user, series).orElse(null);
 
         if (existingLike != null) {
             likeRepository.delete(existingLike);
@@ -125,7 +125,7 @@ public class SerieService {
         } else {
             Like like = new Like();
             like.setUser(user);
-            like.setSerie(serie);
+            like.setSeries(series);
             likeRepository.save(like);
             return true; // Adicionou like
         }
@@ -136,40 +136,40 @@ public class SerieService {
     public boolean toggleMyList(UUID userId, Long serieId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        Serie serie = serieRepository.findById(serieId)
+        Series series = serieRepository.findById(serieId)
                 .orElseThrow(() -> new RuntimeException("Série não encontrada"));
 
-        MinhaLista existingItem = minhaListaRepository.findByUserAndSerie(user, serie).orElse(null);
+        MyList existingItem = minhaListaRepository.findByUserAndSerie(user, series).orElse(null);
 
         if (existingItem != null) {
             minhaListaRepository.delete(existingItem);
             return false; // Removeu da lista
         } else {
-            MinhaLista minhaLista = new MinhaLista();
-            minhaLista.setUser(user);
-            minhaLista.setSerie(serie);
-            minhaListaRepository.save(minhaLista);
+            MyList myList = new MyList();
+            myList.setUser(user);
+            myList.setSeries(series);
+            minhaListaRepository.save(myList);
             return true; // Adicionou à lista
         }
     }
 
     // Séries por categoria - CORRIGIDA
-    public PaginatedResponseDTO<SerieSimpleDTO> getSeriesByCategory(Categoria categoria, int page, int size) {
-        log.info("Buscando séries por categoria: {} - página: {}, tamanho: {}", categoria, page, size);
+    public PaginatedResponseDTO<SerieSimpleDTO> getSeriesByCategory(Categories categories, int page, int size) {
+        log.info("Buscando séries por categoria: {} - página: {}, tamanho: {}", categories, page, size);
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-            Page<Serie> seriesPage = serieRepository.findByCategoria(categoria, pageable);
+            Page<Series> seriesPage = serieRepository.findByCategoria(categories, pageable);
 
-            log.info("Séries encontradas para categoria {}: {}", categoria, seriesPage.getTotalElements());
+            log.info("Séries encontradas para categoria {}: {}", categories, seriesPage.getTotalElements());
 
             if (seriesPage.isEmpty()) {
-                log.warn("Nenhuma série encontrada para categoria: {}", categoria);
+                log.warn("Nenhuma série encontrada para categoria: {}", categories);
             }
 
             return serieMapper.createPaginatedResponse(seriesPage);
         } catch (Exception e) {
-            log.error("Erro ao buscar séries por categoria {}: ", categoria, e);
+            log.error("Erro ao buscar séries por categoria {}: ", categories, e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erro ao buscar séries por categoria");
         }
@@ -181,7 +181,7 @@ public class SerieService {
 
         try {
             Pageable pageable = PageRequest.of(page, size); // Respeitando o size do controller
-            Page<Serie> seriesPage = serieRepository.findPopularSeries(pageable);
+            Page<Series> seriesPage = serieRepository.findPopularSeries(pageable);
 
             log.info("Séries populares encontradas: {}", seriesPage.getTotalElements());
 
@@ -197,7 +197,7 @@ public class SerieService {
             log.error("Erro ao buscar séries populares: ", e);
             // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findAll(pageable);
+            Page<Series> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
@@ -208,7 +208,7 @@ public class SerieService {
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findByAvaliacaoGreaterThanEqual(7.0, pageable);
+            Page<Series> seriesPage = serieRepository.findByAvaliacaoGreaterThanEqual(7.0, pageable);
 
             log.info("Séries com avaliação alta encontradas: {}", seriesPage.getTotalElements());
 
@@ -237,7 +237,7 @@ public class SerieService {
         log.info("Buscando séries recentes - página: {}, tamanho: {}", page, size);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "anoLancamento"));
-        Page<Serie> seriesPage = serieRepository.findAll(pageable);
+        Page<Series> seriesPage = serieRepository.findAll(pageable);
 
         log.info("Séries recentes encontradas: {}", seriesPage.getTotalElements());
 
@@ -250,7 +250,7 @@ public class SerieService {
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findByYear(year, pageable);
+            Page<Series> seriesPage = serieRepository.findByYear(year, pageable);
 
             log.info("Séries do ano {} encontradas: {}", year, seriesPage.getTotalElements());
 
@@ -271,18 +271,18 @@ public class SerieService {
         log.info("Buscando séries similares à série ID: {} - página: {}, tamanho: {}", serieId, page, size);
 
         try {
-            Serie serie = serieRepository.findById(serieId)
+            Series series = serieRepository.findById(serieId)
                     .orElseThrow(() -> new RuntimeException("Série não encontrada"));
 
-            if (serie.getCategoria() == null || serie.getCategoria().isEmpty()) {
+            if (series.getCategoria() == null || series.getCategoria().isEmpty()) {
                 log.warn("Série {} não possui categorias, retornando séries aleatórias", serieId);
                 Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-                Page<Serie> seriesPage = serieRepository.findAll(pageable);
+                Page<Series> seriesPage = serieRepository.findAll(pageable);
                 return serieMapper.createPaginatedResponse(seriesPage);
             }
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findSimilarSeries(serie.getCategoria(), serie.getId(), pageable);
+            Page<Series> seriesPage = serieRepository.findSimilarSeries(series.getCategoria(), series.getId(), pageable);
 
             log.info("Séries similares encontradas: {}", seriesPage.getTotalElements());
 
@@ -295,7 +295,7 @@ public class SerieService {
             log.error("Erro ao buscar séries similares: ", e);
             // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findAll(pageable);
+            Page<Series> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
         }
     }
@@ -306,7 +306,7 @@ public class SerieService {
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findRecommendations(userId, pageable);
+            Page<Series> seriesPage = serieRepository.findRecommendations(userId, pageable);
 
             log.info("Recomendações encontradas: {}", seriesPage.getTotalElements());
 
@@ -320,7 +320,7 @@ public class SerieService {
             log.error("Erro ao buscar recomendações: ", e);
             // Fallback respeitando o size
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-            Page<Serie> seriesPage = serieRepository.findAll(pageable);
+            Page<Series> seriesPage = serieRepository.findAll(pageable);
             return serieMapper.createPaginatedResponse(seriesPage);
         }
     }

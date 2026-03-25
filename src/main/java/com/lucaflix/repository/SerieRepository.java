@@ -1,8 +1,8 @@
 package com.lucaflix.repository;
 
-import com.lucaflix.model.Serie;
-import com.lucaflix.model.Temporada;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.Series;
+import com.lucaflix.model.Season;
+import com.lucaflix.model.enums.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,26 +10,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface SerieRepository extends JpaRepository<Serie, Long> {
+public interface SerieRepository extends JpaRepository<Series, Long> {
 
     // Fetch série com temporadas para evitar MultipleBagFetchException
     @Query("SELECT DISTINCT s FROM Serie s " +
             "LEFT JOIN FETCH s.temporadas " +
             "WHERE s.id = :id")
-    Optional<Serie> findByIdWithTemporadas(@Param("id") Long id);
+    Optional<Series> findByIdWithTemporadas(@Param("id") Long id);
 
     // Query separada para buscar temporadas com episódios
     @Query("SELECT DISTINCT t FROM Temporada t " +
             "LEFT JOIN FETCH t.episodios " +
             "WHERE t.serie.id = :serieId " +
             "ORDER BY t.numeroTemporada ASC")
-    List<Temporada> findTemporadasWithEpisodiosBySerieId(@Param("serieId") Long serieId);
+    List<Season> findTemporadasWithEpisodiosBySerieId(@Param("serieId") Long serieId);
 
     // Top 10 mais curtidas
     @Query("SELECT s FROM Serie s " +
@@ -39,14 +38,14 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "s.posterURL1, s.posterURL2, s.backdropURL1, s.backdropURL2, s.backdropURL3, s.backdropURL4, " +
             "s.logoURL1, s.logoURL2, s.totalTemporadas, s.totalEpisodios " +
             "ORDER BY COUNT(l) DESC")
-    List<Serie> findTop10ByLikes(Pageable pageable);
+    List<Series> findTop10ByLikes(Pageable pageable);
 
     // Por categoria
     @Query("SELECT DISTINCT s FROM Serie s " +
             "JOIN s.categoria c " +
             "WHERE c = :categoria " +
             "ORDER BY s.dataCadastro DESC")
-    Page<Serie> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
+    Page<Series> findByCategoria(@Param("categoria") Categories categories, Pageable pageable);
 
     // Séries populares (mais curtidas)
     @Query("SELECT s FROM Serie s " +
@@ -56,16 +55,16 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "s.posterURL1, s.posterURL2, s.backdropURL1, s.backdropURL2, s.backdropURL3, s.backdropURL4, " +
             "s.logoURL1, s.logoURL2, s.totalTemporadas, s.totalEpisodios " +
             "ORDER BY COUNT(l) DESC")
-    Page<Serie> findPopularSeries(Pageable pageable);
+    Page<Series> findPopularSeries(Pageable pageable);
 
     // Séries com avaliação alta
-    Page<Serie> findByAvaliacaoGreaterThanEqual(Double avaliacao, Pageable pageable);
+    Page<Series> findByAvaliacaoGreaterThanEqual(Double avaliacao, Pageable pageable);
 
     // Por ano - CORRIGIDO para usar Integer
     @Query("SELECT s FROM Serie s " +
             "WHERE s.anoLancamento = :year " +
             "ORDER BY s.avaliacao DESC")
-    Page<Serie> findByYear(@Param("year") Integer year, Pageable pageable);
+    Page<Series> findByYear(@Param("year") Integer year, Pageable pageable);
 
     // Recomendações baseadas nas categorias - Corrigida para tratar userId null
     @Query("SELECT DISTINCT s FROM Serie s " +
@@ -81,7 +80,7 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "    WHERE l2.user.id = :userId AND l2.serie IS NOT NULL" +
             ")) " +
             "ORDER BY s.avaliacao DESC")
-    Page<Serie> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
+    Page<Series> findRecommendations(@Param("userId") UUID userId, Pageable pageable);
 
     // Séries similares (categorias em comum, excluindo a atual)
     @Query("SELECT DISTINCT s FROM Serie s " +
@@ -89,32 +88,18 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "WHERE cat IN :categorias " +
             "AND s.id != :excludeId " +
             "ORDER BY s.avaliacao DESC")
-    Page<Serie> findSimilarSeries(
-            @Param("categorias") List<Categoria> categorias,
+    Page<Series> findSimilarSeries(
+            @Param("categorias") List<Categories> categories,
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
     // Para sitemap
     @Query("SELECT s FROM Serie s WHERE s.title IS NOT NULL AND s.title != ''")
-    List<Serie> findAllForSitemap();
-
-    // Contagem de séries por categoria
-    @Query("SELECT cat, COUNT(s) FROM Serie s " +
-            "JOIN s.categoria cat " +
-            "GROUP BY cat")
-    List<Object[]> countByCategoria();
+    List<Series> findAllForSitemap();
 
     // Avaliação média
     @Query("SELECT AVG(s.avaliacao) FROM Serie s WHERE s.avaliacao IS NOT NULL")
     Double getAverageRating();
-
-    // Contagem por ano - CORRIGIDO para usar Integer
-    @Query("SELECT s.anoLancamento as year, COUNT(s) " +
-            "FROM Serie s " +
-            "WHERE s.anoLancamento IS NOT NULL " +
-            "GROUP BY s.anoLancamento " +
-            "ORDER BY year DESC")
-    List<Object[]> countByYear();
 
     // Busca de séries
     @Query("SELECT DISTINCT s FROM Serie s " +
@@ -124,9 +109,9 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
             "       LOWER(s.sinopse) LIKE LOWER(CONCAT('%', :texto, '%'))) " +
             "AND (:categoria IS NULL OR c = :categoria) " +
             "ORDER BY s.dataCadastro DESC")
-    Page<Serie> searchSeries(@Param("texto") String texto,
-                             @Param("categoria") Categoria categoria,
-                             Pageable pageable);
+    Page<Series> searchSeries(@Param("texto") String texto,
+                              @Param("categoria") Categories categories,
+                              Pageable pageable);
 
     // Verificar se usuário curtiu uma série
     @Query("SELECT COUNT(l) > 0 FROM Like l " +
@@ -149,6 +134,4 @@ public interface SerieRepository extends JpaRepository<Serie, Long> {
     long countByAvaliacaoBetween(double v, double v1);
 
     long countByAvaliacaoLessThan(double v);
-
-    Long countByDataCadastroAfter(Date weekAgoDate);
 }

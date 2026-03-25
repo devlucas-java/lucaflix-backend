@@ -1,6 +1,6 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +23,7 @@ public class CreateMovieDTO {
     private String sinopse;
 
     @NotNull(message = "Categoria é obrigatória")
-    private List<Categoria> categoria;
+    private List<Categories> categories;
 
     private String tmdbId;
     private String imdbId;

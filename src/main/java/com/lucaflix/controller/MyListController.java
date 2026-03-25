@@ -1,12 +1,12 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.CurrentUser;
 import com.lucaflix.service.MyListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,7 +22,7 @@ public class MyListController {
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyList(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -36,7 +36,7 @@ public class MyListController {
     @GetMapping("/movies")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyListMovies(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -50,7 +50,7 @@ public class MyListController {
     @GetMapping("/series")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyListSeries(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -64,7 +64,7 @@ public class MyListController {
     @GetMapping("/animes")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyListAnimes(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
@@ -78,7 +78,7 @@ public class MyListController {
     @GetMapping("/filter")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyListFiltered(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {

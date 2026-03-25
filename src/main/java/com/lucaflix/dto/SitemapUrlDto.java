@@ -4,9 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para representar uma URL no sitemap
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

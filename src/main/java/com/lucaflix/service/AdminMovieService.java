@@ -2,10 +2,8 @@ package com.lucaflix.service;
 
 import com.lucaflix.dto.admin.CreateMovieDTO;
 import com.lucaflix.dto.admin.UpdateMovieDTO;
-import com.lucaflix.dto.admin.stats.*;
-import com.lucaflix.dto.media.movie.MovieCompleteDTO;
+import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -46,7 +43,7 @@ public class AdminMovieService {
         movie.setAnoLancamento(createDTO.getAnoLancamento()); // Usar diretamente
         movie.setDuracaoMinutos(createDTO.getDuracaoMinutos());
         movie.setSinopse(createDTO.getSinopse());
-        movie.setCategoria(createDTO.getCategoria());
+        movie.setCategories(createDTO.getCategories());
         movie.setMinAge(createDTO.getMinAge());
         movie.setAvaliacao(createDTO.getAvaliacao());
         movie.setEmbed1(createDTO.getEmbed1());
@@ -96,8 +93,8 @@ public class AdminMovieService {
         if (updateDTO.getSinopse() != null) {
             movie.setSinopse(updateDTO.getSinopse());
         }
-        if (updateDTO.getCategoria() != null) {
-            movie.setCategoria(updateDTO.getCategoria());
+        if (updateDTO.getCategories() != null) {
+            movie.setCategories(updateDTO.getCategories());
         }
         if (updateDTO.getMinAge() != null) {
             movie.setMinAge(updateDTO.getMinAge());
@@ -197,7 +194,7 @@ public class AdminMovieService {
         dto.setPaisOrigen(movie.getPaisOrigen());
         dto.setSinopse(movie.getSinopse());
         dto.setDataCadastro(movie.getDataCadastro());
-        dto.setCategoria(movie.getCategoria());
+        dto.setCategories(movie.getCategories());
         dto.setMinAge(movie.getMinAge());
         dto.setAvaliacao(movie.getAvaliacao());
         dto.setEmbed1(movie.getEmbed1());

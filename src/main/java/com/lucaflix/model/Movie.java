@@ -1,8 +1,10 @@
 package com.lucaflix.model;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -18,11 +20,11 @@ public class Movie {
     @Column(nullable = false, length = 255)
     private String title;
 
-    @Column(name = "ano_lancamento")
-    private Integer anoLancamento;
+    @Column(name = "year_release")
+    private Integer yearRelease;
 
-    @Column(name = "duracao_minutos")
-    private Integer duracaoMinutos = 0;
+    @Column(name = "minutes_duration")
+    private Integer minutesDuration = 0;
 
     @Column(name = "tmdb_id")
     private String tmdbId = null;
@@ -30,31 +32,30 @@ public class Movie {
     @Column(name = "imdb_id")
     private String imdbId = null;
 
-    @Column(name = "pais_origem")
-    private String paisOrigen = null;
+    @Column(name = "country_origin")
+    private String countryOrigin = null;
 
     @Column(columnDefinition = "TEXT")
-    private String sinopse;
+    private String synopsis;
 
-    @Column(name = "data_cadastro")
+    @Column(name = "date_registered")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dataCadastro = new Date();
+    private LocalDate dateRegistered = LocalDate.now();
 
-    // ALTERAÇÃO PRINCIPAL: ElementCollection para armazenar lista de categorias
-    @ElementCollection(targetClass = Categoria.class)
+    @ElementCollection(targetClass = Categories.class)
     @Enumerated(EnumType.STRING)
     @CollectionTable(
-            name = "movie_categoria",
+            name = "movie_categories",
             joinColumns = @JoinColumn(name = "movie_id")
     )
-    @Column(name = "categoria")
-    private List<Categoria> categoria;
+    @Column(name = "categories")
+    private List<Categories> categories;
 
     @Column(name = "min_age")
     private String minAge;
 
-    @Column(name = "avaliacao")
-    private Double avaliacao;
+    @Column(name = "rating")
+    private Double rating;
 
     @Column(name = "embed_url_1")
     private String embed1;
@@ -88,5 +89,5 @@ public class Movie {
     private List<Like> likes;
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MinhaLista> minhaLista;
+    private List<MyList> myList;
 }

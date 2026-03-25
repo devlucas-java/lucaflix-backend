@@ -1,7 +1,7 @@
 package com.lucaflix.repository;
 
 import com.lucaflix.model.Anime;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,10 +16,6 @@ import java.util.UUID;
 @Repository
 public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
-    // Busca paginada de todos os animes
-    @Query("SELECT a FROM Anime a ORDER BY a.dataCadastro DESC")
-    Page<Anime> findAllPaginated(Pageable pageable);
-
     // Top 10 mais curtidos
     @Query("SELECT a FROM Anime a LEFT JOIN a.likes l GROUP BY a.id ORDER BY COUNT(l) DESC")
     List<Anime> findTop10ByLikes(Pageable pageable);
@@ -32,7 +28,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     Page<Anime> buscarPorFiltros(
             @Param("title") String title,
             @Param("avaliacao") Double avaliacao,
-            @Param("categoria") Categoria categoria,
+            @Param("categoria") Categories categories,
             Pageable pageable);
 
     // Animes com avaliação alta
@@ -40,7 +36,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
     // Por categoria
     @Query("SELECT a FROM Anime a WHERE :categoria MEMBER OF a.categoria")
-    Page<Anime> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
+    Page<Anime> findByCategoria(@Param("categoria") Categories categories, Pageable pageable);
 
     // Animes populares (mais curtidos)
     @Query("SELECT a FROM Anime a LEFT JOIN a.likes l GROUP BY a ORDER BY COUNT(l) DESC")
@@ -60,7 +56,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     // Animes similares (categorias em comum, excluindo o atual)
     @Query("SELECT DISTINCT a FROM Anime a JOIN a.categoria cat WHERE cat IN :categorias AND a.id != :excludeId")
     Page<Anime> findSimilarAnimes(
-            @Param("categorias") List<Categoria> categorias,
+            @Param("categorias") List<Categories> categories,
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
@@ -71,16 +67,6 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     // Para sitemap
     @Query("SELECT a FROM Anime a WHERE a.title IS NOT NULL AND a.title != ''")
     List<Anime> findAllForSitemap();
-
-    // Estatísticas de contagem por categoria
-    @Query("SELECT cat, COUNT(a) FROM Anime a JOIN a.categoria cat GROUP BY cat")
-    List<Object[]> countByCategoria();
-
-    // Contagem por ano - CORRIGIDO para usar Integer
-    @Query("SELECT a.anoLancamento as year, COUNT(a) FROM Anime a " +
-            "WHERE a.anoLancamento IS NOT NULL " +
-            "GROUP BY a.anoLancamento ORDER BY year DESC")
-    List<Object[]> countByYear();
 
     // Avaliação média
     @Query("SELECT AVG(a.avaliacao) FROM Anime a WHERE a.avaliacao IS NOT NULL")
@@ -105,10 +91,6 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
             "AND (:categoria IS NULL OR c = :categoria) " +
             "ORDER BY a.dataCadastro DESC")
     Page<Anime> searchAnimes(@Param("texto") String texto,
-                             @Param("categoria") Categoria categoria,
+                             @Param("categoria") Categories categories,
                              Pageable pageable);
-
-    @Query("SELECT COUNT(l) FROM Like l WHERE l.anime IS NOT NULL")
-    long countByAnimeIsNotNull();
-
 }

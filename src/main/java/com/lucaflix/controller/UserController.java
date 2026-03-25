@@ -1,24 +1,19 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.user.UserDTO;
-import com.lucaflix.model.MinhaLista;
+import com.lucaflix.dto.request.user.UpdateUserDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.CurrentUser;
 import com.lucaflix.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -32,9 +27,9 @@ public class UserController {
     /// OBTEM INFORMACOES DO USUARIO ATUAL
     @GetMapping("/me")
     @Operation(summary = "Obter perfil do usuário", description = "Retorna as informações do usuário autenticado")
-    public ResponseEntity<UserDTO.UserResponse> getCurrentUser(@CurrentUser User user) {
+    public ResponseEntity<UpdateUserDTO.UserResponse> getCurrentUser(@AuthenticationPrincipal User user) {
         try {
-            UserDTO.UserResponse userResponse = userService.convertToUserResponse(user);
+            UpdateUserDTO.UserResponse userResponse = userService.convertToUserResponse(user);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             log.error("Erro ao obter informações do usuário: {}", user.getUsername(), e);
@@ -46,11 +41,11 @@ public class UserController {
     @PutMapping("/me")
     @Operation(summary = "Atualizar perfil", description = "Atualiza as informações do usuário autenticado")
     public ResponseEntity<Map<String, Object>> updateCurrentUser(
-            @Valid @RequestBody UserDTO.UpdateUserRequest request,
-            @CurrentUser User user) {
+            @Valid @RequestBody UpdateUserDTO.UpdateUserRequest request,
+            @AuthenticationPrincipal User user) {
         try {
             User updatedUser = userService.updateUser(user, request);
-            UserDTO.UserResponse userResponse = userService.convertToUserResponse(updatedUser);
+            UpdateUserDTO.UserResponse userResponse = userService.convertToUserResponse(updatedUser);
 
             return ResponseEntity.ok(Map.of(
                     "message", "Usuário atualizado com sucesso",
@@ -70,7 +65,7 @@ public class UserController {
     /// DELETA CONTA DO USUARIO ATUAL - CORRIGIDO PARA EVITAR DADOS ÓRFÃOS
     @DeleteMapping("/me")
     @Operation(summary = "Deletar conta", description = "Deleta a conta do usuário autenticado e todos os dados relacionados, mantendo as mídias")
-    public ResponseEntity<Map<String, String>> deleteCurrentUser(@CurrentUser User user) {
+    public ResponseEntity<Map<String, String>> deleteCurrentUser(@AuthenticationPrincipal User user) {
         try {
             // Chama o serviço que fará a exclusão segura
             userService.deleteUserAndRelatedData(user.getId());

@@ -1,9 +1,9 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import java.util.Date;
+
 import java.util.List;
 
 @Data
@@ -21,7 +21,7 @@ public class UpdateAnimeDTO {
     @Size(max = 5000, message = "Sinopse deve ter no máximo 5000 caracteres")
     private String sinopse;
 
-    private List<Categoria> categoria;
+    private List<Categories> categories;
 
     private String minAge;
 

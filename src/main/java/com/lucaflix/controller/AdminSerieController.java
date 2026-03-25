@@ -1,9 +1,9 @@
 package com.lucaflix.controller;
 
 import com.lucaflix.dto.admin.*;
-import com.lucaflix.dto.media.serie.SerieCompleteDTO;
-import com.lucaflix.model.Temporada;
-import com.lucaflix.model.Episodio;
+import com.lucaflix.dto.response.serie.SerieCompleteDTO;
+import com.lucaflix.model.Season;
+import com.lucaflix.model.Episode;
 import com.lucaflix.service.AdminSerieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,24 +63,24 @@ public class AdminSerieController {
     // ==================== GERENCIAMENTO DE TEMPORADAS ====================
 
     @PostMapping("/{serieId}/temporadas")
-    public ResponseEntity<Temporada> createTemporada(
+    public ResponseEntity<Season> createTemporada(
             @PathVariable Long serieId,
             @Valid @RequestBody CreateTemporadaDTO createDTO) {
         try {
-            Temporada createdTemporada = adminSerieService.createTemporada(serieId, createDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTemporada);
+            Season createdSeason = adminSerieService.createTemporada(serieId, createDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSeason);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/temporadas/{temporadaId}")
-    public ResponseEntity<Temporada> updateTemporada(
+    public ResponseEntity<Season> updateTemporada(
             @PathVariable Long temporadaId,
             @Valid @RequestBody UpdateTemporadaDTO updateDTO) {
         try {
-            Temporada updatedTemporada = adminSerieService.updateTemporada(temporadaId, updateDTO);
-            return ResponseEntity.ok(updatedTemporada);
+            Season updatedSeason = adminSerieService.updateTemporada(temporadaId, updateDTO);
+            return ResponseEntity.ok(updatedSeason);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -97,10 +97,10 @@ public class AdminSerieController {
     }
 
     @GetMapping("/{serieId}/temporadas")
-    public ResponseEntity<List<Temporada>> getTemporadasBySerie(@PathVariable Long serieId) {
+    public ResponseEntity<List<Season>> getTemporadasBySerie(@PathVariable Long serieId) {
         try {
-            List<Temporada> temporadas = adminSerieService.getTemporadasBySerie(serieId);
-            return ResponseEntity.ok(temporadas);
+            List<Season> seasons = adminSerieService.getTemporadasBySerie(serieId);
+            return ResponseEntity.ok(seasons);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -109,24 +109,24 @@ public class AdminSerieController {
     // ==================== GERENCIAMENTO DE EPISÓDIOS ====================
 
     @PostMapping("/temporadas/{temporadaId}/episodios")
-    public ResponseEntity<Episodio> createEpisodio(
+    public ResponseEntity<Episode> createEpisodio(
             @PathVariable Long temporadaId,
             @Valid @RequestBody CreateEpisodioDTO createDTO) {
         try {
-            Episodio createdEpisodio = adminSerieService.createEpisodio(temporadaId, createDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdEpisodio);
+            Episode createdEpisode = adminSerieService.createEpisodio(temporadaId, createDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdEpisode);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PutMapping("/episodios/{episodioId}")
-    public ResponseEntity<Episodio> updateEpisodio(
+    public ResponseEntity<Episode> updateEpisodio(
             @PathVariable Long episodioId,
             @Valid @RequestBody UpdateEpisodioDTO updateDTO) {
         try {
-            Episodio updatedEpisodio = adminSerieService.updateEpisodio(episodioId, updateDTO);
-            return ResponseEntity.ok(updatedEpisodio);
+            Episode updatedEpisode = adminSerieService.updateEpisodio(episodioId, updateDTO);
+            return ResponseEntity.ok(updatedEpisode);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -143,20 +143,20 @@ public class AdminSerieController {
     }
 
     @GetMapping("/temporadas/{temporadaId}/episodios")
-    public ResponseEntity<List<Episodio>> getEpisodiosByTemporada(@PathVariable Long temporadaId) {
+    public ResponseEntity<List<Episode>> getEpisodiosByTemporada(@PathVariable Long temporadaId) {
         try {
-            List<Episodio> episodios = adminSerieService.getEpisodiosByTemporada(temporadaId);
-            return ResponseEntity.ok(episodios);
+            List<Episode> episodes = adminSerieService.getEpisodiosByTemporada(temporadaId);
+            return ResponseEntity.ok(episodes);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @GetMapping("/{serieId}/episodios")
-    public ResponseEntity<List<Episodio>> getEpisodiosBySerie(@PathVariable Long serieId) {
+    public ResponseEntity<List<Episode>> getEpisodiosBySerie(@PathVariable Long serieId) {
         try {
-            List<Episodio> episodios = adminSerieService.getEpisodiosBySerie(serieId);
-            return ResponseEntity.ok(episodios);
+            List<Episode> episodes = adminSerieService.getEpisodiosBySerie(serieId);
+            return ResponseEntity.ok(episodes);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

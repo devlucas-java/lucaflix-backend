@@ -1,18 +1,18 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.anime.AnimeCompleteDTO;
-import com.lucaflix.dto.media.anime.AnimeFilter;
-import com.lucaflix.dto.media.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
+import com.lucaflix.dto.request.anime.AnimeFilter;
+import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.model.enums.Categoria;
-import com.lucaflix.security.CurrentUser;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.AnimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class AnimeController {
     @OptionalAuthentication
     public ResponseEntity<AnimeCompleteDTO> getAnimeById(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         AnimeCompleteDTO anime = animeService.getAnimeById(id,
                 currentUser != null ? currentUser.getId() : null);
@@ -82,7 +82,7 @@ public class AnimeController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleLike(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean liked = animeService.toggleLike(currentUser.getId(), id);
         return ResponseEntity.ok(liked);
@@ -95,7 +95,7 @@ public class AnimeController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleMyList(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean added = animeService.toggleMyList(currentUser.getId(), id);
         return ResponseEntity.ok(added);
@@ -133,11 +133,11 @@ public class AnimeController {
     @GetMapping("/category/{categoria}")
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> getAnimesByCategory(
-            @PathVariable Categoria categoria,
+            @PathVariable Categories categories,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PaginatedResponseDTO<AnimeSimpleDTO> response = animeService.getAnimeByCategory(categoria, page, size);
+        PaginatedResponseDTO<AnimeSimpleDTO> response = animeService.getAnimeByCategory(categories, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -160,7 +160,7 @@ public class AnimeController {
     @GetMapping("/recommendations")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> getRecommendations(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 

@@ -1,35 +1,32 @@
 package com.lucaflix.repository;
 
-import com.lucaflix.model.Episodio;
-import com.lucaflix.model.Serie;
-import com.lucaflix.model.Temporada;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.lucaflix.model.Episode;
+import com.lucaflix.model.Series;
+import com.lucaflix.model.Season;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface EpisodioRepository extends JpaRepository<Episodio, Long> {
+public interface EpisodioRepository extends JpaRepository<Episode, Long> {
 
     // Buscar episódios de uma temporada específica
-    List<Episodio> findByTemporadaOrderByNumeroEpisodioAsc(Temporada temporada);
+    List<Episode> findByTemporadaOrderByNumeroEpisodioAsc(Season season);
 
     // Verificar se existe episódio com número específico em uma temporada
-    boolean existsByTemporadaAndNumeroEpisodio(Temporada temporada, Integer numeroEpisodio);
+    boolean existsByTemporadaAndNumeroEpisodio(Season season, Integer numeroEpisodio);
 
     // Contar episódios de uma temporada
-    long countByTemporada(Temporada temporada);
+    long countByTemporada(Season season);
 
     // Buscar episódios de uma série específica
     @Query("SELECT e FROM Episodio e WHERE e.serie = :serie ORDER BY e.temporada.numeroTemporada ASC, e.numeroEpisodio ASC")
-    List<Episodio> findBySerieOrderByTemporadaAndEpisodio(@Param("serie") Serie serie);
+    List<Episode> findBySerieOrderByTemporadaAndEpisodio(@Param("serie") Series series);
 
     // Contar episódios de uma série
-    long countBySerie(Serie serie);
+    long countBySerie(Series series);
 
 }

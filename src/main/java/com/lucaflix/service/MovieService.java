@@ -1,12 +1,12 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.movie.MovieCompleteDTO;
-import com.lucaflix.dto.media.movie.MovieFilter;
-import com.lucaflix.dto.media.movie.MovieMapper;
-import com.lucaflix.dto.media.movie.MovieSimpleDTO;
-import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.response.movie.MovieCompleteDTO;
+import com.lucaflix.dto.request.movie.MovieFilter;
+import com.lucaflix.dto.mapper.MovieMapper;
+import com.lucaflix.dto.response.movie.MovieSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class MovieService {
         Page<Movie> mediaPage = movieRepository.buscarPorFiltros(
                 filter.getTitle(),
                 filter.getAvaliacao(),
-                filter.getCategoria(),
+                filter.getCategories(),
                 pageable
         );
 
@@ -143,17 +143,17 @@ public class MovieService {
         Movie movie = movieRepository.findById(mediaId)
                 .orElseThrow(() -> new RuntimeException("Mídia não encontrada"));
 
-        MinhaLista existingItem = minhaListaRepository.findByUserAndMovie(user, movie).orElse(null);
+        MyList existingItem = minhaListaRepository.findByUserAndMovie(user, movie).orElse(null);
 
         if (existingItem != null) {
             minhaListaRepository.delete(existingItem);
             log.debug("Filme removido da lista para usuário: {} e filme: {}", userId, mediaId);
             return false; // Removeu da lista
         } else {
-            MinhaLista minhaLista = new MinhaLista();
-            minhaLista.setUser(user);
-            minhaLista.setMovie(movie);
-            minhaListaRepository.save(minhaLista);
+            MyList myList = new MyList();
+            myList.setUser(user);
+            myList.setMovie(movie);
+            minhaListaRepository.save(myList);
             log.debug("Filme adicionado à lista para usuário: {} e filme: {}", userId, mediaId);
             return true; // Adicionou à lista
         }
@@ -187,16 +187,16 @@ public class MovieService {
     }
 
     // Mídias por categoria - com validação de tamanho
-    public PaginatedResponseDTO<MovieSimpleDTO> getMediaByCategory(Categoria categoria, int page, int size) {
+    public PaginatedResponseDTO<MovieSimpleDTO> getMediaByCategory(Categories categories, int page, int size) {
         int validatedSize = validateAndAdjustSize(size);
         int validatedPage = validatePage(page);
 
         log.debug("Buscando filmes por categoria: {} - Página: {}, Tamanho: {}",
-                categoria, validatedPage, validatedSize);
+                categories, validatedPage, validatedSize);
 
         Pageable pageable = PageRequest.of(validatedPage, validatedSize,
                 Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Movie> mediaPage = movieRepository.findByCategoria(categoria, pageable);
+        Page<Movie> mediaPage = movieRepository.findByCategoria(categories, pageable);
 
         return movieMapper.createPaginatedResponse(mediaPage);
     }
@@ -244,7 +244,7 @@ public class MovieService {
 
         Pageable pageable = PageRequest.of(validatedPage, validatedSize,
                 Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Movie> mediaPage = movieRepository.findSimilarMovies(movie.getCategoria(), movie.getId(), pageable);
+        Page<Movie> mediaPage = movieRepository.findSimilarMovies(movie.getCategories(), movie.getId(), pageable);
 
         return movieMapper.createPaginatedResponse(mediaPage);
     }

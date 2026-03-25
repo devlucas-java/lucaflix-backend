@@ -22,32 +22,28 @@ public class Like {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Para filmes - pode ser null se for série ou anime
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    // Para séries - pode ser null se for movie ou anime
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "serie_id")
-    private Serie serie;
+    private Series series;
 
-    // Para animes - pode ser null se for movie ou serie
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "anime_id")
     private Anime anime;
 
     @Column(name = "data_like", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dataLike = new Date();
+    private Date dateLike = new Date();
 
-    // Constraint: deve ter APENAS UM tipo de conteúdo (movie OU serie OU anime)
     @PrePersist
     @PreUpdate
     private void validateContent() {
         int nonNullCount = 0;
         if (movie != null) nonNullCount++;
-        if (serie != null) nonNullCount++;
+        if (series != null) nonNullCount++;
         if (anime != null) nonNullCount++;
 
         if (nonNullCount != 1) {

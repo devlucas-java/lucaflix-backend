@@ -1,13 +1,13 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.anime.AnimeMapper;
-import com.lucaflix.dto.media.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.media.movie.MovieMapper;
-import com.lucaflix.dto.media.movie.MovieSimpleDTO;
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.serie.SerieMapper;
-import com.lucaflix.dto.media.serie.SerieSimpleDTO;
-import com.lucaflix.model.MinhaLista;
+import com.lucaflix.dto.mapper.AnimeMapper;
+import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
+import com.lucaflix.dto.mapper.MovieMapper;
+import com.lucaflix.dto.response.movie.MovieSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.mapper.SerieMapper;
+import com.lucaflix.dto.response.serie.SerieSimpleDTO;
+import com.lucaflix.model.MyList;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.MinhaListaRepository;
 import com.lucaflix.repository.UserRepository;
@@ -45,18 +45,18 @@ public class MyListService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
+        Page<MyList> myListPage = minhaListaRepository.findByUser(user, pageable);
 
         List<Object> mediaList = new ArrayList<>();
 
-        for (MinhaLista item : myListPage.getContent()) {
+        for (MyList item : myListPage.getContent()) {
             if (item.getMovie() != null) {
                 MovieSimpleDTO movieDTO = movieMapper.convertToSimpleDTO(item.getMovie());
                 // Adiciona informação do tipo para identificação no frontend
                 movieDTO.setType("MOVIE");
                 mediaList.add(movieDTO);
-            } else if (item.getSerie() != null) {
-                SerieSimpleDTO serieDTO = serieMapper.convertToSimpleDTO(item.getSerie());
+            } else if (item.getSeries() != null) {
+                SerieSimpleDTO serieDTO = serieMapper.convertToSimpleDTO(item.getSeries());
                 serieDTO.setType("SERIE");
                 mediaList.add(serieDTO);
             } else if (item.getAnime() != null) {
@@ -87,7 +87,7 @@ public class MyListService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage;
+        Page<MyList> myListPage;
 
         // Usa diferentes métodos do repository baseado no tipo
         switch (type.toUpperCase()) {
@@ -101,7 +101,7 @@ public class MyListService {
 
         List<Object> mediaList = new ArrayList<>();
 
-        for (MinhaLista item : myListPage.getContent()) {
+        for (MyList item : myListPage.getContent()) {
             switch (type.toUpperCase()) {
                 case "MOVIE":
                     if (item.getMovie() != null) {
@@ -111,8 +111,8 @@ public class MyListService {
                     }
                     break;
                 case "SERIE":
-                    if (item.getSerie() != null) {
-                        SerieSimpleDTO serieDTO = serieMapper.convertToSimpleDTO(item.getSerie());
+                    if (item.getSeries() != null) {
+                        SerieSimpleDTO serieDTO = serieMapper.convertToSimpleDTO(item.getSeries());
                         serieDTO.setType("SERIE");
                         mediaList.add(serieDTO);
                     }
@@ -149,7 +149,7 @@ public class MyListService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
+        Page<MyList> myListPage = minhaListaRepository.findByUser(user, pageable);
 
         List<MovieSimpleDTO> mediaList = myListPage.getContent().stream()
                 .filter(item -> item.getMovie() != null)
@@ -174,11 +174,11 @@ public class MyListService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findByUser(user, pageable);
+        Page<MyList> myListPage = minhaListaRepository.findByUser(user, pageable);
 
         List<SerieSimpleDTO> seriesList = myListPage.getContent().stream()
-                .filter(item -> item.getSerie() != null)
-                .map(item -> serieMapper.convertToSimpleDTO(item.getSerie()))
+                .filter(item -> item.getSeries() != null)
+                .map(item -> serieMapper.convertToSimpleDTO(item.getSeries()))
                 .collect(Collectors.toList());
 
         return new PaginatedResponseDTO<>(
@@ -199,7 +199,7 @@ public class MyListService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataAdicao").descending());
-        Page<MinhaLista> myListPage = minhaListaRepository.findAnimesByUser(user, pageable);
+        Page<MyList> myListPage = minhaListaRepository.findAnimesByUser(user, pageable);
 
         List<AnimeSimpleDTO> animeList = myListPage.getContent().stream()
                 .filter(item -> item.getAnime() != null)

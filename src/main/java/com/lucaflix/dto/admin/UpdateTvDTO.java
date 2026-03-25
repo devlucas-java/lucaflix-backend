@@ -1,6 +1,6 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -13,7 +13,7 @@ public class UpdateTvDTO {
     @Size(max = 100, message = "País de origem deve ter no máximo 100 caracteres")
     private String paisOrigen;
 
-    private Categoria categoria;
+    private Categories categories;
 
     private String minAge;
 

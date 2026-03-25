@@ -19,7 +19,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import com.lucaflix.service.CustomUserDetailsService;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,7 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         logger.debug("Checking if path should be filtered: {}", path);
 
-        // Ignore endpoints that don't require authentication (seus endpoints fixos)
         if (path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/register") ||
                 path.startsWith("/api/movies/top10") ||
@@ -52,13 +50,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // Verificar se o endpoint tem a anotação @SkipJwtAuthentication
         try {
             HandlerExecutionChain handlerChain = requestMappingHandlerMapping.getHandler(request);
             if (handlerChain != null && handlerChain.getHandler() instanceof HandlerMethod) {
                 HandlerMethod handlerMethod = (HandlerMethod) handlerChain.getHandler();
 
-                // Verificar se o método tem a anotação
+                // Verificar se o mwtodo tem a anotação
                 if (handlerMethod.hasMethodAnnotation(SkipJwtAuthentication.class)) {
                     logger.debug("Skipping JWT authentication for method: {}", handlerMethod.getMethod().getName());
                     return true;
@@ -72,7 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             logger.debug("Could not determine handler for request: {}", e.getMessage());
-            // Se não conseguir determinar o handler, continue com a autenticação normal
         }
 
         return false;
@@ -150,16 +146,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Verifica se o endpoint atual tem autenticação opcional
-     */
     private boolean isOptionalAuthentication(HttpServletRequest request) {
         try {
             HandlerExecutionChain handlerChain = requestMappingHandlerMapping.getHandler(request);
             if (handlerChain != null && handlerChain.getHandler() instanceof HandlerMethod) {
                 HandlerMethod handlerMethod = (HandlerMethod) handlerChain.getHandler();
 
-                // Verificar se o método tem a anotação @OptionalAuthentication
+                // Verificar se o metodo tem a anotação @OptionalAuthentication
                 if (handlerMethod.hasMethodAnnotation(OptionalAuthentication.class)) {
                     return true;
                 }

@@ -1,18 +1,18 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.movie.MovieCompleteDTO;
-import com.lucaflix.dto.media.movie.MovieFilter;
-import com.lucaflix.dto.media.movie.MovieSimpleDTO;
-import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.response.movie.MovieCompleteDTO;
+import com.lucaflix.dto.request.movie.MovieFilter;
+import com.lucaflix.dto.response.movie.MovieSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.model.enums.Categoria;
-import com.lucaflix.security.CurrentUser;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class MovieController {
     @OptionalAuthentication
     public ResponseEntity<MovieCompleteDTO> getMovieById(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         MovieCompleteDTO movie = movieService.getMediaById(id,
                 currentUser != null ? currentUser.getId() : null);
@@ -82,7 +82,7 @@ public class MovieController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleLike(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean liked = movieService.toggleLike(currentUser.getId(), id);
         return ResponseEntity.ok(liked);
@@ -95,7 +95,7 @@ public class MovieController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleMyList(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean added = movieService.toggleMyList(currentUser.getId(), id);
         return ResponseEntity.ok(added);
@@ -133,11 +133,11 @@ public class MovieController {
     @GetMapping("/category/{categoria}")
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMoviesByCategory(
-            @PathVariable Categoria categoria,
+            @PathVariable Categories categories,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMediaByCategory(categoria, page, size);
+        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMediaByCategory(categories, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -160,7 +160,7 @@ public class MovieController {
     @GetMapping("/recommendations")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getRecommendations(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 

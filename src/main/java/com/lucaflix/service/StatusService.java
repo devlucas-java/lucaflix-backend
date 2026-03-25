@@ -14,7 +14,6 @@ public class StatusService {
     private final MovieRepository movieRepository;
     private final SerieRepository serieRepository;
     private final AnimeRepository animeRepository;
-    private final TvRepository tvRepository;
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
     private final UserRepository userRepository;
@@ -28,7 +27,6 @@ public class StatusService {
             stats.setTotalMovies(movieRepository.count());
             stats.setTotalSeries(serieRepository.count());
             stats.setTotalAnimes(animeRepository.count());
-            stats.setTotalTvs(tvRepository.count());
             stats.setTotalUsers(userRepository.count());
             stats.setTotalLikes(likeRepository.count());
             stats.setTotalListItems(minhaListaRepository.count());
@@ -149,32 +147,6 @@ public class StatusService {
 
         } catch (Exception e) {
             stats = new AllStatsDTO.AnimeStatsDTO();
-        }
-
-        return stats;
-    }
-
-    // ==================== ESTATÍSTICAS DE TV ====================
-
-    public AllStatsDTO.TvStatsDTO getTvStats() {
-        AllStatsDTO.TvStatsDTO stats = new AllStatsDTO.TvStatsDTO();
-
-        try {
-            // Contadores básicos
-            stats.setTotalTvs(tvRepository.count());
-
-            // TV tem um campo likes direto na entidade
-            // Vamos somar todos os likes de todas as TVs
-            long totalTvLikes = tvRepository.findAll().stream()
-                    .mapToLong(tv -> tv != null ? tv.getLikes() : 0)
-                    .sum();
-
-            stats.setTotalLikes(totalTvLikes);
-            stats.setAverageLikesPerTv(stats.getTotalTvs() > 0 ?
-                    Math.round((double) totalTvLikes / stats.getTotalTvs() * 100.0) / 100.0 : 0.0);
-
-        } catch (Exception e) {
-            stats = new AllStatsDTO.TvStatsDTO();
         }
 
         return stats;

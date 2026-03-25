@@ -1,7 +1,7 @@
 package com.lucaflix.repository;
 
 import com.lucaflix.model.Movie;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,7 +29,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     Page<Movie> buscarPorFiltros(
             @Param("title") String title,
             @Param("avaliacao") Double avaliacao,
-            @Param("categoria") Categoria categoria,
+            @Param("categoria") Categories categories,
             Pageable pageable);
 
     // Filmes com avaliação alta
@@ -37,7 +37,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
 
     // Por categoria
     @Query("SELECT m FROM Movie m WHERE :categoria MEMBER OF m.categoria")
-    Page<Movie> findByCategoria(@Param("categoria") Categoria categoria, Pageable pageable);
+    Page<Movie> findByCategoria(@Param("categoria") Categories categories, Pageable pageable);
 
     // Filmes populares (mais curtidos)
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m ORDER BY COUNT(l) DESC")
@@ -53,7 +53,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     // Filmes similares (categorias em comum, excluindo o atual)
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.categoria cat WHERE cat IN :categorias AND m.id != :excludeId")
     Page<Movie> findSimilarMovies(
-            @Param("categorias") List<Categoria> categorias,
+            @Param("categorias") List<Categories> categories,
             @Param("excludeId") Long excludeId,
             Pageable pageable);
 
@@ -88,8 +88,6 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             "AND (:categoria IS NULL OR c = :categoria) " +
             "ORDER BY m.dataCadastro DESC")
     Page<Movie> searchMovies(@Param("texto") String texto,
-                             @Param("categoria") Categoria categoria,
+                             @Param("categoria") Categories categories,
                              Pageable pageable);
-
-    Long countByDataCadastroAfter(Date weekAgoDate);
 }

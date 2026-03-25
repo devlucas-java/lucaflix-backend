@@ -1,12 +1,12 @@
 package com.lucaflix.service;
 
-import com.lucaflix.dto.media.anime.AnimeMapper;
-import com.lucaflix.dto.media.anime.AnimeCompleteDTO;
-import com.lucaflix.dto.media.anime.AnimeFilter;
-import com.lucaflix.dto.media.anime.AnimeSimpleDTO;
-import com.lucaflix.dto.media.PaginatedResponseDTO;
+import com.lucaflix.dto.mapper.AnimeMapper;
+import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
+import com.lucaflix.dto.request.anime.AnimeFilter;
+import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ public class AnimeService {
         Page<Anime> animePage = animeRepository.buscarPorFiltros(
                 filter.getTitle(),
                 filter.getAvaliacao(),
-                filter.getCategoria(),
+                filter.getCategories(),
                 pageable
         );
         return animeMapper.createPaginatedResponse(animePage);
@@ -91,16 +91,16 @@ public class AnimeService {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new RuntimeException("Anime não encontrado"));
 
-        MinhaLista existingItem = minhaListaRepository.findByUserAndAnime(user, anime).orElse(null);
+        MyList existingItem = minhaListaRepository.findByUserAndAnime(user, anime).orElse(null);
 
         if (existingItem != null) {
             minhaListaRepository.delete(existingItem);
             return false; // Removeu da lista
         } else {
-            MinhaLista minhaLista = new MinhaLista();
-            minhaLista.setUser(user);
-            minhaLista.setAnime(anime);
-            minhaListaRepository.save(minhaLista);
+            MyList myList = new MyList();
+            myList.setUser(user);
+            myList.setAnime(anime);
+            minhaListaRepository.save(myList);
             return true; // Adicionou à lista
         }
     }
@@ -120,9 +120,9 @@ public class AnimeService {
     }
 
     // Animes por categoria
-    public PaginatedResponseDTO<AnimeSimpleDTO> getAnimeByCategory(Categoria categoria, int page, int size) {
+    public PaginatedResponseDTO<AnimeSimpleDTO> getAnimeByCategory(Categories categories, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Anime> animePage = animeRepository.findByCategoria(categoria, pageable);
+        Page<Anime> animePage = animeRepository.findByCategoria(categories, pageable);
         return animeMapper.createPaginatedResponse(animePage);
     }
 
@@ -146,7 +146,7 @@ public class AnimeService {
                 .orElseThrow(() -> new RuntimeException("Anime não encontrado"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Anime> animePage = animeRepository.findSimilarAnimes(anime.getCategoria(), anime.getId(), pageable);
+        Page<Anime> animePage = animeRepository.findSimilarAnimes(anime.getCategories(), anime.getId(), pageable);
         return animeMapper.createPaginatedResponse(animePage);
     }
 

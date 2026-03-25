@@ -15,11 +15,13 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    Optional<User> findByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 
-    @Query("SELECT u FROM User u WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(:value)) OR LOWER(TRIM(u.email)) = LOWER(TRIM(:value))")
+    @Query("SELECT u " +
+            "FROM User u " +
+            "WHERE LOWER(TRIM(u.username)) = LOWER(TRIM(:value)) " +
+            "OR LOWER(TRIM(u.email)) = LOWER(TRIM(:value))")
     Optional<User> findByUsernameOrEmail(@Param("value") String usernameOrEmail);
 
     @Query("SELECT u FROM User u WHERE "

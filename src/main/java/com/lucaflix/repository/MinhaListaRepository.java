@@ -13,29 +13,29 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MinhaListaRepository extends JpaRepository<MinhaLista, Long> {
+public interface MinhaListaRepository extends JpaRepository<MyList, Long> {
 
     // Para filmes
     boolean existsByUserAndMovie(User user, Movie movie);
-    Optional<MinhaLista> findByUserAndMovie(User user, Movie movie);
+    Optional<MyList> findByUserAndMovie(User user, Movie movie);
     void deleteByMovie(Movie movie);
 
     // Para séries
-    boolean existsByUserAndSerie(User user, Serie serie);
-    Optional<MinhaLista> findByUserAndSerie(User user, Serie serie);
-    void deleteBySerie(Serie serie);
+    boolean existsByUserAndSerie(User user, Series series);
+    Optional<MyList> findByUserAndSerie(User user, Series series);
+    void deleteBySerie(Series series);
 
     // Para animes
     boolean existsByUserAndAnime(User user, Anime anime);
-    Optional<MinhaLista> findByUserAndAnime(User user, Anime anime);
+    Optional<MyList> findByUserAndAnime(User user, Anime anime);
     void deleteByAnime(Anime anime);
 
     // Busca toda a lista do usuário com paginação
-    Page<MinhaLista> findByUser(User user, Pageable pageable);
+    Page<MyList> findByUser(User user, Pageable pageable);
 
     // Busca apenas animes na lista do usuário
     @Query("SELECT ml FROM MinhaLista ml WHERE ml.user = :user AND ml.anime IS NOT NULL")
-    Page<MinhaLista> findAnimesByUser(@Param("user") User user, Pageable pageable);
+    Page<MyList> findAnimesByUser(@Param("user") User user, Pageable pageable);
 
     // Estatísticas
     @Query("SELECT COUNT(DISTINCT u.id) FROM MinhaLista ml JOIN ml.user u")
@@ -54,9 +54,7 @@ public interface MinhaListaRepository extends JpaRepository<MinhaLista, Long> {
     @Query("DELETE FROM MinhaLista ml WHERE ml.user.id = :userId")
     void deleteByUserId(@Param("userId") UUID userId);
 
-    long countDistinctUsersBySerieIsNotNull();
-
-    long countBySerie(Serie serie);
+    long countBySerie(Series series);
 
     long countByMovie(Movie movie);
 

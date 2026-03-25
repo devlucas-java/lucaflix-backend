@@ -34,11 +34,6 @@ public class StatsController {
         return ResponseEntity.ok(statusService.getAnimeStats());
     }
 
-    @GetMapping("/tvs")
-    public ResponseEntity<AllStatsDTO.TvStatsDTO> getTvStats() {
-        return ResponseEntity.ok(statusService.getTvStats());
-    }
-
     @GetMapping("/users")
     public ResponseEntity<AllStatsDTO.UserStatsDTO> getUserStats() {
         return ResponseEntity.ok(statusService.getUserStats());
@@ -51,7 +46,6 @@ public class StatsController {
         allStats.setMovies(statusService.getMovieStats());
         allStats.setSeries(statusService.getSerieStats());
         allStats.setAnimes(statusService.getAnimeStats());
-        allStats.setTvs(statusService.getTvStats());
         allStats.setUsers(statusService.getUserStats());
 
         return ResponseEntity.ok(allStats);

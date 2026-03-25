@@ -1,17 +1,17 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.PaginatedResponseDTO;
-import com.lucaflix.dto.media.serie.SerieCompleteDTO;
-import com.lucaflix.dto.media.serie.SerieSimpleDTO;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
+import com.lucaflix.dto.response.serie.SerieCompleteDTO;
+import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.model.enums.Categoria;
-import com.lucaflix.security.CurrentUser;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.SerieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,7 +53,7 @@ public class SerieController {
     @OptionalAuthentication
     public ResponseEntity<SerieCompleteDTO> getSerieById(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         SerieCompleteDTO serie = serieService.getSerieById(id,
                 currentUser != null ? currentUser.getId() : null);
@@ -67,7 +67,7 @@ public class SerieController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleLike(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean liked = serieService.toggleLike(currentUser.getId(), id);
         return ResponseEntity.ok(liked);
@@ -80,7 +80,7 @@ public class SerieController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Boolean> toggleMyList(
             @PathVariable Long id,
-            @CurrentUser User currentUser) {
+            @AuthenticationPrincipal User currentUser) {
 
         boolean added = serieService.toggleMyList(currentUser.getId(), id);
         return ResponseEntity.ok(added);
@@ -93,11 +93,11 @@ public class SerieController {
     @GetMapping("/category/{categoria}")
     @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSeriesByCategory(
-            @PathVariable Categoria categoria,
+            @PathVariable Categories categories,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getSeriesByCategory(categoria, page, size);
+        PaginatedResponseDTO<SerieSimpleDTO> response = serieService.getSeriesByCategory(categories, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -174,7 +174,7 @@ public class SerieController {
     @GetMapping("/recommendations")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getRecommendations(
-            @CurrentUser User currentUser,
+            @AuthenticationPrincipal User currentUser,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
 

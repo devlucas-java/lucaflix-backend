@@ -1,8 +1,8 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.auth.AuthDTO;
-import com.lucaflix.dto.user.UserDTO;
-import com.lucaflix.dto.user.UserMapper;
+import com.lucaflix.dto.request.user.UpdateUserDTO;
+import com.lucaflix.dto.mapper.UserMapper;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.Role;
 import com.lucaflix.repository.*;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.Random;
 
@@ -24,7 +23,6 @@ import java.util.Random;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final AdminPanelRepository adminPanelRepository;
     private final MinhaListaRepository minhaListaRepository;
     private final LikeRepository likeRepository;
     private final PasswordEncoder passwordEncoder;
@@ -157,7 +155,7 @@ public class UserService {
 
     /// ATUALIZA DADOS DO USUARIO
     @Transactional
-    public User updateUser(User user, UserDTO.UpdateUserRequest request) {
+    public User updateUser(User user, UpdateUserDTO.UpdateUserRequest request) {
         // Atualiza campos se fornecidos
         if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
             user.setFirstName(request.getFirstName().trim());
@@ -238,61 +236,12 @@ public class UserService {
         log.info("Conta do usuário {} foi {}", userId, locked ? "bloqueada" : "desbloqueada");
     }
 
-    /// DEFINE SE CONTA ESTA HABILITADA
-    @Transactional
-    public void setAccountEnabled(UUID userId, boolean enabled) {
-        User user = getUserById(userId);
-        user.setIsAccountEnabled(enabled);
-        userRepository.save(user);
-        log.info("Conta do usuário {} foi {}", userId, enabled ? "habilitada" : "desabilitada");
-    }
-
-    /// CRIA PAINEL ADMINISTRATIVO
-    @Transactional
-    public AdminPanel createAdminPanel(User user, Integer adminLevel) {
-        /// VERIFICA SE PAINEL ADMIN JA EXISTE
-        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
-        if (existingPanel.isPresent()) {
-            log.warn("Painel admin já existe para usuário: {}", user.getId());
-            return existingPanel.get();
-        }
-
-        AdminPanel adminPanel = new AdminPanel();
-        adminPanel.setUser(user);
-        adminPanel.setAdminLevel(adminLevel != null ? adminLevel : 1);
-
-        AdminPanel savedAdminPanel = adminPanelRepository.save(adminPanel);
-        log.info("Painel admin criado para usuário: {} com nível: {}", user.getId(), adminLevel);
-
-        return savedAdminPanel;
-    }
-
-    /// ATUALIZA NIVEL ADMINISTRATIVO
-    @Transactional
-    public void updateAdminLevel(UUID userId, Integer adminLevel) {
-        User user = getUserById(userId);
-        AdminPanel adminPanel = adminPanelRepository.findByUser(user)
-                .orElseThrow(() -> new EntityNotFoundException("Painel admin não encontrado para usuário: " + userId));
-
-        adminPanel.setAdminLevel(adminLevel);
-        adminPanelRepository.save(adminPanel);
-        log.info("Nível admin atualizado para {} para usuário: {}", adminLevel, userId);
-    }
-
     /// PROMOVE USUARIO A ADMINISTRADOR
     @Transactional
     public void promoteToAdmin(UUID userId, Integer adminLevel) {
         User user = getUserById(userId);
         user.setRole(Role.ADMIN);
         userRepository.save(user);
-
-        /// CRIA PAINEL ADMIN SE NAO EXISTIR
-        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
-        if (existingPanel.isEmpty()) {
-            createAdminPanel(user, adminLevel);
-        } else {
-            updateAdminLevel(userId, adminLevel);
-        }
 
         log.info("Usuário promovido a admin: {}", userId);
     }
@@ -304,14 +253,6 @@ public class UserService {
         user.setRole(Role.SUPER_ADMIN);
         userRepository.save(user);
 
-        /// CRIA OU ATUALIZA PAINEL ADMIN COM NIVEL MAXIMO
-        Optional<AdminPanel> existingPanel = adminPanelRepository.findByUser(user);
-        if (existingPanel.isEmpty()) {
-            createAdminPanel(user, 99);
-        } else {
-            updateAdminLevel(userId, 99);
-        }
-
         log.info("Usuário promovido a super admin: {}", userId);
     }
 
@@ -322,28 +263,11 @@ public class UserService {
         user.setRole(Role.USER);
         userRepository.save(user);
 
-        /// REMOVE PAINEL ADMIN
-        adminPanelRepository.findByUser(user).ifPresent(adminPanel -> {
-            adminPanelRepository.delete(adminPanel);
-            log.info("Painel admin removido para usuário: {}", userId);
-        });
-
         log.info("Usuário rebaixado para usuário comum: {}", userId);
     }
 
-    /// OBTEM PAINEL ADMINISTRATIVO DO USUARIO
-    public Optional<AdminPanel> getAdminPanelByUser(User user) {
-        return adminPanelRepository.findByUser(user);
-    }
-
-    /// CONVERTE USER PARA AUTH USER RESPONSE DTO
-    public AuthDTO.UserResponse convertToAuthUserResponse(User user) {
-        Optional<AdminPanel> adminPanel = getAdminPanelByUser(user);
-        return userMapper.toAuthUserResponse(user, adminPanel);
-    }
-
     /// CONVERTE USER PARA USER RESPONSE DTO
-    public UserDTO.UserResponse convertToUserResponse(User user) {
+    public UpdateUserDTO.UserResponse convertToUserResponse(User user) {
         return userMapper.toUserResponse(user);
     }
 
@@ -370,13 +294,6 @@ public class UserService {
             // Isso remove os itens da lista mas mantém as mídias
             minhaListaRepository.deleteByUserId(userId);
             log.info("Itens da lista do usuário {} deletados", user.getUsername());
-
-            // 3. Deletar o painel admin se existir
-            Optional<AdminPanel> adminPanel = adminPanelRepository.findByUser(user);
-            if (adminPanel.isPresent()) {
-                adminPanelRepository.delete(adminPanel.get());
-                log.info("Painel admin do usuário {} deletado", user.getUsername());
-            }
 
             // 4. Finalmente deletar o usuário
             // Agora não há mais referências que possam causar problemas

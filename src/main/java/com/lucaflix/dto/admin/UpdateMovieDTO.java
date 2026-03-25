@@ -1,10 +1,10 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
-import java.util.Date;
+
 import java.util.List;
 
 @Data
@@ -17,7 +17,7 @@ public class UpdateMovieDTO {
     private Integer duracaoMinutos;
 
     private String sinopse;
-    private List<Categoria> categoria;
+    private List<Categories> categories;
     private String minAge;
 
     @Min(value = 0, message = "Avaliação deve ser no mínimo 0")

@@ -3,8 +3,8 @@ package com.lucaflix.service;
 import com.lucaflix.dto.SitemapUrlDto;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.Movie;
-import com.lucaflix.model.Serie;
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.Series;
+import com.lucaflix.model.enums.Categories;
 import com.lucaflix.repository.AnimeRepository;
 import com.lucaflix.repository.MovieRepository;
 import com.lucaflix.repository.SerieRepository;
@@ -88,9 +88,9 @@ public class SitemapService {
         staticUrls.add(createSitemapUrl("/busca", now, "weekly", "0.8"));
 
         // Páginas de busca por categoria
-        for (Categoria categoria : Categoria.values()) {
-            if (categoria != Categoria.DESCONHECIDA) {
-                String categoriaUrl = formatCategoriaForUrl(categoria);
+        for (Categories categories : Categories.values()) {
+            if (categories != Categories.DESCONHECIDA) {
+                String categoriaUrl = formatCategoriaForUrl(categories);
 
                 // Páginas de categoria geral (sem tipo específico)
                 staticUrls.add(createSitemapUrl("/busca/" + categoriaUrl, now, "weekly", "0.6"));
@@ -138,9 +138,9 @@ public class SitemapService {
         List<SitemapUrlDto> serieUrls = new ArrayList<>();
 
         try {
-            List<Serie> series = serieRepository.findAllForSitemap();
+            List<Series> series = serieRepository.findAllForSitemap();
 
-            for (Serie serie : series) {
+            for (Series serie : series) {
                 if (serie.getTitle() != null && !serie.getTitle().trim().isEmpty()) {
                     serieUrls.addAll(createSerieUrls(serie));
                 }
@@ -197,18 +197,18 @@ public class SitemapService {
     /**
      * Cria todas as URLs possíveis para uma série - EXATAMENTE como no Router
      */
-    private List<SitemapUrlDto> createSerieUrls(Serie serie) {
+    private List<SitemapUrlDto> createSerieUrls(Series series) {
         List<SitemapUrlDto> urls = new ArrayList<>();
-        String titleSlug = formatTitleSlug(serie.getTitle(), serie.getAnoLancamento());
-        String lastmod = formatLastModified(serie.getDataCadastro());
+        String titleSlug = formatTitleSlug(series.getTitle(), series.getAnoLancamento());
+        String lastmod = formatLastModified(series.getDataCadastro());
 
         // URLs principais da série (prioridade máxima para SEO)
-        urls.add(createSitemapUrl("/serie/" + serie.getId() + "/" + titleSlug, lastmod, "monthly", "0.9"));
-        urls.add(createSitemapUrl("/series/serie/" + serie.getId() + "/" + titleSlug, lastmod, "monthly", "0.8"));
+        urls.add(createSitemapUrl("/serie/" + series.getId() + "/" + titleSlug, lastmod, "monthly", "0.9"));
+        urls.add(createSitemapUrl("/series/serie/" + series.getId() + "/" + titleSlug, lastmod, "monthly", "0.8"));
 
         // URLs sem slug (para compatibilidade - como no Router)
-        urls.add(createSitemapUrl("/serie/" + serie.getId(), lastmod, "monthly", "0.7"));
-        urls.add(createSitemapUrl("/series/serie/" + serie.getId(), lastmod, "monthly", "0.6"));
+        urls.add(createSitemapUrl("/serie/" + series.getId(), lastmod, "monthly", "0.7"));
+        urls.add(createSitemapUrl("/series/serie/" + series.getId(), lastmod, "monthly", "0.6"));
 
         return urls;
     }
@@ -304,8 +304,8 @@ public class SitemapService {
     /**
      * Formata categoria para URL
      */
-    private String formatCategoriaForUrl(Categoria categoria) {
-        return categoria.name()
+    private String formatCategoriaForUrl(Categories categories) {
+        return categories.name()
                 .toLowerCase()
                 .replace("_", "-")
                 .replace("ficcao-cientifica", "sci-fi");

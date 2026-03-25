@@ -2,7 +2,7 @@ package com.lucaflix.config;
 
 import com.lucaflix.security.JwtAuthenticationEntryPoint;
 import com.lucaflix.security.JwtAuthenticationFilter;
-import com.lucaflix.service.CustomUserDetailsService;
+import com.lucaflix.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

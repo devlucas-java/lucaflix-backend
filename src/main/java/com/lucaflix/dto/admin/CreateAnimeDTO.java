@@ -1,6 +1,6 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.List;
@@ -23,7 +23,7 @@ public class CreateAnimeDTO {
     private String sinopse;
 
     @NotEmpty(message = "Pelo menos uma categoria é obrigatória")
-    private List<Categoria> categoria;
+    private List<Categories> categories;
 
     private String minAge;
 

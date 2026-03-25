@@ -1,6 +1,6 @@
 package com.lucaflix.controller;
 
-import com.lucaflix.dto.media.*;
+import com.lucaflix.dto.response.page.PaginatedResponseDTO;
 import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.SearchService;
 import lombok.RequiredArgsConstructor;

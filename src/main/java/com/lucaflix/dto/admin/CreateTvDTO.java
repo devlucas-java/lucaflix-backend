@@ -1,6 +1,6 @@
 package com.lucaflix.dto.admin;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ public class CreateTvDTO {
     private String paisOrigen = "Brasil";
 
     @NotNull(message = "Categoria é obrigatória")
-    private Categoria categoria = Categoria.DESCONHECIDA;
+    private Categories categories = Categories.DESCONHECIDA;
 
     private String minAge = "10";
 

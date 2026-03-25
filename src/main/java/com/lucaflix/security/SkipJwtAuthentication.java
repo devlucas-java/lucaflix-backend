@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 /**
  * Anotação personalizada para pular a autenticação JWT em endpoints específicos.
- * Quando aplicada a um método de controller, o filtro JWT será ignorado para aquele endpoint.
+ * Quando aplicada a um metodo de controller, o filtro JWT será ignorado para aquele endpoint.
  *
  * Exemplo de uso:
  * @GetMapping("/public-endpoint")

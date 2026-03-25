@@ -2,12 +2,8 @@ package com.lucaflix.service;
 
 import com.lucaflix.dto.admin.CreateAnimeDTO;
 import com.lucaflix.dto.admin.UpdateAnimeDTO;
-import com.lucaflix.dto.admin.stats.*;
-import com.lucaflix.dto.media.anime.AnimeCompleteDTO;
+import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.model.Anime;
-import com.lucaflix.model.Movie;
-import com.lucaflix.model.Serie;
-import com.lucaflix.model.enums.Categoria;
 import com.lucaflix.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,11 +21,8 @@ import java.util.Optional;
 public class AdminAnimeService {
 
     private final AnimeRepository animeRepository;
-    private final MovieRepository movieRepository;
-    private final SerieRepository serieRepository;
     private final LikeRepository likeRepository;
     private final MinhaListaRepository minhaListaRepository;
-    private final UserRepository userRepository;
 
 
     // ==================== GERENCIAMENTO DE ANIMES ====================
@@ -51,7 +43,7 @@ public class AdminAnimeService {
         anime.setImdbId(createDTO.getImdbId());
         anime.setPaisOrigen(createDTO.getPaisOrigen());
         anime.setSinopse(createDTO.getSinopse());
-        anime.setCategoria(createDTO.getCategoria());
+        anime.setCategories(createDTO.getCategories());
         anime.setMinAge(createDTO.getMinAge());
         anime.setAvaliacao(createDTO.getAvaliacao());
         anime.setEmbed1(createDTO.getEmbed1());
@@ -104,8 +96,8 @@ public class AdminAnimeService {
         if (updateDTO.getSinopse() != null) {
             anime.setSinopse(updateDTO.getSinopse());
         }
-        if (updateDTO.getCategoria() != null) {
-            anime.setCategoria(updateDTO.getCategoria());
+        if (updateDTO.getCategories() != null) {
+            anime.setCategories(updateDTO.getCategories());
         }
         if (updateDTO.getMinAge() != null) {
             anime.setMinAge(updateDTO.getMinAge());
@@ -201,7 +193,7 @@ public class AdminAnimeService {
         dto.setPaisOrigen(anime.getPaisOrigen());
         dto.setSinopse(anime.getSinopse());
         dto.setDataCadastro(anime.getDataCadastro());
-        dto.setCategoria(anime.getCategoria());
+        dto.setCategories(anime.getCategories());
         dto.setMinAge(anime.getMinAge());
         dto.setAvaliacao(anime.getAvaliacao());
         dto.setEmbed1(anime.getEmbed1());

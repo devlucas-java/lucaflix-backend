@@ -1,6 +1,7 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.auth.AuthDTO;
+import com.lucaflix.dto.mapper.UserMapper;
 import com.lucaflix.model.User;
 import com.lucaflix.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final UserMapper userMapper;
     private final JwtTokenProvider tokenProvider;
 
     /// AUTENTICA UM USUARIO E RETORNA TOKEN JWT COM INFORMACOES DO USUARIO
@@ -48,7 +50,7 @@ public class AuthService {
             String jwt = tokenProvider.generateToken(authentication);
 
             /// CONVERTE USER PARA USER RESPONSE DTO
-            AuthDTO.UserResponse userResponse = userService.convertToAuthUserResponse(user);
+            AuthDTO.UserResponse userResponse = userMapper.toAuthUserResponse(user);
 
             log.info("Usuario logado com sucesso: {}", user.getUsername());
             return new AuthDTO.JwtAuthResponse(jwt, userResponse);
@@ -72,7 +74,7 @@ public class AuthService {
             User user = userService.createUser(signUpRequest);
 
             /// CONVERTE PARA USER RESPONSE DTO
-            AuthDTO.UserResponse userResponse = userService.convertToAuthUserResponse(user);
+            AuthDTO.UserResponse userResponse = userMapper.toAuthUserResponse(user);
 
             log.info("Usuario registrado com sucesso: {}", user.getUsername());
             return userResponse;
@@ -124,7 +126,7 @@ public class AuthService {
 
     /// OBTEM INFORMACOES DO USUARIO ATUAL
     public AuthDTO.UserResponse getCurrentUserInfo(User user) {
-        return userService.convertToAuthUserResponse(user);
+        return userMapper.toAuthUserResponse(user);
     }
 
     /// METODOS PRIVADOS DE VALIDACAO

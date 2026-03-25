@@ -1,10 +1,10 @@
 package com.lucaflix.model;
 
-import com.lucaflix.model.enums.Categoria;
+import com.lucaflix.model.enums.Categories;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -16,11 +16,11 @@ public class Anime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "ano_lancamento")
-    private Integer anoLancamento;
+    @Column(name = "year_realese")
+    private Integer yearRealese;
 
     @Column(name = "tmdb_id")
     private String tmdbId = null;
@@ -28,31 +28,30 @@ public class Anime {
     @Column(name = "imdb_id")
     private String imdbId = null;
 
-    @Column(name = "pais_origem")
-    private String paisOrigen = null;
+    @Column(name = "country_origin")
+    private String countryOrigin = null;
 
     @Column(columnDefinition = "TEXT")
-    private String sinopse;
+    private String synopsis;
 
-    @Column(name = "data_cadastro")
+    @Column(name = "date_registered")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dataCadastro = new Date();
+    private LocalDate dateRegistered = LocalDate.now();
 
-    // CORRIGIDO: Tabela específica para anime
-    @ElementCollection(targetClass = Categoria.class)
+    @ElementCollection(targetClass = Categories.class)
     @Enumerated(EnumType.STRING)
     @CollectionTable(
-            name = "anime_categoria",
+            name = "anime_category",
             joinColumns = @JoinColumn(name = "anime_id")
     )
-    @Column(name = "categoria")
-    private List<Categoria> categoria;
+    @Column(name = "categories")
+    private List<Categories> categories;
 
     @Column(name = "min_age")
     private String minAge;
 
-    @Column(name = "avaliacao")
-    private Double avaliacao;
+    @Column(name = "rating")
+    private Double rating;
 
     @Column(name = "embed_url_1")
     private String embed1;
@@ -82,16 +81,15 @@ public class Anime {
     @Column(name = "logo_url2")
     private String logoURL2;
 
-    @Column(name = "total_temporadas")
-    private Integer totalTemporadas = 0;
+    @Column(name = "total_season")
+    private Integer totalSeason = 0;
 
-    @Column(name = "total_episodios")
-    private Integer totalEpisodios = 0;
+    @Column(name = "total_episodes")
+    private Integer totalEpisodes = 0;
 
-    // CORRIGIDO: Relacionamentos específicos para anime
     @OneToMany(mappedBy = "anime", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private List<Like> likes;
 
     @OneToMany(mappedBy = "anime", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    private List<MinhaLista> minhaLista;
+    private List<MyList> myList;
 }
