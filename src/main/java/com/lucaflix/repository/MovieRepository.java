@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Long> {
+public interface MovieRepository extends JpaRepository<Movie, UUID> {
 
     // Top 10 mais curtidos
     @Query("SELECT m FROM Movie m LEFT JOIN m.likes l GROUP BY m.id ORDER BY COUNT(l) DESC")
@@ -54,7 +54,7 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
     @Query("SELECT DISTINCT m FROM Movie m JOIN m.categoria cat WHERE cat IN :categorias AND m.id != :excludeId")
     Page<Movie> findSimilarMovies(
             @Param("categorias") List<Categories> categories,
-            @Param("excludeId") Long excludeId,
+            @Param("excludeId") UUID excludeId,
             Pageable pageable);
 
     // Busca uma única mídia por título e ano exatos - Case-insensitive

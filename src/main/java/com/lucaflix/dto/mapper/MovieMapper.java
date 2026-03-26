@@ -1,6 +1,7 @@
 package com.lucaflix.dto.mapper;
 
 
+import com.lucaflix.dto.request.movie.CreateMovieDTO;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.model.Movie;
@@ -98,4 +99,38 @@ public class MovieMapper {
         return dto;
     };
 
+    public Movie toMovie(CreateMovieDTO dto) {
+
+        Movie movie = new Movie();
+
+        movie.setTitle(dto.getTitle());
+        movie.setYearRelease(dto.getYearRelease());
+        movie.setMinutesDuration(dto.getMinutesDuration());
+        movie.setSynopsis(dto.getSynopsis());
+        movie.setCategories(dto.getCategories());
+
+        movie.setTmdbId(dto.getTmdbId());
+        movie.setImdbId(dto.getImdbId());
+        movie.setCountryOrigin(dto.getCountryOrigin());
+
+        movie.setMinAge(dto.getMinAge());
+        movie.setRating(dto.getRating());
+
+        movie.setEmbed1(dto.getEmbed1());
+        movie.setEmbed2(dto.getEmbed2());
+        movie.setTrailer(dto.getTrailer());
+
+        movie.setPosterURL1(dto.getPosterURL1());
+        movie.setPosterURL2(dto.getPosterURL2());
+
+        movie.setBackdropURL1(dto.getBackdropURL1());
+        movie.setBackdropURL2(dto.getBackdropURL2());
+        movie.setBackdropURL3(dto.getBackdropURL3());
+        movie.setBackdropURL4(dto.getBackdropURL4());
+
+        movie.setLogoURL1(dto.getLogoURL1());
+        movie.setLogoURL2(dto.getLogoURL2());
+
+        return movie;
+    };
 }

@@ -1,21 +1,23 @@
 package com.lucaflix.controller;
 
+import com.lucaflix.dto.request.movie.CreateMovieDTO;
+import com.lucaflix.dto.request.movie.UpdateMovieDTO;
+import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
-import com.lucaflix.dto.request.movie.MovieFilter;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.model.enums.Categories;
 import com.lucaflix.security.OptionalAuthentication;
 import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.MovieService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/movies")
@@ -24,161 +26,48 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    /**
-     * Filtrar filmes com critérios específicos
-     */
     @PostMapping("/filter")
     @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(
-            @RequestBody MovieFilter filter,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(@RequestBody FilterDTO filter, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
 
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.filtrarMedia(filter, page, size);
-        return ResponseEntity.ok(response);
+        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMoviesFilter(filter, page, size);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    /**
-     * Obter todos os filmes com paginação
-     */
-    @GetMapping
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getAllMovies(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getNewReleases(page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Top 10 filmes mais curtidos
-     */
-    @GetMapping("/top10")
-    @SkipJwtAuthentication
-    public ResponseEntity<List<MovieSimpleDTO>> getTop10MostLiked() {
-        List<MovieSimpleDTO> movies = movieService.getTop10MostLiked();
-        return ResponseEntity.ok(movies);
-    }
-
-    /**
-     * Obter filme por ID
-     */
     @GetMapping("/{id}")
     @OptionalAuthentication
-    public ResponseEntity<MovieCompleteDTO> getMovieById(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<MovieCompleteDTO> getMovieById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
 
-        MovieCompleteDTO movie = movieService.getMediaById(id,
-                currentUser != null ? currentUser.getId() : null);
-        return ResponseEntity.ok(movie);
+        MovieCompleteDTO response = movieService.getMediaById(id, user);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    /**
-     * Toggle like em um filme (requer autenticação)
-     */
-    @PostMapping("/{id}/like")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<Boolean> toggleLike(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser) {
-
-        boolean liked = movieService.toggleLike(currentUser.getId(), id);
-        return ResponseEntity.ok(liked);
-    }
-
-    /**
-     * Toggle filme na lista do usuário (requer autenticação)
-     */
-    @PostMapping("/{id}/my-list")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<Boolean> toggleMyList(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser) {
-
-        boolean added = movieService.toggleMyList(currentUser.getId(), id);
-        return ResponseEntity.ok(added);
-    }
-
-    /**
-     * Filmes populares (mais curtidos)
-     */
-    @GetMapping("/popular")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getPopularMovies(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getPopularMovies(page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Novos lançamentos
-     */
-    @GetMapping("/new-releases")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getNewReleases(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getNewReleases(page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Filmes por categoria
-     */
-    @GetMapping("/category/{categoria}")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getMoviesByCategory(
-            @PathVariable Categories categories,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMediaByCategory(categories, page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Filmes com avaliação alta (≥ 7.0)
-     */
-    @GetMapping("/high-rated")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getHighRatedMovies(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getHighRatedMedia(page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Recomendações personalizadas (requer autenticação)
-     */
-    @GetMapping("/recommendations")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getRecommendations(
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getRecommendations(currentUser.getId(), page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Filmes similares
-     */
     @GetMapping("/{id}/similar")
     @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getSimilarMedia(id, page, size);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<MovieCompleteDTO> createMovie(@Valid @RequestBody CreateMovieDTO createDTO) {
+
+        MovieCompleteDTO response = movieService.createMovie(createDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MovieCompleteDTO> updateMovie(@PathVariable UUID id, @Valid @RequestBody UpdateMovieDTO updateDTO) {
+
+        MovieCompleteDTO response = movieService.updateMovie(updateDTO, id);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteMovie(@PathVariable UUID id) {
+
+        movieService.deleteMovie(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
