@@ -4,7 +4,7 @@ import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 
 @Data
-public class Filter {
+public class FilterDTO {
     private String title;
     private Double rating;
     private Categories categories;
