@@ -1,12 +1,10 @@
 package com.lucaflix.dto.response.others;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 @Data
-@RequiredArgsConstructor
 public class PaginatedResponseDTO<T> {
     private List<T> content;
     private int currentPage;

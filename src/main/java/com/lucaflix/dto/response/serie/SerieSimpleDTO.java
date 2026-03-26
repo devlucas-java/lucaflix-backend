@@ -21,7 +21,8 @@ public class SerieSimpleDTO {
     private String posterURL1;
     private String posterURL2;
 
-    private Integer totalSeason;
-    private Integer totalEpisodes;
+    private long totalSeason;
+    private boolean userLiked;
+    private boolean inMyList;
     private Long totalLikes;
 }

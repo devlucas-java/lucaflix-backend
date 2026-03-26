@@ -35,11 +35,8 @@ public class SerieCompleteDTO {
     private String logoURL1;
     private String logoURL2;
 
-    private Integer totalSeason;
-    private Integer totalEpisodes;
+    private long totalSeason;
     private Long totalLikes;
     private Boolean userLiked;
-    private Boolean inUserList;
-
-    private List<SeasonDTO> seasons;
+    private Boolean inMyList;
 }

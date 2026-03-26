@@ -1,7 +1,8 @@
 package com.lucaflix.dto.response.serie;
 
 import lombok.Data;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 @Data
 public class EpisodeDTO {
@@ -11,7 +12,7 @@ public class EpisodeDTO {
     private String title;
     private String synopsis;
     private Integer minutesDuration;
-    private LocalDate dateRegistered;
+    private LocalDateTime dateRegistered;
     private String embed1;
     private String embed2;
 }

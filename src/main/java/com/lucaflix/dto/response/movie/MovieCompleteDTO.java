@@ -2,13 +2,15 @@ package com.lucaflix.dto.response.movie;
 
 import com.lucaflix.model.enums.Categories;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class MovieCompleteDTO {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String type = "MOVIE";
     private Integer yearRelease;
@@ -38,5 +40,5 @@ public class MovieCompleteDTO {
 
     private Long totalLikes;
     private Boolean userLiked;
-    private Boolean inMyList;
+    private Boolean inUserList;
 }

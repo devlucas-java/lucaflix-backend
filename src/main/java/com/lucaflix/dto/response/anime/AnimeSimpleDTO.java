@@ -28,5 +28,7 @@ public class AnimeSimpleDTO {
     private Integer totalSeason;
     private Integer totalEpisodes;
 
+    private boolean userLiked;
+    private boolean inUserList;
     private Long totalLikes;
 }
