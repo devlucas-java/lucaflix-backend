@@ -1,4 +1,4 @@
-package com.lucaflix.service.utils;
+package com.lucaflix.service.utils.sanitize;
 
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
