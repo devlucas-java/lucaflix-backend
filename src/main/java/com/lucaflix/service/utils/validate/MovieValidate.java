@@ -1,4 +1,4 @@
-package com.lucaflix.service.validate;
+package com.lucaflix.service.utils.validate;
 
 import com.lucaflix.dto.request.movie.UpdateMovieDTO;
 import com.lucaflix.model.Movie;

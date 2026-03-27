@@ -16,7 +16,7 @@ import java.util.UUID;
 public class Movie {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, length = 255)
@@ -88,7 +88,4 @@ public class Movie {
 
     @OneToMany(mappedBy = "movie", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Set<Like> likes = new HashSet<>();
-
-    @ManyToMany(mappedBy = "movies", fetch = FetchType.LAZY)
-    private Set<MyList> myLists = new HashSet<>();
 }

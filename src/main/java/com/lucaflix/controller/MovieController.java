@@ -27,15 +27,13 @@ public class MovieController {
     private final MovieService movieService;
 
     @PostMapping("/filter")
-    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(@RequestBody FilterDTO filter, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
 
-        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getMoviesFilter(filter, page, size);
+        PaginatedResponseDTO<MovieSimpleDTO> response = movieService.filterMovies(filter, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{id}")
-    @OptionalAuthentication
     public ResponseEntity<MovieCompleteDTO> getMovieById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
 
         MovieCompleteDTO response = movieService.getMediaById(id, user);
@@ -43,7 +41,6 @@ public class MovieController {
     }
 
     @GetMapping("/{id}/similar")
-    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getSimilarMedia(id, page, size);
@@ -58,7 +55,7 @@ public class MovieController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MovieCompleteDTO> updateMovie(@PathVariable UUID id, @Valid @RequestBody UpdateMovieDTO updateDTO) {
+    public ResponseEntity<MovieCompleteDTO> updateMovie(@Valid @PathVariable UUID id, @Valid @RequestBody UpdateMovieDTO updateDTO) {
 
         MovieCompleteDTO response = movieService.updateMovie(updateDTO, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);

@@ -7,14 +7,14 @@ import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MyListRepository;
+import com.lucaflix.repository.MyListItemRepository;
 import lombok.RequiredArgsConstructor;
 
 
 @RequiredArgsConstructor
 public class MovieMapper {
 
-    private final MyListRepository myListRepository;
+    private final MyListItemRepository myListItemRepository;
     private final LikeRepository likeRepository;
 
     public MovieCompleteDTO toComplete(Movie movie, User user) {
@@ -26,7 +26,7 @@ public class MovieMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndMovie(user, movie);
-            boolean myList = myListRepository.existsByUserAndMovie(user, movie);
+            boolean myList = myListItemRepository.existsByUserAndMovie(user, movie);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);
@@ -74,7 +74,7 @@ public class MovieMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndMovie(user, movie);
-            boolean myList = myListRepository.existsByUserAndMovie(user, movie);
+            boolean myList = myListItemRepository.existsByUserAndMovie(user, movie);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);

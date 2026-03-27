@@ -12,9 +12,11 @@ import com.lucaflix.model.Movie;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MovieRepository;
-import com.lucaflix.repository.MyListRepository;
+import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.UserRepository;
-import com.lucaflix.service.validate.MovieValidate;
+import com.lucaflix.service.utils.sanitize.SanitizeUtils;
+import com.lucaflix.service.utils.spec.MovieSpecification;
+import com.lucaflix.service.utils.validate.MovieValidate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,28 +36,40 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final MovieValidate movieValidate;
     private final LikeRepository likeRepository;
-    private final MyListRepository myListRepository;
+    private final MyListItemRepository myListItemRepository;
     private final MovieMapper movieMapper;
     private final PageMapper pageMapper;
     private final UserRepository userRepository;
 
-    public PaginatedResponseDTO<MovieSimpleDTO> getMoviesFilter(FilterDTO filter, int page, int size) {
-        if (page <= 0 || page > 100) {
-            page = 0;
-        }
-        if (size <= 0 || size > 100) {
-            size = 30;
-        }
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "dateRegistered"));
+    public PaginatedResponseDTO<MovieSimpleDTO> filterMovies(FilterDTO filter, int page, int size) {
 
-        Page<Movie> mediaPage = movieRepository.buscarPorFiltros(filter.getTitle(), filter.getRating(), filter.getCategories(), pageable);
-        return pageMapper.toPaginatedDTO(mediaPage, movie -> movieMapper.toSimple(movie, null));
+        if (page < 0) page = 0;
+        if (size <= 0 || size > 100) size = 20;
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "dateRegistered")
+        );
+        MovieSpecification spec = new MovieSpecification(filter);
+        Page<Movie> result = movieRepository.findAll(spec, pageable);
+
+        return pageMapper.toPaginatedDTO(
+                result,
+                movie -> movieMapper.toSimple(movie, null)
+        );
     }
 
     public MovieCompleteDTO getMediaById(UUID mediaId, User userRequest) {
 
-        User user = userRepository.findById(userRequest.getId()).orElseThrow(() -> new RuntimeException("User not found"));
-        Movie movie = movieRepository.findById(mediaId).orElseThrow(() -> new RuntimeException("Movie not found"));
+        User user = null;
+        if (userRequest != null) {
+            user = userRepository.findById(userRequest.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        }
+        Movie movie = movieRepository.findById(mediaId)
+                .orElseThrow(() -> new RuntimeException("Movie not found"));
+
         return movieMapper.toComplete(movie, user);
     }
 
@@ -74,19 +88,22 @@ public class MovieService {
         return pageMapper.toPaginatedDTO(mediaPage, media -> movieMapper.toSimple(media, null));
     }
 
-    public MovieCompleteDTO createMovie(CreateMovieDTO movieRequest){
-        Movie movie = movieMapper.toMovie(movieRequest);
+    public MovieCompleteDTO createMovie(CreateMovieDTO createDTO) {
+        SanitizeUtils.sanitizeStrings(createDTO);
 
+        Movie movie = movieMapper.toMovie(createDTO);
         movieRepository.save(movie);
 
         return movieMapper.toComplete(movie, null);
     }
 
-    public MovieCompleteDTO updateMovie(UpdateMovieDTO dto, UUID id) {
+    public MovieCompleteDTO updateMovie(UpdateMovieDTO updateDTO, UUID id) {
+        SanitizeUtils.sanitizeStrings(updateDTO);
+
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Movie not found"));
 
-        movieValidate.validUpdate(dto, movie);
+        movieValidate.validUpdate(updateDTO, movie);
         movieRepository.save(movie);
 
         return movieMapper.toComplete(movie, null);
@@ -94,10 +111,7 @@ public class MovieService {
 
     @Transactional
     public void deleteMovie(UUID id) {
-        Movie movie = movieRepository.findById(id).orElseThrow(() -> new RuntimeException("Movie not found"));
-
-        likeRepository.deleteByMovie(movie);
-        myListRepository.deleteByMovie(movie);
+        movieRepository.findById(id).orElseThrow(() -> new RuntimeException("Movie not found"));
 
         movieRepository.deleteById(id);
     }
