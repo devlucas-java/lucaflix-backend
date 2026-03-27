@@ -1,159 +1,106 @@
 package com.lucaflix.service;
 
 import com.lucaflix.dto.mapper.AnimeMapper;
+import com.lucaflix.dto.mapper.PageMapper;
+import com.lucaflix.dto.request.anime.CreateAnimeDTO;
+import com.lucaflix.dto.request.anime.UpdateAnimeDTO;
+import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
-import com.lucaflix.dto.request.anime.AnimeFilter;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
-import com.lucaflix.model.*;
-import com.lucaflix.model.enums.Categories;
-import com.lucaflix.repository.*;
+import com.lucaflix.model.Anime;
+import com.lucaflix.model.User;
+import com.lucaflix.repository.AnimeRepository;
+import com.lucaflix.repository.LikeRepository;
+import com.lucaflix.repository.MyListItemRepository;
+import com.lucaflix.repository.UserRepository;
+import com.lucaflix.service.utils.spec.AnimeSpecification;
+import com.lucaflix.service.utils.validate.AnimeValidate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AnimeService {
 
     private final AnimeRepository animeRepository;
-    private final LikeRepository likeRepository;
-    private final MinhaListaRepository minhaListaRepository;
-    private final UserRepository userRepository;
     private final AnimeMapper animeMapper;
+    private final AnimeValidate animeValidate;
+    private final PageMapper pageMapper;
+    private final LikeRepository likeRepository;
+    private final MyListItemRepository myListItemRepository;
+    private final UserRepository userRepository;
 
-    // Filtro de animes
-    public PaginatedResponseDTO<AnimeSimpleDTO> filtrarAnime(AnimeFilter filter, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Anime> animePage = animeRepository.buscarPorFiltros(
-                filter.getTitle(),
-                filter.getAvaliacao(),
-                filter.getCategories(),
-                pageable
-        );
-        return animeMapper.createPaginatedResponse(animePage);
+
+    public PaginatedResponseDTO<AnimeSimpleDTO> filterAnime(FilterDTO filter, int page, int size) {
+
+        if (page < 0) page = 0;
+        if (size <= 0 || size > 100) size = 20;
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "dateRegistered"));
+
+        AnimeSpecification spec = new AnimeSpecification(filter);
+        Page<Anime> animePage = animeRepository.findAll(spec, pageable);
+
+        return pageMapper.toPaginatedDTO(animePage, a -> animeMapper.toSimple(a, null));
     }
 
-    // Top 10 mais curtidos
-    public List<AnimeSimpleDTO> getTop10MostLiked() {
-        List<Anime> topAnimes = animeRepository.findTop10ByLikes(PageRequest.of(0, 10));
-        return topAnimes.stream()
-                .map(animeMapper::convertToSimpleDTO)
-                .collect(Collectors.toList());
-    }
-
-    public AnimeCompleteDTO getAnimeById(Long animeId, UUID userId) {
-        Anime anime = animeRepository.findById(animeId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Anime não encontrado"
-                ));
-        return animeMapper.convertToCompleteDTO(anime, userId);
-    }
-
-    // Toggle Like - adiciona se não existir, remove se existir
-    @Transactional
-    public boolean toggleLike(UUID userId, Long animeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        Anime anime = animeRepository.findById(animeId)
-                .orElseThrow(() -> new RuntimeException("Anime não encontrado"));
-
-        Like existingLike = likeRepository.findByUserAndAnime(user, anime).orElse(null);
-
-        if (existingLike != null) {
-            likeRepository.delete(existingLike);
-            return false; // Removeu like
-        } else {
-            Like like = new Like();
-            like.setUser(user);
-            like.setAnime(anime);
-            likeRepository.save(like);
-            return true; // Adicionou like
+    public AnimeCompleteDTO getAnimeById(UUID id, User userRequest) {
+        User user = null;
+        if (userRequest != null) {
+            user = userRepository.findById(userRequest.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
         }
+        Anime anime = animeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Anime not found"));
+
+        return animeMapper.toComplete(anime, user);
     }
 
-    // Toggle Minha Lista - adiciona se não existir, remove se existir
-    @Transactional
-    public boolean toggleMyList(UUID userId, Long animeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    public PaginatedResponseDTO<AnimeSimpleDTO> getSimilarAnimes(UUID animeId, int page, int size) {
         Anime anime = animeRepository.findById(animeId)
-                .orElseThrow(() -> new RuntimeException("Anime não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Anime not found"));
 
-        MyList existingItem = minhaListaRepository.findByUserAndAnime(user, anime).orElse(null);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
+        Page<Anime> animePage = animeRepository.findSimilarAnimes(
+                anime.getCategories(),
+                anime.getId(),
+                pageable);
 
-        if (existingItem != null) {
-            minhaListaRepository.delete(existingItem);
-            return false; // Removeu da lista
-        } else {
-            MyList myList = new MyList();
-            myList.setUser(user);
-            myList.setAnime(anime);
-            minhaListaRepository.save(myList);
-            return true; // Adicionou à lista
-        }
+        return pageMapper.toPaginatedDTO(animePage, a -> animeMapper.toSimple(a, null));
     }
 
-    // Animes populares (mais curtidos)
-    public PaginatedResponseDTO<AnimeSimpleDTO> getPopularAnimes(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Anime> animePage = animeRepository.findPopularAnimes(pageable);
-        return animeMapper.createPaginatedResponse(animePage);
+    public AnimeCompleteDTO updateAnime(UpdateAnimeDTO updateDTO, UUID id){
+        Anime anime = animeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Anime not found"));
+
+        animeValidate.validUpdate(updateDTO, anime);
+        animeRepository.save(anime);
+        return animeMapper.toComplete(anime, null);
     }
 
-    // Novos lançamentos
-    public PaginatedResponseDTO<AnimeSimpleDTO> getNewReleases(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Anime> animePage = animeRepository.findAll(pageable);
-        return animeMapper.createPaginatedResponse(animePage);
+    public AnimeCompleteDTO createAnime(CreateAnimeDTO createDTO) {
+
+        Anime anime = animeMapper.toEntity(createDTO);
+        Anime saved = animeRepository.save(anime);
+
+        return animeMapper.toComplete(saved, null);
     }
 
-    // Animes por categoria
-    public PaginatedResponseDTO<AnimeSimpleDTO> getAnimeByCategory(Categories categories, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Anime> animePage = animeRepository.findByCategoria(categories, pageable);
-        return animeMapper.createPaginatedResponse(animePage);
-    }
+    public void deleteAnime(UUID id) {
+        Anime anime = animeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Anime not found"));
 
-    // Animes com avaliação alta
-    public PaginatedResponseDTO<AnimeSimpleDTO> getHighRatedAnimes(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Anime> animePage = animeRepository.findByAvaliacaoGreaterThanEqual(7.0, pageable);
-        return animeMapper.createPaginatedResponse(animePage);
-    }
+        likeRepository.deleteByAnime(anime);
+        myListItemRepository.deleteByAnime(anime);
 
-    // Recomendações
-    public PaginatedResponseDTO<AnimeSimpleDTO> getRecommendations(UUID userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Anime> animePage = animeRepository.findRecommendations(userId, pageable);
-        return animeMapper.createPaginatedResponse(animePage);
-    }
-
-    // Similar
-    public PaginatedResponseDTO<AnimeSimpleDTO> getSimilarAnimes(Long animeId, int page, int size) {
-        Anime anime = animeRepository.findById(animeId)
-                .orElseThrow(() -> new RuntimeException("Anime não encontrado"));
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "avaliacao"));
-        Page<Anime> animePage = animeRepository.findSimilarAnimes(anime.getCategories(), anime.getId(), pageable);
-        return animeMapper.createPaginatedResponse(animePage);
-    }
-
-    // Animes por ano
-    public PaginatedResponseDTO<AnimeSimpleDTO> getAnimesByYear(Integer year, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "dataCadastro"));
-        Page<Anime> animePage = animeRepository.findByYear(year, pageable);
-        return animeMapper.createPaginatedResponse(animePage);
+        animeRepository.deleteById(id);
     }
 }

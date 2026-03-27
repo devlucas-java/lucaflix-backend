@@ -4,11 +4,12 @@ import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class AnimeSimpleDTO {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String type = "ANIME";
     private Integer yearRealese;

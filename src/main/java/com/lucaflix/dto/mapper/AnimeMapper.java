@@ -1,20 +1,21 @@
 package com.lucaflix.dto.mapper;
 
+import com.lucaflix.dto.request.anime.CreateAnimeDTO;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MyListRepository;
+import com.lucaflix.repository.MyListItemRepository;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class AnimeMapper {
 
     private final LikeRepository likeRepository;
-    private final MyListRepository myListRepository;
+    private final MyListItemRepository myListItemRepository;
 
-    public AnimeSimpleDTO animeSimpleDTO(Anime anime, User user) {
+    public AnimeSimpleDTO toSimple(Anime anime, User user) {
 
         AnimeSimpleDTO dto = new AnimeSimpleDTO();
 
@@ -23,7 +24,7 @@ public class AnimeMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndAnime(user, anime);
-            boolean myList = myListRepository.existsByUserAndAnime(user, anime);
+            boolean myList = myListItemRepository.existsByUserAndAnime(user, anime);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);
@@ -54,7 +55,7 @@ public class AnimeMapper {
         return dto;
     }
 
-    public AnimeCompleteDTO animeCompleteDTO(Anime anime, User user) {
+    public AnimeCompleteDTO toComplete(Anime anime, User user) {
 
         AnimeCompleteDTO dto = new AnimeCompleteDTO();
 
@@ -63,7 +64,7 @@ public class AnimeMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndAnime(user, anime);
-            boolean myList = myListRepository.existsByUserAndAnime(user, anime);
+            boolean myList = myListItemRepository.existsByUserAndAnime(user, anime);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);
@@ -102,5 +103,47 @@ public class AnimeMapper {
         dto.setTotalLikes((long) anime.getLikes().size());
 
         return dto;
+    }
+
+    public Anime toEntity(CreateAnimeDTO dto) {
+
+        Anime anime = new Anime();
+
+        anime.setTitle(dto.getTitle().trim());
+        anime.setYearRealese(dto.getYearRealese());
+        anime.setTmdbId(dto.getTmdbId());
+        anime.setImdbId(dto.getImdbId());
+        anime.setCountryOrigin(dto.getCountryOrigin());
+        anime.setSynopsis(dto.getSynopsis());
+
+        anime.setCategories(
+                dto.getCategories()
+                        .stream()
+                        .distinct()
+                        .toList()
+        );
+
+        anime.setMinAge(dto.getMinAge());
+        anime.setRating(dto.getRating());
+
+        anime.setEmbed1(dto.getEmbed1());
+        anime.setEmbed2(dto.getEmbed2());
+        anime.setTrailer(dto.getTrailer());
+
+        anime.setPosterURL1(dto.getPosterURL1());
+        anime.setPosterURL2(dto.getPosterURL2());
+
+        anime.setBackdropURL1(dto.getBackdropURL1());
+        anime.setBackdropURL2(dto.getBackdropURL2());
+        anime.setBackdropURL3(dto.getBackdropURL3());
+        anime.setBackdropURL4(dto.getBackdropURL4());
+
+        anime.setLogoURL1(dto.getLogoURL1());
+        anime.setLogoURL2(dto.getLogoURL2());
+
+        anime.setTotalSeason(dto.getTotalSeason() != null ? dto.getTotalSeason() : 0);
+        anime.setTotalEpisodes(dto.getTotalEpisodes() != null ? dto.getTotalEpisodes() : 0);
+
+        return anime;
     }
 }

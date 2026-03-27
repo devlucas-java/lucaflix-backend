@@ -5,6 +5,7 @@ import com.lucaflix.model.enums.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AnimeRepository extends JpaRepository<Anime, Long> {
+public interface AnimeRepository extends JpaRepository<Anime, UUID>, JpaSpecificationExecutor<Anime> {
 
     // Top 10 mais curtidos
     @Query("SELECT a FROM Anime a LEFT JOIN a.likes l GROUP BY a.id ORDER BY COUNT(l) DESC")
@@ -57,7 +58,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     @Query("SELECT DISTINCT a FROM Anime a JOIN a.categoria cat WHERE cat IN :categorias AND a.id != :excludeId")
     Page<Anime> findSimilarAnimes(
             @Param("categorias") List<Categories> categories,
-            @Param("excludeId") Long excludeId,
+            @Param("excludeId") UUID excludeId,
             Pageable pageable);
 
     // Busca uma única mídia por título e ano exatos - CORRIGIDO para Integer
