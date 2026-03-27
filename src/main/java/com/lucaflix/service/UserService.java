@@ -1,15 +1,23 @@
 package com.lucaflix.service;
 
+import com.lucaflix.dto.mapper.PageMapper;
 import com.lucaflix.dto.mapper.UserMapper;
+import com.lucaflix.dto.request.others.FilterUserDTO;
 import com.lucaflix.dto.request.user.UpdateUserDTO;
+import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MinhaListaRepository;
+import com.lucaflix.model.enums.Plan;
+import com.lucaflix.model.enums.Role;
 import com.lucaflix.repository.UserRepository;
+import com.lucaflix.service.utils.spec.UserSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,21 +29,32 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final MinhaListaRepository minhaListaRepository;
-    private final LikeRepository likeRepository;
     private final UserMapper userMapper;
+    private final PageMapper pageMapper;
 
     public UserDTO getMe(User userRequest) {
-
         User user = userRepository.findById(userRequest.getId()).
                 orElseThrow(() -> new RuntimeException("User not found"));
-
         return userMapper.toUserDTO(user);
+    }
+
+    public UserDTO getUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userMapper.toUserDTO(user);
+    }
+
+    public PaginatedResponseDTO<UserDTO> filterUser(FilterUserDTO filter, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        UserSpecification spec = new UserSpecification(filter);
+
+        Page<User> userPage = userRepository.findAll(spec, pageable);
+        return pageMapper.toPaginatedDTO(userPage, userMapper::toUserDTO);
     }
 
     @Transactional
     public UserDTO updateMe(User userRequest, UpdateUserDTO request) {
-
         if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
             userRequest.setFirstName(request.getFirstName().trim());
         }
@@ -66,19 +85,79 @@ public class UserService {
         }
 
         User user = userRepository.save(userRequest);
-
         return userMapper.toUserDTO(user);
     }
 
     @Transactional
-    public void deleteMe(UUID userId) {
-
-        User user = userRepository.findById(userId)
+    public void deleteUser(UUID id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
 
-        likeRepository.deleteByUserId(userId);
-        minhaListaRepository.deleteByUserId(userId);
-
         userRepository.delete(user);
+    }
+
+    public UserDTO demoteUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
+
+        if (user.getRole() == Role.USER) {
+            throw new RuntimeException("User already has the role lowest, USER");
+        }
+        if (user.getRole() == Role.ADMIN) {
+            user.setRole(Role.USER);
+        }
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            user.setRole(Role.ADMIN);
+        }
+        userRepository.save(user);
+        return userMapper.toUserDTO(user);
+    }
+
+    public UserDTO promoteUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
+
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            throw new RuntimeException("User already has max role, SUPER_ADMIN");
+        }
+        if (user.getRole() == Role.ADMIN) {
+            user.setRole(Role.SUPER_ADMIN);
+        }
+        if (user.getRole() == Role.USER) {
+            user.setRole(Role.ADMIN);
+        }
+        userRepository.save(user);
+        return userMapper.toUserDTO(user);
+    }
+
+    public UserDTO LockeUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found by id"));
+
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            throw new RuntimeException("Not possible to block SUPER_ADMIN");
+        }
+
+        user.setIsAccountLocked(true);
+        userRepository.save(user);
+        return userMapper.toUserDTO(user);
+    }
+
+    public UserDTO unLockUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found by id"));
+
+        user.setIsAccountLocked(false);
+        userRepository.save(user);
+        return userMapper.toUserDTO(user);
+    }
+
+    public UserDTO updatePlan(UUID id, Plan plan) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found by id"));
+
+        user.setPlan(plan);
+        userRepository.save(user);
+        return userMapper.toUserDTO(user);
     }
 }

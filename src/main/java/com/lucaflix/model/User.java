@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,7 +67,7 @@ public class User implements UserDetails {
     private List<Like> likes;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private MyList myList;
+    private MyListItem myList;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
