@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EpisodioRepository extends JpaRepository<Episode, Long> {
+public interface EpisodeRepository extends JpaRepository<Episode, Long> {
 
     // Buscar episódios de uma temporada específica
     List<Episode> findByTemporadaOrderByNumeroEpisodioAsc(Season season);
@@ -22,11 +22,5 @@ public interface EpisodioRepository extends JpaRepository<Episode, Long> {
     // Contar episódios de uma temporada
     long countByTemporada(Season season);
 
-    // Buscar episódios de uma série específica
-    @Query("SELECT e FROM Episodio e WHERE e.serie = :serie ORDER BY e.temporada.numeroTemporada ASC, e.numeroEpisodio ASC")
-    List<Episode> findBySerieOrderByTemporadaAndEpisodio(@Param("serie") Series series);
-
-    // Contar episódios de uma série
-    long countBySerie(Series series);
-
+    List<Episode> findBySeasonOrderByIdAsc(Season season);
 }
