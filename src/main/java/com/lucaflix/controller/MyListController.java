@@ -1,96 +1,57 @@
 package com.lucaflix.controller;
 
+import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.service.MyListService;
+import com.lucaflix.model.enums.MediaType;
+import com.lucaflix.service.MyListItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/my-list")
 @RequiredArgsConstructor
 public class MyListController {
 
-    private final MyListService myListService;
+    private final MyListItemService myListItemService;
 
-    /**
-     * Obter todos os itens da lista do usuário (filmes, séries e animes)
-     */
     @GetMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyList(
-            @AuthenticationPrincipal User currentUser,
+            @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestBody FilterDTO filter) {
 
-        PaginatedResponseDTO<Object> response = myListService.getMyList(currentUser.getId(), page, size);
+        PaginatedResponseDTO<Object> response = myListItemService.getMyList(user, filter, page, size);
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Obter apenas filmes da lista do usuário
-     */
-    @GetMapping("/movies")
+    @PostMapping("/{id}/{type}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<Object>> getMyListMovies(
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+    public ResponseEntity<Void> addMyList(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id,
+            @PathVariable MediaType type
+    ) {
 
-        PaginatedResponseDTO<Object> response = myListService.getMyListByType(currentUser.getId(), "MOVIE", page, size);
-        return ResponseEntity.ok(response);
+        myListItemService.addMyList(id, user, type);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    /**
-     * Obter apenas séries da lista do usuário
-     */
-    @GetMapping("/series")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<Object>> getMyListSeries(
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        PaginatedResponseDTO<Object> response = myListService.getMyListByType(currentUser.getId(), "SERIE", page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Obter apenas animes da lista do usuário
-     */
-    @GetMapping("/animes")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<Object>> getMyListAnimes(
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        PaginatedResponseDTO<Object> response = myListService.getMyListByType(currentUser.getId(), "ANIME", page, size);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Endpoint unificado com parâmetro de filtro por tipo
-     */
-    @GetMapping("/filter")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<PaginatedResponseDTO<Object>> getMyListFiltered(
-            @AuthenticationPrincipal User currentUser,
-            @RequestParam(required = false) String type,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-
-        PaginatedResponseDTO<Object> response;
-
-        if (type == null || type.isEmpty()) {
-            response = myListService.getMyList(currentUser.getId(), page, size);
-        } else {
-            response = myListService.getMyListByType(currentUser.getId(), type.toUpperCase(), page, size);
-        }
-
-        return ResponseEntity.ok(response);
+    @DeleteMapping
+    public  ResponseEntity<Void> removeMyList(
+            @AuthenticationPrincipal User user,
+            @PathVariable UUID id,
+            @PathVariable MediaType type
+    ){
+        myListItemService.removeMyList(id, user, type);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
