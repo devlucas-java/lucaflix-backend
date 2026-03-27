@@ -13,7 +13,7 @@ import java.util.HashSet;
 public class Season {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,6 +32,6 @@ public class Season {
     @Column(name = "total_episodes")
     private Integer totalEpisodes = 0;
 
-    @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "season", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Episode> episodes = new HashSet<>();
 }
