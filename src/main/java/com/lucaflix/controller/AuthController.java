@@ -36,7 +36,7 @@ public class AuthController {
     }
 
     @PutMapping("/update-password")
-    public ResponseEntity<Object> changePassword(
+    public ResponseEntity<Void> changePassword(
             @Valid @RequestBody UpdatePasswordDTO password,
             @AuthenticationPrincipal User user) {
 
