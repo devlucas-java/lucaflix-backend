@@ -1,7 +1,6 @@
 package com.lucaflix.dto.request.others;
 
 import com.lucaflix.model.enums.Categories;
-import com.lucaflix.model.enums.MediaType;
 import lombok.Data;
 
 import java.util.List;
