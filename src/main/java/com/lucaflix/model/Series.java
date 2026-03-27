@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.UUID;
 
 @Entity
 @Table(name = "series")
@@ -15,8 +16,8 @@ import java.util.HashSet;
 public class Series {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -81,18 +82,9 @@ public class Series {
     @Column(name = "logo_url2")
     private String logoURL2;
 
-    @Column(name = "total_season")
-    private Integer totalSeason = 0;
-
-    @Column(name = "total_episodes")
-    private Integer totalEpisodes = 0;
-
     @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Season> seasons = new HashSet<>();
 
     @OneToMany(mappedBy = "series", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Set<Like> likes = new HashSet<>();
-
-    @ManyToMany(mappedBy = "series", fetch = FetchType.LAZY)
-    private Set<MyList> myLists = new HashSet<>();
 }

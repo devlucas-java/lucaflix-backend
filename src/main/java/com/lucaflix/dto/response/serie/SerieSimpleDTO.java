@@ -3,11 +3,12 @@ package com.lucaflix.dto.response.serie;
 import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class SerieSimpleDTO {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String type = "SERIE";
     private Integer yearRelease;

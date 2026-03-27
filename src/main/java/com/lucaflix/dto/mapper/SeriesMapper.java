@@ -1,11 +1,12 @@
 package com.lucaflix.dto.mapper;
 
+import com.lucaflix.dto.request.serie.CreateSerieDTO;
 import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.Series;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MyListRepository;
+import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.SeasonRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +15,7 @@ public class SeriesMapper {
 
     private final SeasonRepository seasonRepository;
     private final LikeRepository likeRepository;
-    private final MyListRepository myListRepository;
+    private final MyListItemRepository myListItemRepository;
 
     public SerieCompleteDTO toComplete(Series series, User user) {
 
@@ -24,7 +25,7 @@ public class SeriesMapper {
             dto.setInMyList(false);
         } else {
             boolean like = likeRepository.existsByUserAndSeries(user, series);
-            boolean myList = myListRepository.existsByUserAndSerie(user, series);
+            boolean myList = myListItemRepository.existsByUserAndSeries(user, series);
 
             dto.setUserLiked(like);
             dto.setInMyList(myList);
@@ -67,7 +68,7 @@ public class SeriesMapper {
             dto.setInMyList(false);
         } else {
             boolean like = likeRepository.existsByUserAndSeries(user, series);
-            boolean myList = myListRepository.existsByUserAndSerie(user, series);
+            boolean myList = myListItemRepository.existsByUserAndSeries(user, series);
 
             dto.setUserLiked(like);
             dto.setInMyList(myList);
@@ -91,4 +92,37 @@ public class SeriesMapper {
 
         return dto;
     }
+
+    public Series toEntity(CreateSerieDTO dto) {
+
+        Series series = new Series();
+
+        series.setTitle(dto.getTitle());
+        series.setSynopsis(dto.getSynopsis());
+        series.setCategories(dto.getCategories());
+
+        series.setYearRelease(dto.getYearRelease());
+        series.setTmdbId(dto.getTmdbId());
+        series.setImdbId(dto.getImdbId());
+        series.setCountryOrigin(dto.getCountryOrigin());
+
+        series.setMinAge(dto.getMinAge());
+        series.setRating(dto.getRating());
+
+        series.setTrailer(dto.getTrailer());
+
+        series.setPosterURL1(dto.getPosterURL1());
+        series.setPosterURL2(dto.getPosterURL2());
+
+        series.setBackdropURL1(dto.getBackdropURL1());
+        series.setBackdropURL2(dto.getBackdropURL2());
+        series.setBackdropURL3(dto.getBackdropURL3());
+        series.setBackdropURL4(dto.getBackdropURL4());
+
+        series.setLogoURL1(dto.getLogoURL1());
+        series.setLogoURL2(dto.getLogoURL2());
+
+        return series;
+    }
+
 }

@@ -6,6 +6,7 @@ import com.lucaflix.model.enums.Categories;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface SerieRepository extends JpaRepository<Series, Long> {
+public interface SeriesRepository extends JpaRepository<Series, UUID>, JpaSpecificationExecutor<Series> {
 
     // Fetch série com temporadas para evitar MultipleBagFetchException
     @Query("SELECT DISTINCT s FROM Serie s " +
@@ -90,16 +91,12 @@ public interface SerieRepository extends JpaRepository<Series, Long> {
             "ORDER BY s.avaliacao DESC")
     Page<Series> findSimilarSeries(
             @Param("categorias") List<Categories> categories,
-            @Param("excludeId") Long excludeId,
+            @Param("excludeId") UUID excludeId,
             Pageable pageable);
 
     // Para sitemap
     @Query("SELECT s FROM Serie s WHERE s.title IS NOT NULL AND s.title != ''")
     List<Series> findAllForSitemap();
-
-    // Avaliação média
-    @Query("SELECT AVG(s.avaliacao) FROM Serie s WHERE s.avaliacao IS NOT NULL")
-    Double getAverageRating();
 
     // Busca de séries
     @Query("SELECT DISTINCT s FROM Serie s " +
@@ -113,25 +110,7 @@ public interface SerieRepository extends JpaRepository<Series, Long> {
                               @Param("categoria") Categories categories,
                               Pageable pageable);
 
-    // Verificar se usuário curtiu uma série
-    @Query("SELECT COUNT(l) > 0 FROM Like l " +
-            "WHERE (:userId IS NULL OR l.user.id = :userId) " +
-            "AND l.serie.id = :serieId")
-    boolean existsLikeByUserAndSerie(@Param("userId") UUID userId, @Param("serieId") Long serieId);
-
-    // Verificar se série está na lista do usuário
-    @Query("SELECT COUNT(ml) > 0 FROM MinhaLista ml " +
-            "WHERE (:userId IS NULL OR ml.user.id = :userId) " +
-            "AND ml.serie.id = :serieId")
-    boolean existsInMyListByUserAndSerie(@Param("userId") UUID userId, @Param("serieId") Long serieId);
-
     // Verificar se existem séries
     @Query("SELECT COUNT(s) FROM Serie s")
     long countAllSeries();
-
-    long countByAvaliacaoGreaterThanEqual(double v);
-
-    long countByAvaliacaoBetween(double v, double v1);
-
-    long countByAvaliacaoLessThan(double v);
 }
