@@ -31,13 +31,13 @@ public class SitemapService {
 
         addStaticUrls(urls);
 
-        movieRepository.findAllForSitemap()
+        movieRepository.findAll()
                 .forEach(m -> urls.add(buildUrl("/filme/", m.getId(), m.getTitle(), m.getYearRelease())));
 
-        seriesRepository.findAllForSitemap()
+        seriesRepository.findAll()
                 .forEach(s -> urls.add(buildUrl("/serie/", s.getId(), s.getTitle(), s.getYearRelease())));
 
-        animeRepository.findAllForSitemap()
+        animeRepository.findAll()
                 .forEach(a -> urls.add(buildUrl("/anime/", a.getId(), a.getTitle(), a.getYearRealese())));
 
         log.info("Total URLs: {}", urls.size());

@@ -65,7 +65,7 @@
 //            user.setUsername(adminUsername);
 //            user.setEmail(adminEmail);
 //            user.setPassword(passwordEncoder.encode(adminPassword));
-//            user.setRole(Role.SUPER_ADMIN);
+//            user.setRole(Role.SUPERADMIN);
 //
 //            userRepository.save(user);
 //

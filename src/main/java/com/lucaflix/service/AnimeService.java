@@ -33,8 +33,6 @@ public class AnimeService {
     private final AnimeMapper animeMapper;
     private final AnimeValidate animeValidate;
     private final PageMapper pageMapper;
-    private final LikeRepository likeRepository;
-    private final MyListItemRepository myListItemRepository;
     private final UserRepository userRepository;
 
 
@@ -69,7 +67,7 @@ public class AnimeService {
                 .orElseThrow(() -> new RuntimeException("Anime not found"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
-        Page<Anime> animePage = animeRepository.findSimilarAnimes(
+        Page<Anime> animePage = animeRepository.findSimilarAnime(
                 anime.getCategories(),
                 anime.getId(),
                 pageable);
@@ -77,7 +75,7 @@ public class AnimeService {
         return pageMapper.toPaginatedDTO(animePage, a -> animeMapper.toSimple(a, null));
     }
 
-    public AnimeCompleteDTO updateAnime(UpdateAnimeDTO updateDTO, UUID id){
+    public AnimeCompleteDTO updateAnime(UpdateAnimeDTO updateDTO, UUID id) {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anime not found"));
 
@@ -98,9 +96,6 @@ public class AnimeService {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anime not found"));
 
-        likeRepository.deleteByAnime(anime);
-        myListItemRepository.deleteByAnime(anime);
-
-        animeRepository.deleteById(id);
+        animeRepository.delete(anime);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,16 +28,12 @@ public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomUserDetailsService userDetailsService;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF as we're using token-based authentication
-                .csrf(csrf -> csrf.disable())
-
-                // Enable CORS with our custom configuration
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
                 // Configure exception handling
@@ -54,15 +51,13 @@ public class SecurityConfig {
                         // Allow OPTIONS requests for CORS preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers("/api/series/**").permitAll()
                         .requestMatchers("/api/movies/**").permitAll()
                         .requestMatchers("/api/animes/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
-                        .requestMatchers("/api/sitemap/**").permitAll()
                         .requestMatchers("/api/sitemap.xml").permitAll()
-                        // Webhook endpoints
+
                         .requestMatchers("/payments/webhook/**").permitAll()
                         .requestMatchers("/payments/webhook/stripe").permitAll()
                         .requestMatchers("/webhook/stripe").permitAll()

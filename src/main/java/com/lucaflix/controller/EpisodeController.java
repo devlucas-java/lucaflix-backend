@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
 @RequestMapping("/api/admin/episodes")
 public class EpisodeController {
 

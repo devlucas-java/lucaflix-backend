@@ -83,7 +83,7 @@ public class MovieService {
         Movie movie = movieRepository.findById(mediaId).orElseThrow(() -> new RuntimeException("Movie not found"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
-        Page<Movie> mediaPage = movieRepository.findSimilarMovies(movie.getCategories(), movie.getId(), pageable);
+        Page<Movie> mediaPage = movieRepository.findSimilarMovie(movie.getCategories(), movie.getId(), pageable);
 
         return pageMapper.toPaginatedDTO(mediaPage, media -> movieMapper.toSimple(media, null));
     }

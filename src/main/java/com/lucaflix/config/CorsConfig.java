@@ -20,7 +20,6 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Para desenvolvimento - aceita qualquer localhost
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("*"));
