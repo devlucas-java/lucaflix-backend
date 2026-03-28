@@ -67,7 +67,7 @@ public class UserService {
             String newUsername = request.getUsername().trim();
 
             if (!userRequest.getUsername().equals(newUsername)
-                    && !userRepository.existsByUsername(newUsername)) {
+                    && userRepository.existsByUsername(newUsername)) {
 
                 throw new RuntimeException("Username is already in use");
             }
@@ -78,7 +78,7 @@ public class UserService {
             String newEmail = request.getEmail().trim().toLowerCase();
 
             if (!userRequest.getEmail().equalsIgnoreCase(newEmail)
-                    && !userRepository.existsByUsername(newEmail)) {
+                    && userRepository.existsByUsername(newEmail)) {
                 throw new RuntimeException("Email is already in use");
             }
             userRequest.setEmail(newEmail);
@@ -106,7 +106,7 @@ public class UserService {
         if (user.getRole() == Role.ADMIN) {
             user.setRole(Role.USER);
         }
-        if (user.getRole() == Role.SUPER_ADMIN) {
+        if (user.getRole() == Role.SUPERADMIN) {
             user.setRole(Role.ADMIN);
         }
         userRepository.save(user);
@@ -117,11 +117,11 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
 
-        if (user.getRole() == Role.SUPER_ADMIN) {
-            throw new RuntimeException("User already has max role, SUPER_ADMIN");
+        if (user.getRole() == Role.SUPERADMIN) {
+            throw new RuntimeException("User already has max role, SUPERADMIN");
         }
         if (user.getRole() == Role.ADMIN) {
-            user.setRole(Role.SUPER_ADMIN);
+            user.setRole(Role.SUPERADMIN);
         }
         if (user.getRole() == Role.USER) {
             user.setRole(Role.ADMIN);
@@ -134,8 +134,8 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found by id"));
 
-        if (user.getRole() == Role.SUPER_ADMIN) {
-            throw new RuntimeException("Not possible to block SUPER_ADMIN");
+        if (user.getRole() == Role.SUPERADMIN) {
+            throw new RuntimeException("Not possible to block SUPERADMIN");
         }
 
         user.setIsAccountLocked(true);

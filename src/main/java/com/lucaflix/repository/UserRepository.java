@@ -1,6 +1,8 @@
 package com.lucaflix.repository;
 
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.Plan;
+import com.lucaflix.model.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +19,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 
     boolean existsByUsername(String username);
-    boolean existsByEmail(String email);
 
     @Query("SELECT u " +
             "FROM User u " +
@@ -25,13 +26,9 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
             "OR LOWER(TRIM(u.email)) = LOWER(TRIM(:value))")
     Optional<User> findByUsernameOrEmail(@Param("value") String usernameOrEmail);
 
-    @Query("SELECT u FROM User u WHERE "
-            + "(LOWER(u.username) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR "
-            + "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR "
-            + "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR "
-            + "LOWER(u.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) ")
-    Page<User> findBySearchTerm(
-            @Param("searchTerm") String searchTerm,
-            Pageable pageable
-    );
+    long countByPlan(Plan plan);
+
+    long countByIsAccountLockedTrue();
+
+    long countByRole(Role role);
 }

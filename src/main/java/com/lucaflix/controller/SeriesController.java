@@ -65,7 +65,7 @@ public class SeriesController {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdSerie);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<SerieCompleteDTO> updateSeries(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateSerieDTO updateDTO) {

@@ -5,6 +5,7 @@ import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.Series;
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.MediaType;
 import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.SeasonRepository;
@@ -25,7 +26,7 @@ public class SeriesMapper {
             dto.setInMyList(false);
         } else {
             boolean like = likeRepository.existsByUserAndSeries(user, series);
-            boolean myList = myListItemRepository.existsByUserAndSeries(user, series);
+            boolean myList = myListItemRepository.existsByUserAndContentIdAndType(user, series.getId(), MediaType.SERIES);
 
             dto.setUserLiked(like);
             dto.setInMyList(myList);
@@ -55,7 +56,7 @@ public class SeriesMapper {
         dto.setLogoURL2(series.getLogoURL2());
 
         dto.setTotalSeason(seasonRepository.countBySeries(series));
-        dto.setTotalLikes((long) series.getLikes().size());
+        dto.setTotalLikes(likeRepository.countBySeries(series));
 
         return dto;
     }
@@ -68,7 +69,7 @@ public class SeriesMapper {
             dto.setInMyList(false);
         } else {
             boolean like = likeRepository.existsByUserAndSeries(user, series);
-            boolean myList = myListItemRepository.existsByUserAndSeries(user, series);
+            boolean myList = myListItemRepository.existsByUserAndContentIdAndType(user, series.getId(), MediaType.SERIES);
 
             dto.setUserLiked(like);
             dto.setInMyList(myList);
@@ -88,7 +89,7 @@ public class SeriesMapper {
         dto.setPosterURL2(series.getPosterURL2());
 
         dto.setTotalSeason(seasonRepository.countBySeries(series));
-        dto.setTotalLikes((long) series.getLikes().size());
+        dto.setTotalLikes(likeRepository.countBySeries(series));
 
         return dto;
     }

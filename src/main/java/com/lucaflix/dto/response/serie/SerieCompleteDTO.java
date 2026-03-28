@@ -5,11 +5,12 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class SerieCompleteDTO {
 
-    private Long id;
+    private UUID id;
     private String title;
     private String type = "SERIE";
     private Integer yearRelease;

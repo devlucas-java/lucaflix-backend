@@ -5,6 +5,7 @@ import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.User;
+import com.lucaflix.model.enums.MediaType;
 import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MyListItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ public class AnimeMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndAnime(user, anime);
-            boolean myList = myListItemRepository.existsByUserAndAnime(user, anime);
+            boolean myList = myListItemRepository.existsByUserAndContentIdAndType(user, anime.getId(), MediaType.ANIME);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);
@@ -50,7 +51,7 @@ public class AnimeMapper {
         dto.setTotalSeason(anime.getTotalSeason());
         dto.setTotalEpisodes(anime.getTotalEpisodes());
 
-        dto.setTotalLikes((long) anime.getLikes().size());
+        dto.setTotalLikes(likeRepository.countByAnime(anime));
 
         return dto;
     }
@@ -64,7 +65,7 @@ public class AnimeMapper {
             dto.setInUserList(false);
         } else {
             boolean like = likeRepository.existsByUserAndAnime(user, anime);
-            boolean myList = myListItemRepository.existsByUserAndAnime(user, anime);
+            boolean myList = myListItemRepository.existsByUserAndContentIdAndType(user, anime.getId(), MediaType.ANIME);
 
             dto.setUserLiked(like);
             dto.setInUserList(myList);
@@ -100,7 +101,7 @@ public class AnimeMapper {
         dto.setTotalSeason(anime.getTotalSeason());
         dto.setTotalEpisodes(anime.getTotalEpisodes());
 
-        dto.setTotalLikes((long) anime.getLikes().size());
+        dto.setTotalLikes(likeRepository.countByAnime(anime));
 
         return dto;
     }

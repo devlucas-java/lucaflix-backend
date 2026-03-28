@@ -17,26 +17,7 @@ import java.util.UUID;
 public interface MyListItemRepository extends JpaRepository<MyListItem, Long> {
 
 
-    boolean existsByUserAndMovie(User user, Movie movie);
-    void deleteByMovie(Movie movie);
-
-    boolean existsByUserAndSeries(User user, Series series);
-    void deleteBySeries(Series series);
-
-    boolean existsByUserAndAnime(User user, Anime anime);
-    void deleteByAnime(Anime anime);
-
     Page<MyListItem> findByUser(User user, Pageable pageable);
-
-    @Modifying
-    @Query("DELETE FROM MyListItem ml WHERE ml.user.id = :userId")
-    void deleteByUserId(@Param("userId") UUID userId);
-
-    long countBySeries(Series series);
-
-    long countByMovie(Movie movie);
-
-    long countByAnime(Anime anime);
 
     boolean existsByUserAndContentIdAndType(User user, UUID contentId, MediaType type);
 

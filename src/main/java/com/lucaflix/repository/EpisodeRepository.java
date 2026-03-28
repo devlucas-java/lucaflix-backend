@@ -13,14 +13,4 @@ import java.util.List;
 @Repository
 public interface EpisodeRepository extends JpaRepository<Episode, Long> {
 
-    // Buscar episódios de uma temporada específica
-    List<Episode> findByTemporadaOrderByNumeroEpisodioAsc(Season season);
-
-    // Verificar se existe episódio com número específico em uma temporada
-    boolean existsByTemporadaAndNumeroEpisodio(Season season, Integer numeroEpisodio);
-
-    // Contar episódios de uma temporada
-    long countByTemporada(Season season);
-
-    List<Episode> findBySeasonOrderByIdAsc(Season season);
 }
