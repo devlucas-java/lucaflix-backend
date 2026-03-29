@@ -2,11 +2,9 @@ package com.lucaflix.config;
 
 import com.lucaflix.security.JwtAuthenticationEntryPoint;
 import com.lucaflix.security.JwtAuthenticationFilter;
-import com.lucaflix.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -26,7 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
 
@@ -36,37 +34,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
 
-                // Configure exception handling
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(unauthorizedHandler)
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
-
-                // Use stateless session management
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // Configure endpoint security
                 .authorizeHttpRequests(auth -> auth
-                        // Allow OPTIONS requests for CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers("/api/series/**").permitAll()
-                        .requestMatchers("/api/movies/**").permitAll()
-                        .requestMatchers("/api/animes/**").permitAll()
-                        .requestMatchers("/api/search/**").permitAll()
-                        .requestMatchers("/api/sitemap.xml").permitAll()
 
                         .requestMatchers("/payments/webhook/**").permitAll()
                         .requestMatchers("/payments/webhook/stripe").permitAll()
                         .requestMatchers("/webhook/stripe").permitAll()
 
-                        // All other requests need authentication
                         .anyRequest().authenticated()
                 );
 
-        // Add our JWT filter before the standard Spring Security filter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

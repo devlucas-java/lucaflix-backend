@@ -1,7 +1,7 @@
 package com.lucaflix.security;
 
-import com.lucaflix.repository.UserRepository;
 import com.lucaflix.model.User;
+import com.lucaflix.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

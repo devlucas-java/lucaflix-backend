@@ -3,7 +3,6 @@ package com.lucaflix.model;
 import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,7 +16,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "users")
 @Data
-@Builder
 public class User implements UserDetails {
 
     @Id

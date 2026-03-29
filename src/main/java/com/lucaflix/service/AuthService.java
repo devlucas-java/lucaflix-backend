@@ -10,12 +10,11 @@ import com.lucaflix.dto.response.others.BooleanDTO;
 import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.UserRepository;
-import com.lucaflix.security.JwtTokenProvider;
+import com.lucaflix.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,20 +28,20 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
+    private final JwtService jwtService;
 
     public JwtAuthDTO login(LoginDTO request) {
 
         User user = userRepository.findByUsernameOrEmail(request.getLogin())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getLogin(),
                         request.getPassword()
                 )
         );
-        String jwt = tokenProvider.generateToken(authentication);
+        String jwt = jwtService.generateAccessToken(user);
         UserDTO response = userMapper.toUserDTO(user);
 
         return JwtAuthDTO.builder()
@@ -62,13 +61,13 @@ public class AuthService {
         User user = userRepository.save(userRequest);
         UserDTO response = userMapper.toUserDTO(user);
 
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         user.getEmail(),
                         user.getPassword()
                 )
         );
-        String jwt = tokenProvider.generateToken(authentication);
+        String jwt = jwtService.generateAccessToken(user);
         return JwtAuthDTO.builder()
                 .accessToken(jwt)
                 .user(response)

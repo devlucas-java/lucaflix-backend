@@ -7,8 +7,6 @@ import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.OptionalAuthentication;
-import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.SeriesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +25,6 @@ public class SeriesController {
     private final SeriesService seriesService;
 
     @PostMapping
-    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> filterSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -38,7 +35,6 @@ public class SeriesController {
     }
 
     @GetMapping("/{id}")
-    @OptionalAuthentication
     public ResponseEntity<SerieCompleteDTO> getSeriesById(
             @PathVariable UUID id,
             @AuthenticationPrincipal User user) {
@@ -48,7 +44,6 @@ public class SeriesController {
     }
 
     @GetMapping("/{id}/similar")
-    @SkipJwtAuthentication
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> getSimilarSeries(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,
