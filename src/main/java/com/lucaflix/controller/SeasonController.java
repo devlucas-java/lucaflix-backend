@@ -27,7 +27,7 @@ public class SeasonController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<SeasonDTO> createSeason(@Valid @RequestBody CreateSeasonDTO createDTO, @PathVariable UUID id) {
         SeasonDTO response = seasonService.createSeason(createDTO, id);
 

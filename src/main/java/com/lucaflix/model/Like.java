@@ -38,5 +38,6 @@ public class Like {
     private Anime anime;
 
     @Column(name = "date_like", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateLike = LocalDateTime.now();
 }

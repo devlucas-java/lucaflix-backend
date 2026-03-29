@@ -1,22 +1,19 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/lucaflix
-    username: postgres
-    password: postgres
-    driver-class-name: org.postgresql.Driver
+datasource:
+  url: jdbc:h2:mem:lucaflix
+  username: sa
+  password:
+  driver-class-name: org.h2.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
 
-app:
-  jwt-secret: dev-secret-key
-  jwt-expiration-milliseconds: 86400000
-  base-url: http://localhost:8080
-
-cors:
-  allowed-origins: "*"
+jwt:
+  secret: dev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-key
+  expiration: 86400000
+  refresh-expiration: 604800000
 
 admin:
   email: admin@lucaflix.com

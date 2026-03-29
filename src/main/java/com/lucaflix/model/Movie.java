@@ -41,6 +41,7 @@ public class Movie {
     private String synopsis;
 
     @Column(name = "date_registered")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @ElementCollection(targetClass = Categories.class)

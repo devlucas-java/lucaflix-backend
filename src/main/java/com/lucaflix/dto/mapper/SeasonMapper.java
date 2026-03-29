@@ -4,10 +4,12 @@ import com.lucaflix.dto.response.serie.EpisodeDTO;
 import com.lucaflix.dto.response.serie.SeasonDTO;
 import com.lucaflix.model.Season;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @RequiredArgsConstructor
+@Component
 public class SeasonMapper {
 
     private final EpisodeMapper episodeMapper;

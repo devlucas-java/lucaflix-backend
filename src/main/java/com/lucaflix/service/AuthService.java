@@ -11,6 +11,7 @@ import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.security.JwtService;
+import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +33,7 @@ public class AuthService {
 
     public JwtAuthDTO login(LoginDTO request) {
 
+        SanitizeUtils.sanitizeStrings(request);
         User user = userRepository.findByUsernameOrEmail(request.getLogin())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -42,10 +44,12 @@ public class AuthService {
                 )
         );
         String jwt = jwtService.generateAccessToken(user);
+        String jwtRefresh = jwtService.generateRefreshToken(user);
         UserDTO response = userMapper.toUserDTO(user);
 
         return JwtAuthDTO.builder()
                 .accessToken(jwt)
+                .refreshToken(jwtRefresh)
                 .user(response)
                 .build();
     }
@@ -53,6 +57,7 @@ public class AuthService {
     @Transactional
     public JwtAuthDTO register(RegisterDTO request) {
 
+        SanitizeUtils.sanitizeStrings(request);
         User userRequest = userMapper.toUser(request);
 
         String hash = passwordEncoder.encode(request.getPassword());
@@ -68,8 +73,10 @@ public class AuthService {
                 )
         );
         String jwt = jwtService.generateAccessToken(user);
+        String jwtRefresh = jwtService.generateRefreshToken(user);
         return JwtAuthDTO.builder()
                 .accessToken(jwt)
+                .refreshToken(jwtRefresh)
                 .user(response)
                 .build();
     }
@@ -79,6 +86,8 @@ public class AuthService {
 
         User user = userRepository.findById(userRequest.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        SanitizeUtils.sanitizeStrings(request);
 
         if (!passwordEncoder.matches(user.getPassword(), request.getCurrentPassword())) {
             throw new RuntimeException("Incorrect password");
@@ -94,6 +103,8 @@ public class AuthService {
 
         User user = userRepository.findById(userRequest.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        SanitizeUtils.sanitizeStrings(request);
 
         if (!passwordEncoder.matches(user.getPassword(), request.getPassword())) {
             return BooleanDTO.builder()

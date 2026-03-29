@@ -7,8 +7,6 @@ import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.OptionalAuthentication;
-import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.AnimeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +24,8 @@ public class AnimeController {
 
     private final AnimeService animeService;
 
-    @PostMapping("/filter")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> filterAnimes(
+    @PostMapping("/search")
+    public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> filterAnime(
             @RequestBody FilterDTO filter,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -37,7 +34,6 @@ public class AnimeController {
     }
 
     @GetMapping("/{id}")
-    @OptionalAuthentication
     public ResponseEntity<AnimeCompleteDTO> getAnimeById(
             @PathVariable UUID id,
             @AuthenticationPrincipal User user) {
@@ -46,12 +42,11 @@ public class AnimeController {
     }
 
     @GetMapping("/{id}/similar")
-    @SkipJwtAuthentication
-    public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> getSimilarAnimes(
+    public ResponseEntity<PaginatedResponseDTO<AnimeSimpleDTO>> getSimilarAnime(
             @PathVariable UUID id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        PaginatedResponseDTO<AnimeSimpleDTO> response = animeService.getSimilarAnimes(id, page, size);
+        PaginatedResponseDTO<AnimeSimpleDTO> response = animeService.getSimilarAnime(id, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -61,7 +56,7 @@ public class AnimeController {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdAnime);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<AnimeCompleteDTO> updateAnime(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAnimeDTO updateDTO) {

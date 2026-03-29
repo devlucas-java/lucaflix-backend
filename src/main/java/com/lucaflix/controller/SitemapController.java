@@ -18,7 +18,7 @@ public class SitemapController {
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> getSitemap() {
 
-        log.info("Gerando sitemap.xml");
+        log.info("Generated sitemap.xml");
 
         String xml = sitemapService.generateSitemapXml();
 

@@ -10,8 +10,10 @@ import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.SeasonRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
+@Component
 public class SeriesMapper {
 
     private final SeasonRepository seasonRepository;

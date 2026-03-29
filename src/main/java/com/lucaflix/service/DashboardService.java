@@ -21,7 +21,7 @@ public class DashboardService {
         return DashboardDTO.builder()
                 .users(buildUserDashboard())
                 .movies(buildMovieDashboard())
-                .series(buildSerieDashboard())
+                .series(buildSeriesDashboard())
                 .animes(buildAnimeDashboard())
                 .build();
     }
@@ -54,7 +54,7 @@ public class DashboardService {
         return dto;
     }
 
-    private SeriesDashboardDTO buildSerieDashboard() {
+    private SeriesDashboardDTO buildSeriesDashboard() {
         SeriesDashboardDTO dto = new SeriesDashboardDTO();
 
         dto.setTotalSeries(seriesRepository.count());

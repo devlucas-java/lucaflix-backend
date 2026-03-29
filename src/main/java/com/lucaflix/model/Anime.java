@@ -4,7 +4,7 @@ import com.lucaflix.model.enums.Categories;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -38,7 +38,8 @@ public class Anime {
     private String synopsis;
 
     @Column(name = "date_registered")
-    private LocalDate dateRegistered = LocalDate.now();
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @ElementCollection(targetClass = Categories.class)
     @Enumerated(EnumType.STRING)

@@ -18,16 +18,18 @@ public interface AnimeRepository extends JpaRepository<Anime, UUID>, JpaSpecific
 
 
     @Query("""
-    SELECT DISTINCT a FROM Anime a
-    JOIN a.categories c
-    WHERE c IN :categories
-    AND a.id <> :excludeId
-    ORDER BY a.rating DESC
-""")
+                SELECT DISTINCT a FROM Anime a
+                JOIN a.categories c
+                WHERE c IN :categories
+                AND a.id <> :excludeId
+                ORDER BY a.rating DESC
+            """)
     Page<Anime> findSimilarAnime(
             @Param("categories") List<Categories> categories,
             @Param("excludeId") UUID excludeId,
             Pageable pageable
     );
+
+    @Query("SELECT AVG(a.rating) FROM Anime a")
     Double getAverageRating();
 }

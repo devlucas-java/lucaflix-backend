@@ -27,6 +27,7 @@ public class Season {
     private Integer yearRelease;
 
     @Column(name = "date_registered")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @Column(name = "total_episodes")

@@ -2,7 +2,9 @@ package com.lucaflix.service.utils.validate;
 
 import com.lucaflix.dto.request.anime.UpdateAnimeDTO;
 import com.lucaflix.model.Anime;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AnimeValidate {
 
     public Anime validUpdate(UpdateAnimeDTO dto, Anime anime) {

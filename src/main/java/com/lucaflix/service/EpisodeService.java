@@ -5,7 +5,6 @@ import com.lucaflix.dto.request.serie.CreateEpisodeDTO;
 import com.lucaflix.dto.request.serie.UpdateEpisodeDTO;
 import com.lucaflix.dto.response.serie.EpisodeDTO;
 import com.lucaflix.model.Episode;
-import com.lucaflix.model.Season;
 import com.lucaflix.repository.EpisodeRepository;
 import com.lucaflix.repository.SeasonRepository;
 import com.lucaflix.service.utils.sanitize.SanitizeUtils;
@@ -27,7 +26,8 @@ public class EpisodeService {
     }
 
     public EpisodeDTO createEpisode(CreateEpisodeDTO createDTO, Long id) {
-        Season season = seasonRepository.findById(id).orElseThrow(() -> new RuntimeException("Season not found"));
+
+        seasonRepository.findById(id).orElseThrow(() -> new RuntimeException("Season not found"));
 
         SanitizeUtils.sanitizeStrings(createDTO);
         Episode episode = episodeMapper.toEntity(createDTO);

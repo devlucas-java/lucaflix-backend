@@ -24,7 +24,7 @@ public class SeriesController {
 
     private final SeriesService seriesService;
 
-    @PostMapping
+    @PostMapping("/search")
     public ResponseEntity<PaginatedResponseDTO<SerieSimpleDTO>> filterSeries(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -75,6 +75,4 @@ public class SeriesController {
             seriesService.deleteSeries(id);
             return ResponseEntity.status(HttpStatus.OK).build();
     }
-
-
 }

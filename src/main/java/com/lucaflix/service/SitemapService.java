@@ -32,13 +32,13 @@ public class SitemapService {
         addStaticUrls(urls);
 
         movieRepository.findAll()
-                .forEach(m -> urls.add(buildUrl("/filme/", m.getId(), m.getTitle(), m.getYearRelease())));
+                .forEach(m -> urls.add(buildUrl("/movie/", m.getTitle(), m.getId())));
 
         seriesRepository.findAll()
-                .forEach(s -> urls.add(buildUrl("/serie/", s.getId(), s.getTitle(), s.getYearRelease())));
+                .forEach(s -> urls.add(buildUrl("/serie/", s.getTitle(), s.getId())));
 
         animeRepository.findAll()
-                .forEach(a -> urls.add(buildUrl("/anime/", a.getId(), a.getTitle(), a.getYearRealese())));
+                .forEach(a -> urls.add(buildUrl("/anime/", a.getTitle(), a.getId())));
 
         log.info("Total URLs: {}", urls.size());
 
@@ -49,15 +49,14 @@ public class SitemapService {
         String now = LocalDate.now().toString();
 
         urls.add(new SitemapUrlDto(BASE_URL + "/", now, "daily", "1.0"));
-        urls.add(new SitemapUrlDto(BASE_URL + "/filmes", now, "daily", "0.9"));
+        urls.add(new SitemapUrlDto(BASE_URL + "/movies", now, "daily", "0.9"));
         urls.add(new SitemapUrlDto(BASE_URL + "/series", now, "daily", "0.9"));
         urls.add(new SitemapUrlDto(BASE_URL + "/animes", now, "daily", "0.9"));
     }
 
-    private SitemapUrlDto buildUrl(String path, UUID id, String title, Integer year) {
-        String slug = slug(title, year);
+    private SitemapUrlDto buildUrl(String path, String title, UUID id) {
         return new SitemapUrlDto(
-                BASE_URL + path + id + "/" + slug,
+                BASE_URL + path + id + "/" + slug(title),
                 LocalDate.now().toString(),
                 "weekly",
                 "0.8"
@@ -83,13 +82,10 @@ public class SitemapService {
         return xml.toString();
     }
 
-    private String slug(String title, Integer year) {
-        if (title == null) return "sem-titulo";
-
-        String s = title.toLowerCase()
+    private String slug(String title) {
+        return  title.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", "")
                 .replaceAll("\\s+", "-");
 
-        return year != null ? s + "-" + year : s;
     }
 }

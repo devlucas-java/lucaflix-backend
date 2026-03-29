@@ -31,6 +31,7 @@ public class Episode {
     private Integer minutesDuration = 0;
 
     @Column(name = "date_registered")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @Column(name = "embed_url_1")

@@ -3,12 +3,14 @@ package com.lucaflix.dto.mapper;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
+@Component
 public class PageMapper {
 
     public <T, R> PaginatedResponseDTO<R> toPaginatedDTO(

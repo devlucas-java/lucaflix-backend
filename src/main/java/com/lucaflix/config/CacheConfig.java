@@ -17,7 +17,7 @@ public class CacheConfig {
                 "sitemap",
                 "movies",
                 "series",
-                "animes",
+                "anime",
                 "categories"
         ));
         return cacheManager;

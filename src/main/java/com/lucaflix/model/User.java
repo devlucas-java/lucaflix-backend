@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -59,7 +60,7 @@ public class User implements UserDetails {
 
     @Column(name = "date_registered")
     @Temporal(TemporalType.TIMESTAMP)
-    private LocalDate dateRegistered = LocalDate.now();
+    private LocalDateTime dateRegistered = LocalDateTime.now();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Like> likes;

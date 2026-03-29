@@ -5,7 +5,6 @@ import com.lucaflix.dto.response.user.UserDTO;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Plan;
 import com.lucaflix.service.UserService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -69,7 +68,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PutMapping("/{id}/locke")
+    @PutMapping("/{id}/lock")
     public ResponseEntity<UserDTO> lockUser(@PathVariable UUID id) {
         UserDTO response = userService.LockeUser(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);

@@ -10,9 +10,11 @@ import com.lucaflix.model.enums.MediaType;
 import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MyListItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 
 @RequiredArgsConstructor
+@Component
 public class MovieMapper {
 
     private final MyListItemRepository myListItemRepository;

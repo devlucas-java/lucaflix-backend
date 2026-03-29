@@ -9,13 +9,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
 jwt:
-  secret: dev-secret-key
+  secret: dev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-keydev-secret-key
   expiration: 86400000
   refresh-expiration: 604800000
-
-cors:
-  allowed-origins: "*"
 
 admin:
   email: admin@lucaflix.com

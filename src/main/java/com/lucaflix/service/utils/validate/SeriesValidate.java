@@ -2,7 +2,9 @@ package com.lucaflix.service.utils.validate;
 
 import com.lucaflix.dto.request.serie.UpdateSerieDTO;
 import com.lucaflix.model.Series;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SeriesValidate {
     public Series validUpdate(UpdateSerieDTO dto, Series series) {
 

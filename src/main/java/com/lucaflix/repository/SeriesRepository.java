@@ -28,5 +28,7 @@ public interface SeriesRepository extends JpaRepository<Series, UUID>, JpaSpecif
             @Param("excludeId") UUID excludeId,
             Pageable pageable
     );
+
+    @Query("SELECT AVG(a.rating) FROM Series a")
     Double getAverageRating();
 }

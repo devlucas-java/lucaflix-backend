@@ -28,5 +28,6 @@ public interface MovieRepository extends JpaRepository<Movie, UUID>, JpaSpecific
             @Param("excludeId") UUID excludeId,
             Pageable pageable
     );
+    @Query("SELECT AVG(a.rating) FROM Movie a")
     Double getAverageRating();
 }

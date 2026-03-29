@@ -11,9 +11,8 @@ import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.AnimeRepository;
-import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.UserRepository;
+import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import com.lucaflix.service.utils.spec.AnimeSpecification;
 import com.lucaflix.service.utils.validate.AnimeValidate;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,7 @@ public class AnimeService {
 
         if (page < 0) page = 0;
         if (size <= 0 || size > 100) size = 20;
+        SanitizeUtils.sanitizeStrings(filter);
 
         Pageable pageable = PageRequest.of(page, size,
                 Sort.by(Sort.Direction.DESC, "dateRegistered"));
@@ -62,7 +62,7 @@ public class AnimeService {
         return animeMapper.toComplete(anime, user);
     }
 
-    public PaginatedResponseDTO<AnimeSimpleDTO> getSimilarAnimes(UUID animeId, int page, int size) {
+    public PaginatedResponseDTO<AnimeSimpleDTO> getSimilarAnime(UUID animeId, int page, int size) {
         Anime anime = animeRepository.findById(animeId)
                 .orElseThrow(() -> new RuntimeException("Anime not found"));
 
@@ -79,6 +79,7 @@ public class AnimeService {
         Anime anime = animeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anime not found"));
 
+        SanitizeUtils.sanitizeStrings(updateDTO);
         animeValidate.validUpdate(updateDTO, anime);
         animeRepository.save(anime);
         return animeMapper.toComplete(anime, null);
@@ -86,6 +87,7 @@ public class AnimeService {
 
     public AnimeCompleteDTO createAnime(CreateAnimeDTO createDTO) {
 
+        SanitizeUtils.sanitizeStrings(createDTO);
         Anime anime = animeMapper.toEntity(createDTO);
         Anime saved = animeRepository.save(anime);
 

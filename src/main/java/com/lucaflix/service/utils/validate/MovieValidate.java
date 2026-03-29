@@ -2,7 +2,9 @@ package com.lucaflix.service.utils.validate;
 
 import com.lucaflix.dto.request.movie.UpdateMovieDTO;
 import com.lucaflix.model.Movie;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MovieValidate {
     public Movie validUpdate(UpdateMovieDTO dto, Movie movie) {
 

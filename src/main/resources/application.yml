@@ -1,9 +1,8 @@
 spring:
   application:
-    name: lucaflix
+    name: lucaflix-backend
   profiles:
-    active: test
+    active: dev
 
 server:
   port: 8080
-  address: 0.0.0.0

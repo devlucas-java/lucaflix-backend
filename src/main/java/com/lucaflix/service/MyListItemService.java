@@ -9,6 +9,7 @@ import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.MediaType;
 import com.lucaflix.repository.*;
+import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +39,7 @@ public class MyListItemService {
 
 
     public PaginatedResponseDTO<Object> getMyList(User userRequest, FilterDTO filter, int page, int size) {
+        SanitizeUtils.sanitizeStrings(filter);
         User user = userRepository.findById(userRequest.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -60,7 +62,7 @@ public class MyListItemService {
                 .stream().collect(Collectors.toMap(Movie::getId, m -> m));
         Map<UUID, Series> series = seriesRepository.findAllById(seriesIds)
                 .stream().collect(Collectors.toMap(Series::getId, s -> s));
-        Map<UUID, Anime> animes = animeRepository.findAllById(animeIds)
+        Map<UUID, Anime> anime = animeRepository.findAllById(animeIds)
                 .stream().collect(Collectors.toMap(Anime::getId, a -> a));
 
         List<Object> content = items.stream()
@@ -68,7 +70,7 @@ public class MyListItemService {
                     return switch (item.getType()) {
                         case MOVIE -> movieMapper.toSimple(movies.get(item.getContentId()), user);
                         case SERIES -> seriesMapper.toSimple(series.get(item.getContentId()), user);
-                        case ANIME -> animeMapper.toSimple(animes.get(item.getContentId()), user);
+                        case ANIME -> animeMapper.toSimple(anime.get(item.getContentId()), user);
                     };
                 })
                 .toList();

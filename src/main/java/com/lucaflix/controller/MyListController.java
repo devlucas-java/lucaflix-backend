@@ -22,7 +22,6 @@ public class MyListController {
     private final MyListItemService myListItemService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PaginatedResponseDTO<Object>> getMyList(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
@@ -34,7 +33,6 @@ public class MyListController {
     }
 
     @PostMapping("/{id}/{type}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> addMyList(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id,
@@ -45,7 +43,7 @@ public class MyListController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}/{type}")
     public  ResponseEntity<Void> removeMyList(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id,

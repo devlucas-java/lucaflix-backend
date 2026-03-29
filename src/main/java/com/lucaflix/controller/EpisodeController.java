@@ -8,20 +8,18 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-@RequestMapping("/api/admin/episodes")
+@RequestMapping("/api/episodes")
 public class EpisodeController {
 
     private final EpisodeService episodeService;
 
 
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<EpisodeDTO> createEpisode(
             @PathVariable Long id,
             @Valid @RequestBody CreateEpisodeDTO createDTO) {
@@ -32,6 +30,7 @@ public class EpisodeController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EpisodeDTO> getEpisode(@PathVariable Long id) {
+
         EpisodeDTO response = episodeService.getEpisode(id);
         return ResponseEntity.ok(response);
     }
@@ -47,6 +46,7 @@ public class EpisodeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEpisode(@PathVariable Long id) {
+
         episodeService.deleteEpisode(id);
         return ResponseEntity.noContent().build();
     }

@@ -7,8 +7,6 @@ import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.User;
-import com.lucaflix.security.OptionalAuthentication;
-import com.lucaflix.security.SkipJwtAuthentication;
 import com.lucaflix.service.MovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,36 +24,47 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    @PostMapping("/filter")
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(@RequestBody FilterDTO filter, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
+    @PostMapping("/search")
+    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> filterMovies(
+            @RequestBody FilterDTO filter,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.filterMovies(filter, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MovieCompleteDTO> getMovieById(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+    public ResponseEntity<MovieCompleteDTO> getMovieById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user) {
 
         MovieCompleteDTO response = movieService.getMediaById(id, user);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{id}/similar")
-    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(@PathVariable UUID id, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "12") int size) {
+    public ResponseEntity<PaginatedResponseDTO<MovieSimpleDTO>> getSimilarMovies(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
 
         PaginatedResponseDTO<MovieSimpleDTO> response = movieService.getSimilarMedia(id, page, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping
-    public ResponseEntity<MovieCompleteDTO> createMovie(@Valid @RequestBody CreateMovieDTO createDTO) {
+    public ResponseEntity<MovieCompleteDTO> createMovie(
+            @Valid @RequestBody CreateMovieDTO createDTO) {
 
         MovieCompleteDTO response = movieService.createMovie(createDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<MovieCompleteDTO> updateMovie(@Valid @PathVariable UUID id, @Valid @RequestBody UpdateMovieDTO updateDTO) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<MovieCompleteDTO> updateMovie(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateMovieDTO updateDTO) {
 
         MovieCompleteDTO response = movieService.updateMovie(updateDTO, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);

@@ -3,7 +3,7 @@ package com.lucaflix.dto.response.anime;
 import com.lucaflix.model.enums.Categories;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +18,7 @@ public class AnimeCompleteDTO {
     private String imdbId;
     private String countryOrigin;
     private String synopsis;
-    private LocalDate dateRegistered;
+    private LocalDateTime dateRegistered;
     private List<Categories> categories;
     private String minAge;
     private Double rating;
