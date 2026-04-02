@@ -10,9 +10,7 @@ import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.User;
-import com.lucaflix.repository.LikeRepository;
 import com.lucaflix.repository.MovieRepository;
-import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import com.lucaflix.service.utils.spec.MovieSpecification;
@@ -35,8 +33,6 @@ public class MovieService {
 
     private final MovieRepository movieRepository;
     private final MovieValidate movieValidate;
-    private final LikeRepository likeRepository;
-    private final MyListItemRepository myListItemRepository;
     private final MovieMapper movieMapper;
     private final PageMapper pageMapper;
     private final UserRepository userRepository;
