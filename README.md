@@ -2,8 +2,8 @@
 
 ## 📌 Próxima versión refactorizada / Upcoming Refactored Version
 
-Este repositorio contendrá la versión refactorizada del backend de **Lucaflix**.  
-This repository will contain the refactored version of the **Lucaflix** backend.
+Este repositorio contendrá la versión refactorizada del backend de **Lucaflix** tiente 144 tests.  
+This repository will contain the refactored version of the **Lucaflix** backend has 144 tests.
 
 ---
 
