@@ -10,8 +10,6 @@ import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
 import com.lucaflix.model.Series;
 import com.lucaflix.model.User;
-import com.lucaflix.repository.LikeRepository;
-import com.lucaflix.repository.MyListItemRepository;
 import com.lucaflix.repository.SeriesRepository;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.service.utils.sanitize.SanitizeUtils;
