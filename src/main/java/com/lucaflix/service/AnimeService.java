@@ -8,6 +8,7 @@ import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.anime.AnimeCompleteDTO;
 import com.lucaflix.dto.response.anime.AnimeSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.Anime;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.AnimeRepository;
@@ -16,10 +17,7 @@ import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import com.lucaflix.service.utils.spec.AnimeSpecification;
 import com.lucaflix.service.utils.validate.AnimeValidate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -34,15 +32,17 @@ public class AnimeService {
     private final PageMapper pageMapper;
     private final UserRepository userRepository;
 
-
     public PaginatedResponseDTO<AnimeSimpleDTO> filterAnime(FilterDTO filter, int page, int size) {
-
         if (page < 0) page = 0;
         if (size <= 0 || size > 100) size = 20;
+
         SanitizeUtils.sanitizeStrings(filter);
 
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, "dateRegistered"));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "dateRegistered")
+        );
 
         AnimeSpecification spec = new AnimeSpecification(filter);
         Page<Anime> animePage = animeRepository.findAll(spec, pageable);
@@ -52,42 +52,49 @@ public class AnimeService {
 
     public AnimeCompleteDTO getAnimeById(UUID id, User userRequest) {
         User user = null;
+
         if (userRequest != null) {
             user = userRepository.findById(userRequest.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         }
-        Anime anime = animeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Anime not found"));
+
+        Anime anime = findAnimeOrThrow(id);
 
         return animeMapper.toComplete(anime, user);
     }
 
     public PaginatedResponseDTO<AnimeSimpleDTO> getSimilarAnime(UUID animeId, int page, int size) {
-        Anime anime = animeRepository.findById(animeId)
-                .orElseThrow(() -> new RuntimeException("Anime not found"));
+        Anime anime = findAnimeOrThrow(animeId);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "rating")
+        );
+
         Page<Anime> animePage = animeRepository.findSimilarAnime(
                 anime.getCategories(),
                 anime.getId(),
-                pageable);
+                pageable
+        );
 
         return pageMapper.toPaginatedDTO(animePage, a -> animeMapper.toSimple(a, null));
     }
 
     public AnimeCompleteDTO updateAnime(UpdateAnimeDTO updateDTO, UUID id) {
-        Anime anime = animeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Anime not found"));
+        Anime anime = findAnimeOrThrow(id);
 
         SanitizeUtils.sanitizeStrings(updateDTO);
         animeValidate.validUpdate(updateDTO, anime);
-        animeRepository.save(anime);
-        return animeMapper.toComplete(anime, null);
+
+        Anime saved = animeRepository.save(anime);
+
+        return animeMapper.toComplete(saved, null);
     }
 
     public AnimeCompleteDTO createAnime(CreateAnimeDTO createDTO) {
-
         SanitizeUtils.sanitizeStrings(createDTO);
+
         Anime anime = animeMapper.toEntity(createDTO);
         Anime saved = animeRepository.save(anime);
 
@@ -95,9 +102,12 @@ public class AnimeService {
     }
 
     public void deleteAnime(UUID id) {
-        Anime anime = animeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Anime not found"));
-
+        Anime anime = findAnimeOrThrow(id);
         animeRepository.delete(anime);
+    }
+
+    private Anime findAnimeOrThrow(UUID id) {
+        return animeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Anime not found"));
     }
 }

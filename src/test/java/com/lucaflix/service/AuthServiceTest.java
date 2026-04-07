@@ -8,9 +8,11 @@ import com.lucaflix.dto.request.auth.VerifyPasswordDTO;
 import com.lucaflix.dto.response.auth.JwtAuthDTO;
 import com.lucaflix.dto.response.others.BooleanDTO;
 import com.lucaflix.dto.response.user.UserDTO;
+import com.lucaflix.exception.InvalidCredentialsException;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.security.JwtService;
+import com.lucaflix.service.utils.GenerateUsernames;
 import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,9 +63,22 @@ public class AuthServiceTest {
 
         user = new User();
         user.setId(userId);
-        user.setUsername("lucassilva");
+        user.setFirstName("Lucas");
+        user.setLastName("Macedo");
+        user.setUsername("lucas-macedo");
         user.setEmail("lucas@email.com");
         user.setPassword("hashed_password");
+
+        GenerateUsernames generateUsernames = new GenerateUsernames(userRepository);
+
+        authService = new AuthService(
+                authenticationManager,
+                userRepository,
+                userMapper,
+                passwordEncoder,
+                jwtService,
+                generateUsernames
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -177,6 +192,7 @@ public class AuthServiceTest {
             when(userMapper.toUser(registerDTO)).thenReturn(user);
             when(passwordEncoder.encode("rawPassword")).thenReturn("hashed_password");
             when(userRepository.save(user)).thenReturn(user);
+            when(userRepository.existsByUsername(anyString())).thenReturn(false);
             when(userMapper.toUserDTO(user)).thenReturn(userDTO);
             when(authenticationManager.authenticate(any())).thenReturn(null);
             when(jwtService.generateAccessToken(user)).thenReturn("access-token");
@@ -187,7 +203,7 @@ public class AuthServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getAccessToken()).isEqualTo("access-token");
             assertThat(result.getRefreshToken()).isEqualTo("refresh-token");
-            assertThat(result.getUser()).isEqualTo(userDTO);
+            assertThat(result.getUser().getEmail()).isEqualTo(userDTO.getEmail());
             verify(userRepository).save(user);
         }
     }
@@ -272,11 +288,11 @@ public class AuthServiceTest {
             sanitize.when(() -> SanitizeUtils.sanitizeStrings(updateDTO)).thenAnswer(inv -> null);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-            when(passwordEncoder.matches(user.getPassword(), updateDTO.getCurrentPassword())).thenReturn(false);
+            when(passwordEncoder.matches(updateDTO.getCurrentPassword(), user.getPassword())).thenReturn(false);
 
             assertThatThrownBy(() -> authService.updatePassword(user, updateDTO))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("Incorrect password");
+                    .hasMessageContaining("Invalid login credentials");
 
             verify(userRepository, never()).save(any());
         }

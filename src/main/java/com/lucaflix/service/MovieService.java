@@ -8,6 +8,7 @@ import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.movie.MovieCompleteDTO;
 import com.lucaflix.dto.response.movie.MovieSimpleDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.Movie;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.MovieRepository;
@@ -61,10 +62,10 @@ public class MovieService {
         User user = null;
         if (userRequest != null) {
             user = userRepository.findById(userRequest.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         }
         Movie movie = movieRepository.findById(mediaId)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
         return movieMapper.toComplete(movie, user);
     }
@@ -76,7 +77,7 @@ public class MovieService {
         if (size <= 0 || size > 100) {
             size = 30;
         }
-        Movie movie = movieRepository.findById(mediaId).orElseThrow(() -> new RuntimeException("Movie not found"));
+        Movie movie = movieRepository.findById(mediaId).orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
         Page<Movie> mediaPage = movieRepository.findSimilarMovie(movie.getCategories(), movie.getId(), pageable);
@@ -97,7 +98,7 @@ public class MovieService {
         SanitizeUtils.sanitizeStrings(updateDTO);
 
         Movie movie = movieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
         movieValidate.validUpdate(updateDTO, movie);
         movieRepository.save(movie);
@@ -107,7 +108,7 @@ public class MovieService {
 
     @Transactional
     public void deleteMovie(UUID id) {
-        movieRepository.findById(id).orElseThrow(() -> new RuntimeException("Movie not found"));
+        movieRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
         movieRepository.deleteById(id);
     }

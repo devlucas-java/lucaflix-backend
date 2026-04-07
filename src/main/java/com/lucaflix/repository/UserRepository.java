@@ -19,6 +19,7 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
 
     boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 
     @Query("SELECT u " +
             "FROM User u " +

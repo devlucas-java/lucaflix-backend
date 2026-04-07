@@ -8,9 +8,13 @@ import com.lucaflix.dto.request.auth.VerifyPasswordDTO;
 import com.lucaflix.dto.response.auth.JwtAuthDTO;
 import com.lucaflix.dto.response.others.BooleanDTO;
 import com.lucaflix.dto.response.user.UserDTO;
+import com.lucaflix.exception.ConflictException;
+import com.lucaflix.exception.InvalidCredentialsException;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.security.JwtService;
+import com.lucaflix.service.utils.GenerateUsernames;
 import com.lucaflix.service.utils.sanitize.SanitizeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +34,13 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final GenerateUsernames generateUsernames;
 
     public JwtAuthDTO login(LoginDTO request) {
 
         SanitizeUtils.sanitizeStrings(request);
         User user = userRepository.findByUsernameOrEmail(request.getLogin())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -63,13 +68,18 @@ public class AuthService {
         String hash = passwordEncoder.encode(request.getPassword());
         userRequest.setPassword(hash);
 
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new ConflictException("This email is already in use");
+        }
+        userRequest.setUsername(generateUsernames.generateRandomUsername(userRequest));
+
         User user = userRepository.save(userRequest);
         UserDTO response = userMapper.toUserDTO(user);
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         user.getEmail(),
-                        user.getPassword()
+                        userRequest.getPassword()
                 )
         );
         String jwt = jwtService.generateAccessToken(user);
@@ -85,12 +95,12 @@ public class AuthService {
     public void updatePassword(User userRequest, UpdatePasswordDTO request) {
 
         User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         SanitizeUtils.sanitizeStrings(request);
 
-        if (!passwordEncoder.matches(user.getPassword(), request.getCurrentPassword())) {
-            throw new RuntimeException("Incorrect password");
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException();
         }
 
         String hash = passwordEncoder.encode(request.getNewPassword());
@@ -102,7 +112,7 @@ public class AuthService {
     public BooleanDTO verifyPassword(User userRequest, VerifyPasswordDTO request) {
 
         User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         SanitizeUtils.sanitizeStrings(request);
 
@@ -111,7 +121,7 @@ public class AuthService {
                     .bool(false)
                     .build();
         }
-        ;
+
         return BooleanDTO.builder()
                 .bool(true)
                 .build();

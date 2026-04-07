@@ -6,12 +6,14 @@ import com.lucaflix.dto.request.others.FilterUserDTO;
 import com.lucaflix.dto.request.user.UpdateUserDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.user.UserDTO;
+import com.lucaflix.exception.ConflictException;
+import com.lucaflix.exception.ForbiddenException;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
 import com.lucaflix.repository.UserRepository;
 import com.lucaflix.service.utils.spec.UserSpecification;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,13 +36,13 @@ public class UserService {
 
     public UserDTO getMe(User userRequest) {
         User user = userRepository.findById(userRequest.getId()).
-                orElseThrow(() -> new RuntimeException("User not found"));
+                orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toUserDTO(user);
     }
 
     public UserDTO getUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return userMapper.toUserDTO(user);
     }
 
@@ -69,7 +71,7 @@ public class UserService {
             if (!userRequest.getUsername().equals(newUsername)
                     && userRepository.existsByUsername(newUsername)) {
 
-                throw new RuntimeException("Username is already in use");
+                throw new ConflictException("Username is already in use");
             }
             userRequest.setUsername(newUsername);
         }
@@ -79,7 +81,7 @@ public class UserService {
 
             if (!userRequest.getEmail().equalsIgnoreCase(newEmail)
                     && userRepository.existsByUsername(newEmail)) {
-                throw new RuntimeException("Email is already in use");
+                throw new ConflictException("Email is already in use");
             }
             userRequest.setEmail(newEmail);
         }
@@ -91,17 +93,17 @@ public class UserService {
     @Transactional
     public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         userRepository.delete(user);
     }
 
     public UserDTO demoteUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         if (user.getRole() == Role.USER) {
-            throw new RuntimeException("User already has the role lowest, USER");
+            throw new ConflictException("User already has the role lowest, USER");
         }
         if (user.getRole() == Role.ADMIN) {
             user.setRole(Role.USER);
@@ -115,10 +117,10 @@ public class UserService {
 
     public UserDTO promoteUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         if (user.getRole() == Role.SUPERADMIN) {
-            throw new RuntimeException("User already has max role, SUPERADMIN");
+            throw new ConflictException("User already has max role, SUPERADMIN");
         }
         if (user.getRole() == Role.ADMIN) {
             user.setRole(Role.SUPERADMIN);
@@ -132,10 +134,10 @@ public class UserService {
 
     public UserDTO LockeUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         if (user.getRole() == Role.SUPERADMIN) {
-            throw new RuntimeException("Not possible to block SUPERADMIN");
+            throw new ForbiddenException("Not possible to block SUPERADMIN");
         }
 
         user.setIsAccountLocked(true);
@@ -145,7 +147,7 @@ public class UserService {
 
     public UserDTO unLockUser(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         user.setIsAccountLocked(false);
         userRepository.save(user);
@@ -154,7 +156,7 @@ public class UserService {
 
     public UserDTO updatePlan(UUID id, Plan plan) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found by id"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found by id"));
 
         user.setPlan(plan);
         userRepository.save(user);

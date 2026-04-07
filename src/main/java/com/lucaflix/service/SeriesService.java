@@ -8,6 +8,7 @@ import com.lucaflix.dto.request.serie.UpdateSerieDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.serie.SerieCompleteDTO;
 import com.lucaflix.dto.response.serie.SerieSimpleDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.Series;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.SeriesRepository;
@@ -54,15 +55,15 @@ public class SeriesService {
     public SerieCompleteDTO getSeriesById(UUID id, User userRequest) {
         User user = null;
         if (userRequest != null) {
-            user = userRepository.findById(userRequest.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+            user = userRepository.findById(userRequest.getId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         }
-        Series series = seriesRepository.findById(id).orElseThrow(() -> new RuntimeException("Series not found"));
+        Series series = seriesRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Series not found"));
 
         return seriesMapper.toComplete(series, user);
     }
 
     public PaginatedResponseDTO<SerieSimpleDTO> getSimilarSeries(UUID id, int page, int size) {
-        Series series = seriesRepository.findById(id).orElseThrow(() -> new RuntimeException("Series not found"));
+        Series series = seriesRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Series not found"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "rating"));
         Page<Series> seriesPage = seriesRepository.findSimilarSeries(series.getCategories(), series.getId(), pageable);
@@ -81,7 +82,7 @@ public class SeriesService {
     public SerieCompleteDTO updateSeries(UpdateSerieDTO updateDTO, UUID id) {
         SanitizeUtils.sanitizeStrings(updateDTO);
 
-        Series series = seriesRepository.findById(id).orElseThrow(() -> new RuntimeException("Series not found"));
+        Series series = seriesRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Series not found"));
 
         seriesValidate.validUpdate(updateDTO, series);
         seriesRepository.save(series);
@@ -90,7 +91,7 @@ public class SeriesService {
     }
 
     public void deleteSeries(UUID id) {
-        Series series = seriesRepository.findById(id).orElseThrow(() -> new RuntimeException("Series not found"));
+        Series series = seriesRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Series not found"));
         seriesRepository.delete(series);
     }
 }

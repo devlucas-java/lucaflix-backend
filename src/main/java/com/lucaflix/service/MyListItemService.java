@@ -6,6 +6,7 @@ import com.lucaflix.dto.mapper.PageMapper;
 import com.lucaflix.dto.mapper.SeriesMapper;
 import com.lucaflix.dto.request.others.FilterDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.*;
 import com.lucaflix.model.enums.MediaType;
 import com.lucaflix.repository.*;
@@ -41,7 +42,7 @@ public class MyListItemService {
     public PaginatedResponseDTO<Object> getMyList(User userRequest, FilterDTO filter, int page, int size) {
         SanitizeUtils.sanitizeStrings(filter);
         User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("addedAt").descending());
         Page<MyListItem> itemPage = myListItemRepository.findByUser(user, pageable);
@@ -79,23 +80,23 @@ public class MyListItemService {
 
     public void addMyList(UUID contentId, User userRequest, MediaType type) {
         User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (type == null) {
-            throw new RuntimeException("Media type not found");
+            throw new IllegalArgumentException("Media type not found");
         }
         if (myListItemRepository.existsByUserAndContentIdAndType(user, contentId, type)) {
             return;
         }
         switch (type) {
             case MOVIE -> movieRepository.findById(contentId)
-                    .orElseThrow(() -> new RuntimeException("Movie not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Movie not found"));
 
             case SERIES -> seriesRepository.findById(contentId)
-                    .orElseThrow(() -> new RuntimeException("Series not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Series not found"));
 
             case ANIME -> animeRepository.findById(contentId)
-                    .orElseThrow(() -> new RuntimeException("Anime not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Anime not found"));
         }
         MyListItem item = new MyListItem();
         item.setUser(user);
@@ -108,13 +109,13 @@ public class MyListItemService {
 
     public void removeMyList(UUID contentId, User userRequest, MediaType type) {
         User user = userRepository.findById(userRequest.getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (type == null) {
-            throw new RuntimeException("Media type not found");
+            throw new IllegalArgumentException("Media type not found");
         }
         MyListItem item = myListItemRepository.findByUserAndContentIdAndType(user, contentId, type)
-                .orElseThrow(() -> new RuntimeException("Media not found in list"));
+                .orElseThrow(() -> new ResourceNotFoundException("Media not found in list"));
 
         myListItemRepository.delete(item);
     }

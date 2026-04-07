@@ -6,6 +6,7 @@ import com.lucaflix.dto.request.serie.CreateSeasonDTO;
 import com.lucaflix.dto.request.serie.UpdateSeasonDTO;
 import com.lucaflix.dto.response.serie.EpisodeDTO;
 import com.lucaflix.dto.response.serie.SeasonDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.Episode;
 import com.lucaflix.model.Season;
 import com.lucaflix.model.Series;
@@ -32,14 +33,14 @@ public class SeasonService {
 
     public SeasonDTO getSeason(Long id) {
         Season season = seasonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Season not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Season not found"));
         return seasonMapper.toDTO(season);
     }
 
     @Transactional
     public SeasonDTO createSeason(CreateSeasonDTO createDTO, UUID id) {
         Series series = seriesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Series not found"));
 
         SanitizeUtils.sanitizeStrings(createDTO);
         createDTO.getEpisodes().forEach(SanitizeUtils::sanitizeStrings);
@@ -68,7 +69,7 @@ public class SeasonService {
     @Transactional
     public SeasonDTO updateSeason(UpdateSeasonDTO updateDTO, Long id) {
         Season season = seasonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Season not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Season not found"));
 
         SanitizeUtils.sanitizeStrings(updateDTO);
         season.setNumberSeason(updateDTO.getNumberSeason());
@@ -80,7 +81,7 @@ public class SeasonService {
     @Transactional
     public void deleteSeason(Long id) {
         Season season = seasonRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Season not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Season not found"));
 
         seasonRepository.delete(season);
     }

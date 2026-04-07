@@ -2,7 +2,7 @@ spring:
   application:
     name: lucaflix-backend
   profiles:
-    active: dev
+    active: test
 
 server:
-  port: 8080
+  port: 8082

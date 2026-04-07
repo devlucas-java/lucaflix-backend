@@ -1,5 +1,6 @@
 package com.lucaflix.security;
 
+import com.lucaflix.exception.InvalidCredentialsException;
 import com.lucaflix.model.User;
 import com.lucaflix.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
 
         return userRepository.findByUsernameOrEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(InvalidCredentialsException::new);
     }
 }

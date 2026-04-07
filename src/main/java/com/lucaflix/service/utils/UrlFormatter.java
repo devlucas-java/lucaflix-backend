@@ -1,9 +1,8 @@
 package com.lucaflix.service.utils;
 
 import org.springframework.stereotype.Component;
+
 import java.text.Normalizer;
-import java.util.Calendar;
-import java.util.Date;
 
 @Component
 public class UrlFormatter {
