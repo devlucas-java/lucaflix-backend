@@ -40,7 +40,7 @@ public class AuthService {
 
         SanitizeUtils.sanitizeStrings(request);
         User user = userRepository.findByUsernameOrEmail(request.getLogin())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(InvalidCredentialsException::new);
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -116,7 +116,7 @@ public class AuthService {
 
         SanitizeUtils.sanitizeStrings(request);
 
-        if (!passwordEncoder.matches(user.getPassword(), request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return BooleanDTO.builder()
                     .bool(false)
                     .build();

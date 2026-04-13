@@ -1,4 +1,4 @@
-FROM maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
@@ -12,13 +12,14 @@ RUN mvn -B -q clean package
 
 
 FROM eclipse-temurin:21-jdk
+LABEL authors="devlucas-java"
 
 ENV APP_HOME=/app \
     SPRING_PROFILES_ACTIVE=prod
 
 WORKDIR $APP_HOME
 
-COPY --from=builder /build/target/*jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 
 RUN mkdir -p uploads
 
@@ -28,4 +29,4 @@ USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

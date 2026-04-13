@@ -6,11 +6,11 @@ import com.lucaflix.dto.request.others.FilterUserDTO;
 import com.lucaflix.dto.request.user.UpdateUserDTO;
 import com.lucaflix.dto.response.others.PaginatedResponseDTO;
 import com.lucaflix.dto.response.user.UserDTO;
+import com.lucaflix.exception.ResourceNotFoundException;
 import com.lucaflix.model.User;
 import com.lucaflix.model.enums.Plan;
 import com.lucaflix.model.enums.Role;
 import com.lucaflix.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -207,7 +207,7 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.deleteUser(userId))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("User not found by id");
     }
 

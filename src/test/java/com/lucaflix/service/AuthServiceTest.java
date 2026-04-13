@@ -147,8 +147,8 @@ public class AuthServiceTest {
             when(userRepository.findByUsernameOrEmail("unknown@email.com")).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.login(loginDTO))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("User not found");
+                    .isInstanceOf(InvalidCredentialsException.class)
+                    .hasMessageContaining("Invalid login credentials");
 
             verify(authenticationManager, never()).authenticate(any());
         }
@@ -267,7 +267,7 @@ public class AuthServiceTest {
             sanitize.when(() -> SanitizeUtils.sanitizeStrings(updateDTO)).thenAnswer(inv -> null);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-            when(passwordEncoder.matches(user.getPassword(), updateDTO.getCurrentPassword())).thenReturn(true);
+            when(passwordEncoder.matches(updateDTO.getCurrentPassword(), user.getPassword())).thenReturn(true);
             when(passwordEncoder.encode("newPassword")).thenReturn("new_hashed");
 
             authService.updatePassword(user, updateDTO);
@@ -326,7 +326,7 @@ public class AuthServiceTest {
             sanitize.when(() -> SanitizeUtils.sanitizeStrings(verifyDTO)).thenAnswer(inv -> null);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-            when(passwordEncoder.matches(user.getPassword(), verifyDTO.getPassword())).thenReturn(true);
+            when(passwordEncoder.matches(verifyDTO.getPassword(), user.getPassword())).thenReturn(true);
 
             BooleanDTO result = authService.verifyPassword(user, verifyDTO);
 
@@ -343,7 +343,7 @@ public class AuthServiceTest {
             sanitize.when(() -> SanitizeUtils.sanitizeStrings(verifyDTO)).thenAnswer(inv -> null);
 
             when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-            when(passwordEncoder.matches(user.getPassword(), verifyDTO.getPassword())).thenReturn(false);
+            when(passwordEncoder.matches(verifyDTO.getPassword(), user.getPassword())).thenReturn(false);
 
             BooleanDTO result = authService.verifyPassword(user, verifyDTO);
 
